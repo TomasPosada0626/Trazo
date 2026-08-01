@@ -66,11 +66,35 @@ src/
 ├── router/       # Configuración de rutas
 ├── stores/       # Estado global (Pinia)
 ├── services/     # Acceso a datos (LocalStorage)
-├── models/       # Clases del dominio (Usuario, Proyecto, Tarea, etc.)
-└── assets/       # Estilos globales y recursos estáticos
+├── models/       # Clases del dominio (Project, Sprint, User, Task)
+├── utils/        # Funciones puras reutilizables (formateo, validaciones, etc.)
+├── styles/       # Estilos CSS globales
+└── assets/       # Recursos estáticos (imágenes, íconos)
 ```
 
 Las reglas de organización del código están detalladas en [Reglas de programación](https://github.com/Tomasposada26/Trazo/wiki/Reglas-de-programaci%C3%B3n).
+
+## Módulos principales del sistema
+
+- **Autenticación**: login, gestión de sesión en LocalStorage y protección de rutas.
+- **Proyectos**: CRUD de proyectos.
+- **Tareas**: CRUD de tareas, asociadas a un proyecto.
+- **Panel administrativo**: indicadores, filtros y gráficos (Chart.js) visibles solo para administradores.
+- **Componentes reutilizables**: tabla, selector/filtro y gráfico, usados por los módulos anteriores.
+
+## Flujo de navegación entre vistas
+
+Estado actual: solo existen las rutas `Home` y `Login` (base de la issue #2). El siguiente diagrama documenta el flujo objetivo a medida que se implementen las issues #4 a #10.
+
+```mermaid
+flowchart TD
+    Login -->|autenticado| Home
+    Home --> Proyectos
+    Home --> Tareas
+    Proyectos --> ProyectoDetalle["Detalle / edición de proyecto"]
+    Tareas --> TareaDetalle["Detalle / edición de tarea"]
+    Home -->|solo administrador| Panel["Panel administrativo"]
+```
 
 ## Equipo
 
