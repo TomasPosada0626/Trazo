@@ -10,7 +10,7 @@ interface NavItem {
   to: string;
   /** SVG path data for the 24x24 outline icon. */
   icon: string;
-  /** Renders the padlock badge. Purely decorative until the guard exists. */
+  /** Renders the padlock badge. Matches the route's requiresAdmin guard. */
   adminOnly?: boolean;
 }
 
