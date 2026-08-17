@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
-import { useAuthStore } from '@/stores/authStore';
+import { AuthService } from '@/services/authService';
 import { USER_ROLE } from '@/utils/labels';
 
 interface NavItem {
@@ -63,10 +63,9 @@ const groups: NavGroup[] = [
 ];
 
 const router = useRouter();
-const authStore = useAuthStore();
 
 const currentUser = computed(() => {
-  const user = authStore.currentUser;
+  const user = AuthService.getCurrentUser();
   if (!user) return null;
 
   return {
@@ -81,7 +80,7 @@ const currentUser = computed(() => {
 });
 
 function handleLogout(): void {
-  authStore.logout();
+  AuthService.logout();
   router.push({ name: 'login' });
 }
 </script>

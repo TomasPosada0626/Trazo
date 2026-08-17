@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import AppLayout from '@/layouts/AppLayout.vue';
-import { useAuthStore } from '@/stores/authStore';
+import { AuthService } from '@/services/authService';
 import DashboardView from '@/views/DashboardView.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
@@ -106,15 +106,17 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const authStore = useAuthStore();
+  const currentUser = AuthService.getCurrentUser();
+  const isAuthenticated = currentUser !== undefined;
+  const isAdmin = currentUser?.role === 'admin';
 
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return authStore.isAuthenticated ? { name: 'dashboard' } : { name: 'login' };
+  if (to.meta.requiresAdmin && !isAdmin) {
+    return isAuthenticated ? { name: 'dashboard' } : { name: 'login' };
   }
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated) {
     return { name: 'login' };
   }
-  if (to.meta.guestOnly && authStore.isAuthenticated) {
+  if (to.meta.guestOnly && isAuthenticated) {
     return { name: 'dashboard' };
   }
 
