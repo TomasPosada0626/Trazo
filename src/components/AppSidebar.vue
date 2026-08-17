@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import { computed } from 'vue';
+import { RouterLink, useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
+import { useAuthStore } from '@/stores/authStore';
+import { USER_ROLE } from '@/utils/labels';
 
 interface NavItem {
   label: string;
@@ -59,8 +62,28 @@ const groups: NavGroup[] = [
   },
 ];
 
-// Placeholder session. Replaced by AuthService.getCurrentUser() later.
-const currentUser = { name: 'Ana Duarte', role: 'Administrador', initials: 'AD' };
+const router = useRouter();
+const authStore = useAuthStore();
+
+const currentUser = computed(() => {
+  const user = authStore.currentUser;
+  if (!user) return null;
+
+  return {
+    name: user.name,
+    roleLabel: USER_ROLE[user.role].text,
+    initials: user.name
+      .split(' ')
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join(''),
+  };
+});
+
+function handleLogout(): void {
+  authStore.logout();
+  router.push({ name: 'login' });
+}
 </script>
 
 <template>
@@ -120,16 +143,23 @@ const currentUser = { name: 'Ana Duarte', role: 'Administrador', initials: 'AD' 
 
     <div class="mx-5 border-t border-white/10"></div>
 
-    <div class="flex items-center gap-3 px-5 py-4">
+    <div v-if="currentUser" class="flex items-center gap-3 px-5 py-4">
       <span
         class="grid size-8 shrink-0 place-items-center rounded-full bg-white/15 text-xs font-semibold"
       >
         {{ currentUser.initials }}
       </span>
-      <span class="leading-tight">
-        <span class="block text-sm font-medium">{{ currentUser.name }}</span>
-        <span class="block text-[11px] text-white/50">{{ currentUser.role }}</span>
+      <span class="min-w-0 flex-1 leading-tight">
+        <span class="block truncate text-sm font-medium">{{ currentUser.name }}</span>
+        <span class="block text-[11px] text-white/50">{{ currentUser.roleLabel }}</span>
       </span>
+      <button
+        type="button"
+        class="shrink-0 text-[11px] font-medium text-white/50 transition-colors hover:text-white"
+        @click="handleLogout"
+      >
+        Salir
+      </button>
     </div>
   </aside>
 </template>

@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
+import { useAuthStore } from '@/stores/authStore';
 
 const email = ref('');
 const password = ref('');
 const error = ref('');
 
-/**
- * Handles the login form submission.
- * Placeholder: real authentication goes through AuthService.login() once the
- * auth store and user seeder exist.
- */
+const router = useRouter();
+const authStore = useAuthStore();
+
+/** Handles the login form submission via the auth store. */
 function handleSubmit(): void {
   error.value = '';
-  console.log('Login placeholder:', { email: email.value, password: password.value });
+  try {
+    authStore.login(email.value, password.value);
+    router.push({ name: 'dashboard' });
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'No fue posible iniciar sesión.';
+  }
 }
 </script>
 

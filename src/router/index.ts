@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import AppLayout from '@/layouts/AppLayout.vue';
+import { useAuthStore } from '@/stores/authStore';
 import DashboardView from '@/views/DashboardView.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
@@ -19,6 +20,12 @@ declare module 'vue-router' {
     // Breadcrumb shown in the app layout's topbar: "title / section".
     title?: string;
     section?: string;
+    // Redirects to Login when there's no active session.
+    requiresAuth?: boolean;
+    // Redirects non-admins to the Dashboard. Implies requiresAuth.
+    requiresAdmin?: boolean;
+    // Redirects already-authenticated users away from Login.
+    guestOnly?: boolean;
   }
 }
 
@@ -34,14 +41,15 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
-      meta: { hideHeader: true },
+      meta: { hideHeader: true, guestOnly: true },
     },
     {
       // Authenticated area. The layout owns the sidebar and topbar, so the
-      // marketing header is suppressed for every child route.
+      // marketing header is suppressed for every child route. requiresAuth
+      // is set once here and inherited by every child via the merged meta.
       path: '/app',
       component: AppLayout,
-      meta: { hideHeader: true },
+      meta: { hideHeader: true, requiresAuth: true },
       children: [
         { path: '', redirect: { name: 'dashboard' } },
         {
@@ -54,13 +62,13 @@ const router = createRouter({
           path: 'projects',
           name: 'projects',
           component: ProjectsIndexView,
-          meta: { title: 'Proyectos', section: 'gestión' },
+          meta: { title: 'Proyectos', section: 'gestión', requiresAdmin: true },
         },
         {
           path: 'projects/new',
           name: 'projects-create',
           component: ProjectsCreateView,
-          meta: { title: 'Proyectos', section: 'nuevo' },
+          meta: { title: 'Proyectos', section: 'nuevo', requiresAdmin: true },
         },
         {
           path: 'sprints',
@@ -84,17 +92,33 @@ const router = createRouter({
           path: 'users',
           name: 'users',
           component: UsersIndexView,
-          meta: { title: 'Usuarios', section: 'gestión' },
+          meta: { title: 'Usuarios', section: 'gestión', requiresAdmin: true },
         },
         {
           path: 'users/new',
           name: 'users-create',
           component: UsersCreateView,
-          meta: { title: 'Usuarios', section: 'nuevo' },
+          meta: { title: 'Usuarios', section: 'nuevo', requiresAdmin: true },
         },
       ],
     },
   ],
+});
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return authStore.isAuthenticated ? { name: 'dashboard' } : { name: 'login' };
+  }
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { name: 'login' };
+  }
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    return { name: 'dashboard' };
+  }
+
+  return true;
 });
 
 export default router;
