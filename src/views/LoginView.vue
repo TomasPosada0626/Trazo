@@ -1,61 +1,93 @@
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue';
+import BrandMark from '@/components/BrandMark.vue';
 
-const email = ref('')
-const password = ref('')
+const email = ref('');
+const password = ref('');
+const error = ref('');
 
 /**
- * Maneja el envío del formulario de login.
- * Vista temporal: la autenticación real contra LocalStorage se implementa en la issue #5.
- * @returns {void}
+ * Handles the login form submission.
+ * Placeholder: real authentication goes through AuthService.login() once the
+ * auth store and user seeder exist.
  */
-function handleSubmit() {
-  console.log('Login temporal:', { email: email.value, password: password.value })
+function handleSubmit(): void {
+  error.value = '';
+  console.log('Login placeholder:', { email: email.value, password: password.value });
 }
 </script>
 
 <template>
-  <main class="login-view">
-    <h1>Iniciar sesión</h1>
-    <p>Vista Login temporal — la autenticación real se implementa en la issue #5.</p>
+  <main class="flex min-h-screen items-center justify-center px-6 py-16">
+    <div class="w-full max-w-md border border-line bg-paper p-8 shadow-sm sm:p-10">
+      <div class="flex items-center gap-2.5">
+        <BrandMark class="size-7 shrink-0 text-accent" />
+        <span class="text-2xl font-bold tracking-tight">Trazo</span>
+      </div>
 
-    <form class="login-form" @submit.prevent="handleSubmit">
-      <label for="email">Correo electrónico</label>
-      <input id="email" v-model="email" type="email" required />
+      <p class="mt-5 text-sm leading-relaxed text-ink-soft">
+        Ingresa con tu cuenta para ver tus proyectos y sprints.
+      </p>
 
-      <label for="password">Contraseña</label>
-      <input id="password" v-model="password" type="password" required />
+      <form class="mt-6 space-y-5" @submit.prevent="handleSubmit">
+        <div>
+          <label for="email" class="block text-sm font-medium">Correo electrónico</label>
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="admin@trazo.com"
+            class="mt-2 w-full border border-line px-3 py-2.5 text-sm placeholder:text-ink-soft/60 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+          />
+        </div>
 
-      <button type="submit">Iniciar sesión</button>
-    </form>
+        <div>
+          <label for="password" class="block text-sm font-medium">Contraseña</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="mt-2 w-full border border-line px-3 py-2.5 text-sm placeholder:text-ink-soft/60 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+          />
+        </div>
+
+        <p v-if="error" class="border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent">
+          {{ error }}
+        </p>
+
+        <button
+          type="submit"
+          class="w-full bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+        >
+          Iniciar sesión
+        </button>
+      </form>
+
+      <div class="mt-6 border border-dashed border-line p-4 text-xs leading-relaxed text-ink-soft">
+        <p>
+          <code class="font-mono font-semibold text-ink">trazoState.user</code>
+          — cuentas de prueba precargadas:
+        </p>
+        <ul class="mt-2 space-y-0.5">
+          <li>
+            <code class="font-mono font-semibold text-ink">admin@trazo.com</code>
+            · rol: Administrador
+          </li>
+          <li>
+            <code class="font-mono font-semibold text-ink">maria@trazo.com</code>
+            · rol: Miembro de equipo
+          </li>
+        </ul>
+        <p class="mt-3">
+          Las credenciales se validan contra un arreglo de usuarios ficticios guardado en
+          LocalStorage al cargar la app.
+        </p>
+      </div>
+    </div>
   </main>
 </template>
-
-<style scoped>
-.login-view {
-  max-width: 320px;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-  text-align: center;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  text-align: left;
-}
-
-.login-form input {
-  padding: 0.5rem;
-  font-size: 1rem;
-}
-
-.login-form button {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-}
-</style>

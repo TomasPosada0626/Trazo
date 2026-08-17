@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+/* Trazo design tokens. Declaring them in @theme makes Tailwind generate the
+   matching utilities (text-ink, bg-accent, border-line, ...). */
+@theme {
+  --color-ink: #0d3355;
+  --color-ink-soft: #5a7591;
+  --color-accent: #d1521d;
+  --color-line: #dbe3ec;
+  --color-paper: #ffffff;
+}
+
+/* Router link states.
+   nav-current -> exact match only, for top-level links like Home.
+   nav-section -> prefix match, so /app/projects/new keeps "Proyectos" lit. */
+@custom-variant nav-current (&.router-link-exact-active);
+@custom-variant nav-section (&.router-link-active);
+
+/* Blueprint-style grid background. */
+@utility grid-paper {
+  background-image:
+    linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
