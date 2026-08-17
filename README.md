@@ -1,12 +1,12 @@
 # Trazo
 
-**Planifica. Organiza. Entrega.**
+**Plan. Organize. Deliver.**
 
-Trazo es una aplicación web de gestión de proyectos y tareas, desarrollada en **Vue 3** como MVP para el curso de Ingeniería de Software para Aplicaciones Web. La persistencia de datos se maneja mediante **LocalStorage** en el navegador, sin necesidad de un backend para esta primera entrega.
+Trazo is a project and task management web application, built with **Vue 3** as an MVP for the Software Engineering for Web Applications course. Data persistence is handled via **LocalStorage** in the browser, with no backend required for this first delivery.
 
-Más contexto del proyecto (modelo verbal, diagrama de clases, diagrama de arquitectura, reglas de programación) está documentado en la [Wiki del repositorio](https://github.com/Tomasposada26/Trazo/wiki).
+More project context (verbal model, class diagram, architecture diagram, programming rules) is documented in the [repository Wiki](https://github.com/TomasPosada0626/Trazo/wiki).
 
-## Tecnologías utilizadas
+## Technologies used
 
 - [Vue 3](https://vuejs.org/) (Composition API)
 - [Vite](https://vite.dev/)
@@ -15,89 +15,89 @@ Más contexto del proyecto (modelo verbal, diagrama de clases, diagrama de arqui
 - [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)
 - [Chart.js](https://www.chartjs.org/)
 
-## Requisitos previos
+## Prerequisites
 
-- [Node.js](https://nodejs.org/) versión 22.18 o superior (o 24.12+)
+- [Node.js](https://nodejs.org/) version 22.18 or higher (or 24.12+)
 - npm
 
-## Instalación
+## Installation
 
 ```sh
 npm install
 ```
 
-## Ejecución en modo desarrollo
+## Running in development mode
 
 ```sh
 npm run dev
 ```
 
-Esto levanta el servidor de desarrollo (por defecto en `http://localhost:5173`). La ruta principal de la aplicación es `/`, que carga la vista **Home**.
+This starts the development server (by default at `http://localhost:5173`). The application's main route is `/`, which loads the **Home** view.
 
-## Compilar para producción
+## Building for production
 
 ```sh
 npm run build
 ```
 
-Los archivos generados quedan en la carpeta `dist/`.
+The generated files are placed in the `dist/` folder.
 
-## Previsualizar el build de producción
+## Previewing the production build
 
 ```sh
 npm run preview
 ```
 
-## Linter y formateo
+## Linting and formatting
 
 ```sh
 npm run lint
 npm run format
 ```
 
-Antes de cada `push` se debe ejecutar `npm run lint` y `npm run format` sin errores (ver [Guía de estilo de programación](https://github.com/Tomasposada26/Trazo/wiki/Gu%C3%ADa-de-estilo-de-programaci%C3%B3n) en la Wiki).
+Before every `push`, `npm run lint` and `npm run format` must run without errors (see the [Programming Style Guide](https://github.com/TomasPosada0626/Trazo/wiki/Programming-Style-Guide) in the Wiki).
 
-## Estructura del proyecto
+## Project structure
 
 ```
 src/
-├── components/   # Componentes reutilizables (tablas, filtros, gráficos, etc.)
-├── views/        # Vistas / páginas (Single File Components)
-├── router/       # Configuración de rutas
-├── stores/       # Estado global (Pinia)
-├── services/     # Acceso a datos (LocalStorage)
-├── models/       # Clases del dominio (Project, Sprint, User, Task)
-├── utils/        # Funciones puras reutilizables (formateo, validaciones, etc.)
-├── styles/       # Estilos CSS globales
-└── assets/       # Recursos estáticos (imágenes, íconos)
+├── components/   # Reusable components (tables, filters, charts, etc.)
+├── views/        # Views / pages (Single File Components)
+├── router/       # Route configuration
+├── stores/       # Global state (Pinia)
+├── services/     # Data access (LocalStorage)
+├── models/       # Domain classes (Project, Sprint, User, Task)
+├── utils/        # Reusable pure functions (formatting, validation, etc.)
+├── styles/       # Global CSS styles
+└── assets/       # Static assets (images, icons)
 ```
 
-Las reglas de organización del código están detalladas en [Reglas de programación](https://github.com/Tomasposada26/Trazo/wiki/Reglas-de-programaci%C3%B3n).
+Code organization rules are detailed in [Programming Rules](https://github.com/TomasPosada0626/Trazo/wiki/Programming-Rules).
 
-## Módulos principales del sistema
+## Main system modules
 
-- **Autenticación**: login, gestión de sesión en LocalStorage y protección de rutas.
-- **Proyectos**: CRUD de proyectos.
-- **Tareas**: CRUD de tareas, asociadas a un proyecto.
-- **Panel administrativo**: indicadores, filtros y gráficos (Chart.js) visibles solo para administradores.
-- **Componentes reutilizables**: tabla, selector/filtro y gráfico, usados por los módulos anteriores.
+- **Authentication**: login, session management in LocalStorage, and route protection.
+- **Projects**: project CRUD.
+- **Tasks**: task CRUD, associated with a project.
+- **Admin panel**: indicators, filters, and charts (Chart.js) visible only to administrators.
+- **Reusable components**: table, selector/filter, and chart, used by the modules above.
 
-## Flujo de navegación entre vistas
+## Navigation flow between views
 
-Estado actual: solo existen las rutas `Home` y `Login` (base de la issue #2). El siguiente diagrama documenta el flujo objetivo a medida que se implementen las issues #4 a #10.
+Current state: only the `Home` and `Login` routes exist (base of issue #2). The diagram below documents the target flow as issues #4 through #10 are implemented.
 
 ```mermaid
 flowchart TD
-    Login -->|autenticado| Home
-    Home --> Proyectos
-    Home --> Tareas
-    Proyectos --> ProyectoDetalle["Detalle / edición de proyecto"]
-    Tareas --> TareaDetalle["Detalle / edición de tarea"]
-    Home -->|solo administrador| Panel["Panel administrativo"]
+    Login -->|authenticated| Home
+    Home --> Projects
+    Home --> Tasks
+    Projects --> ProjectDetail["Project detail / edit"]
+    Tasks --> TaskDetail["Task detail / edit"]
+    Home -->|admin only| Panel["Admin panel"]
 ```
 
-## Equipo
+## Team
 
 - Mateo
 - Hever
-- Tomás Posada (Arquitecto)
+- Tomás Posada (Architect)
