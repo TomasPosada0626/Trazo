@@ -2,20 +2,19 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
-import { useAuthStore } from '@/stores/authStore';
+import { AuthService } from '@/services/authService';
 
 const email = ref('');
 const password = ref('');
 const error = ref('');
 
 const router = useRouter();
-const authStore = useAuthStore();
 
-/** Handles the login form submission via the auth store. */
+/** Handles the login form submission via AuthService. */
 function handleSubmit(): void {
   error.value = '';
   try {
-    authStore.login(email.value, password.value);
+    AuthService.login(email.value, password.value);
     router.push({ name: 'dashboard' });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'No fue posible iniciar sesión.';
