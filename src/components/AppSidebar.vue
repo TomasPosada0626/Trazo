@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
-import { AuthService } from '@/services/authService';
+import { AuthService } from '@/services/AuthService';
 import { USER_ROLE } from '@/utils/labels';
 
 interface NavItem {

@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
-import { AuthService } from '@/services/authService';
+import { AuthService } from '@/services/AuthService';
 
 const email = ref('');
 const password = ref('');

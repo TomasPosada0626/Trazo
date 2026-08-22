@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import AppLayout from '@/layouts/AppLayout.vue';
-import { AuthService } from '@/services/authService';
+import { AuthService } from '@/services/AuthService';
 import DashboardView from '@/views/DashboardView.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
