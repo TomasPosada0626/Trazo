@@ -62,7 +62,7 @@ function handleRemove(userId: string): void {
         <span class="min-w-0 leading-tight">
           <span class="block truncate text-sm font-medium">
             {{ member.name }}
-            <span v-if="member.id === currentUserId" class="text-ink-soft">(tú)</span>
+            <span v-if="member.id === currentUserId" class="text-ink-soft">(you)</span>
           </span>
           <span class="block truncate text-xs text-ink-soft">{{ member.email }}</span>
         </span>
@@ -82,12 +82,12 @@ function handleRemove(userId: string): void {
           :disabled="!canRemove(member.id)"
           :title="
             canRemove(member.id)
-              ? 'Quitar del proyecto'
-              : 'No puedes quitarte a ti mismo: elimina el proyecto para salir'
+              ? 'Remove from project'
+              : 'You cannot remove yourself: delete the project to leave it'
           "
           @click="handleRemove(member.id)"
         >
-          Quitar
+          Remove
         </button>
       </li>
     </ul>
@@ -96,7 +96,7 @@ function handleRemove(userId: string): void {
       <SelectField
         id="project-add-member"
         v-model="selectedUserId"
-        label="Agregar miembro"
+        label="Add member"
         :options="userOptions"
         class="flex-1"
       />
@@ -105,11 +105,11 @@ function handleRemove(userId: string): void {
         class="bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         @click="handleAdd"
       >
-        Agregar
+        Add
       </button>
     </div>
     <p v-else class="text-sm text-ink-soft">
-      Todos los usuarios registrados ya pertenecen a este proyecto.
+      Every registered user already belongs to this project.
     </p>
   </div>
 </template>

@@ -15,15 +15,15 @@ const committedPoints = ref('');
 const status = ref('planned');
 
 const projectOptions = [
-  { value: 'PRJ-01', label: 'Rediseño App Móvil' },
-  { value: 'PRJ-02', label: 'Portal de Clientes' },
-  { value: 'PRJ-03', label: 'Migración a Cloud' },
+  { value: 'PRJ-01', label: 'Mobile App Redesign' },
+  { value: 'PRJ-02', label: 'Customer Portal' },
+  { value: 'PRJ-03', label: 'Cloud Migration' },
 ];
 
 const statusOptions = [
-  { value: 'planned', label: 'Planeado' },
-  { value: 'active', label: 'En curso' },
-  { value: 'completed', label: 'Cerrado' },
+  { value: 'planned', label: 'Planned' },
+  { value: 'active', label: 'In progress' },
+  { value: 'completed', label: 'Closed' },
 ];
 
 /** Placeholder: SprintService.create() takes over in the services slice. */
@@ -43,58 +43,58 @@ function handleSubmit(): void {
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Nuevo sprint"
-      subtitle="Define el objetivo, la ventana de fechas y los puntos comprometidos."
+      title="New sprint"
+      subtitle="Define the goal, the date window and the committed points."
     />
 
-    <PanelCard title="Datos del sprint" padded class="max-w-2xl">
+    <PanelCard title="Sprint details" padded class="max-w-2xl">
       <form class="space-y-5" @submit.prevent="handleSubmit">
         <TextField
           id="sprint-name"
           v-model="name"
-          label="Nombre"
-          placeholder="Ej. Onboarding v2"
+          label="Name"
+          placeholder="e.g. Onboarding v2"
           required
         />
         <TextField
           id="sprint-goal"
           v-model="goal"
-          label="Objetivo"
-          placeholder="Qué busca lograr el sprint"
+          label="Goal"
+          placeholder="What the sprint aims to achieve"
         />
         <SelectField
           id="sprint-project"
           v-model="projectId"
-          label="Proyecto"
+          label="Project"
           :options="projectOptions"
         />
 
         <div class="grid gap-5 sm:grid-cols-2">
-          <TextField id="sprint-start" v-model="startDate" label="Fecha de inicio" type="date" />
-          <TextField id="sprint-end" v-model="endDate" label="Fecha de cierre" type="date" />
+          <TextField id="sprint-start" v-model="startDate" label="Start date" type="date" />
+          <TextField id="sprint-end" v-model="endDate" label="End date" type="date" />
         </div>
 
         <TextField
           id="sprint-points"
           v-model="committedPoints"
-          label="Puntos comprometidos"
+          label="Committed points"
           type="number"
           placeholder="0"
         />
-        <SelectField id="sprint-status" v-model="status" label="Estado" :options="statusOptions" />
+        <SelectField id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
 
         <div class="flex items-center gap-3 pt-2">
           <button
             type="submit"
             class="bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
           >
-            Guardar sprint
+            Save sprint
           </button>
           <RouterLink
             to="/app/sprints"
             class="border border-line px-5 py-2.5 text-sm font-medium transition-colors hover:border-ink"
           >
-            Cancelar
+            Cancel
           </RouterLink>
         </div>
       </form>

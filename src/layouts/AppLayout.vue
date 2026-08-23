@@ -24,7 +24,7 @@ const route = useRoute();
         <button
           type="button"
           class="grid size-9 place-items-center border border-line text-ink-soft transition-colors hover:border-ink-soft hover:text-ink"
-          aria-label="Notificaciones"
+          aria-label="Notifications"
         >
           <svg
             viewBox="0 0 24 24"

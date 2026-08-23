@@ -8,15 +8,15 @@ const sprintFilter = ref('spr-08');
 
 const sprintOptions = [
   { value: 'spr-08', label: 'SPR-08 · Onboarding v2' },
-  { value: 'spr-09', label: 'SPR-09 · Notificaciones push' },
+  { value: 'spr-09', label: 'SPR-09 · Push notifications' },
 ];
 </script>
 
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Tablero de Tareas"
-      subtitle="Crea, asigna y actualiza el estado de cada tarea (entidad Task) dentro del sprint activo."
+      title="Task board"
+      subtitle="Create, assign and update the status of each task (Task entity) within the active sprint."
     >
       <template #actions>
         <SelectField
@@ -31,7 +31,7 @@ const sprintOptions = [
           type="button"
           class="bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          + Nueva tarea
+          + New task
         </button>
       </template>
     </PageHeader>

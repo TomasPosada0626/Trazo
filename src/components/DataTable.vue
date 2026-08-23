@@ -6,7 +6,7 @@ export interface DataTableColumn {
   class?: string;
 }
 
-const { emptyMessage = 'No hay registros para mostrar.' } = defineProps<{
+const { emptyMessage = 'No records to display.' } = defineProps<{
   columns: DataTableColumn[];
   rows: T[];
   emptyMessage?: string;

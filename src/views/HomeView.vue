@@ -7,22 +7,22 @@ interface Feature {
 
 const features: Feature[] = [
   {
-    label: 'Proyectos',
-    title: 'Un plano por proyecto',
+    label: 'Projects',
+    title: 'One blueprint per project',
     description:
-      'Define alcance, estado y avance general. Cada proyecto agrupa sus propios sprints y su equipo asignado.',
+      'Define scope, status and overall progress. Each project groups its own sprints and its assigned team.',
   },
   {
     label: 'Sprints',
-    title: 'Velocidad visible',
+    title: 'Visible velocity',
     description:
-      'Compara puntos comprometidos contra puntos completados y conoce los días restantes de cada sprint.',
+      'Compare committed points against completed points and see how many days each sprint has left.',
   },
   {
-    label: 'Tareas',
-    title: 'Tablero por estado',
+    label: 'Tasks',
+    title: 'Board by status',
     description:
-      'Mueve tareas entre "Por hacer", "En progreso" y "Hecho", con prioridad y responsable siempre a la vista.',
+      'Move tasks between "To do", "In progress" and "Done", with priority and assignee always in view.',
   },
 ];
 </script>
@@ -31,18 +31,18 @@ const features: Feature[] = [
   <main class="mx-auto max-w-6xl px-6">
     <section class="py-20 sm:py-28">
       <p class="font-mono text-xs tracking-[0.25em] text-accent uppercase">
-        # PRJ · SPR · TASK — un solo plano
+        # PRJ · SPR · TASK — one single blueprint
       </p>
 
       <h1
         class="mt-6 max-w-2xl text-4xl leading-[1.05] font-bold tracking-tight text-balance sm:text-6xl"
       >
-        Cada sprint, medido como un plano de obra.
+        Every sprint, measured like a construction blueprint.
       </h1>
 
       <p class="mt-6 max-w-md text-base leading-relaxed text-ink-soft">
-        Trazo organiza proyectos, sprints y tareas en un mismo tablero: define el alcance, sigue la
-        velocidad del equipo y cierra tareas sin perder de vista el avance real.
+        Trazo organizes projects, sprints and tasks on a single board: define the scope, track the
+        team's velocity and close tasks without losing sight of real progress.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-3">
@@ -50,13 +50,13 @@ const features: Feature[] = [
           to="/login"
           class="bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          Entrar al sistema
+          Enter the app
         </RouterLink>
         <a
           href="#features"
           class="border border-line px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-ink"
         >
-          Ver cómo funciona
+          See how it works
         </a>
       </div>
     </section>

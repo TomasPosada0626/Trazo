@@ -5,9 +5,9 @@ import type { TaskPriority, TaskStatus } from '@/interfaces/TaskInterface';
 import type { UserRole } from '@/interfaces/UserInterface';
 
 /**
- * Presentation mapping: turns the English enum values stored in state into the
- * Spanish copy shown in the UI, plus the badge tone each one should use.
- * Kept out of the services, which stay free of display concerns.
+ * Presentation mapping: turns the enum values stored in state into the copy
+ * shown in the UI, plus the badge tone each one should use. Kept out of the
+ * services, which stay free of display concerns.
  */
 export interface LabelDescriptor {
   text: string;
@@ -15,33 +15,33 @@ export interface LabelDescriptor {
 }
 
 export const PROJECT_STATUS: Record<ProjectStatus, LabelDescriptor> = {
-  planning: { text: 'Planeado', tone: 'neutral' },
-  active: { text: 'Activo', tone: 'positive' },
-  at_risk: { text: 'En riesgo', tone: 'warning' },
-  paused: { text: 'En pausa', tone: 'neutral' },
-  completed: { text: 'Cerrado', tone: 'neutral' },
+  planning: { text: 'Planned', tone: 'neutral' },
+  active: { text: 'Active', tone: 'positive' },
+  at_risk: { text: 'At risk', tone: 'warning' },
+  paused: { text: 'Paused', tone: 'neutral' },
+  completed: { text: 'Closed', tone: 'neutral' },
 };
 
 export const SPRINT_STATUS: Record<SprintStatus, LabelDescriptor> = {
-  planned: { text: 'Planeado', tone: 'neutral' },
-  active: { text: 'En curso', tone: 'warning' },
-  completed: { text: 'Cerrado', tone: 'neutral' },
+  planned: { text: 'Planned', tone: 'neutral' },
+  active: { text: 'In progress', tone: 'warning' },
+  completed: { text: 'Closed', tone: 'neutral' },
 };
 
 export const TASK_STATUS: Record<TaskStatus, LabelDescriptor> = {
-  todo: { text: 'Por hacer', tone: 'neutral' },
-  in_progress: { text: 'En progreso', tone: 'warning' },
-  done: { text: 'Hecho', tone: 'positive' },
+  todo: { text: 'To do', tone: 'neutral' },
+  in_progress: { text: 'In progress', tone: 'warning' },
+  done: { text: 'Done', tone: 'positive' },
 };
 
 export const TASK_PRIORITY: Record<TaskPriority, LabelDescriptor> = {
-  low: { text: 'Baja', tone: 'neutral' },
-  medium: { text: 'Media', tone: 'neutral' },
-  high: { text: 'Alta', tone: 'danger' },
-  critical: { text: 'Crítica', tone: 'danger' },
+  low: { text: 'Low', tone: 'neutral' },
+  medium: { text: 'Medium', tone: 'neutral' },
+  high: { text: 'High', tone: 'danger' },
+  critical: { text: 'Critical', tone: 'danger' },
 };
 
 export const USER_ROLE: Record<UserRole, LabelDescriptor> = {
-  admin: { text: 'Administrador', tone: 'positive' },
-  member: { text: 'Miembro', tone: 'neutral' },
+  admin: { text: 'Administrator', tone: 'positive' },
+  member: { text: 'Member', tone: 'neutral' },
 };

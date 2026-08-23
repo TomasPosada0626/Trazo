@@ -22,5 +22,5 @@ export const userSeeder: UserInterface[] = [
     email: 'juan@trazo.com',
     password: 'admin123',
     role: 'admin',
-  }
+  },
 ];

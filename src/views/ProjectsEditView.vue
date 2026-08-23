@@ -37,36 +37,36 @@ function handleSubmit(values: ProjectFormValues): void {
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Editar proyecto"
-      subtitle="Actualiza el nombre, la descripción o el estado del proyecto."
+      title="Edit project"
+      subtitle="Update the project's name, description or status."
       admin-only
     />
 
-    <PanelCard v-if="project" title="Datos del proyecto" padded class="max-w-2xl">
+    <PanelCard v-if="project" title="Project details" padded class="max-w-2xl">
       <ProjectForm
         :initial-values="{
           name: project.name,
           description: project.description,
           status: project.status,
         }"
-        submit-label="Guardar cambios"
+        submit-label="Save changes"
         @submit="handleSubmit"
       />
     </PanelCard>
 
-    <PanelCard v-if="project" title="Miembros del proyecto" padded class="max-w-2xl">
+    <PanelCard v-if="project" title="Project members" padded class="max-w-2xl">
       <ProjectMembers :project="project" />
     </PanelCard>
 
-    <PanelCard v-if="!project" title="Proyecto no encontrado" padded class="max-w-2xl">
+    <PanelCard v-if="!project" title="Project not found" padded class="max-w-2xl">
       <p class="text-sm text-ink-soft">
-        El proyecto que intentas editar no existe o no perteneces a él.
+        The project you are trying to edit does not exist, or you do not belong to it.
       </p>
       <RouterLink
         to="/app/projects"
         class="mt-5 inline-block border border-line px-5 py-2.5 text-sm font-medium transition-colors hover:border-ink"
       >
-        Volver a proyectos
+        Back to projects
       </RouterLink>
     </PanelCard>
   </div>

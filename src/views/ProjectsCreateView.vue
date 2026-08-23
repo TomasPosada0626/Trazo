@@ -17,13 +17,13 @@ function handleSubmit(values: ProjectFormValues): void {
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Nuevo proyecto"
-      subtitle="Define el alcance y el estado inicial del proyecto."
+      title="New project"
+      subtitle="Define the scope and the initial status of the project."
       admin-only
     />
 
-    <PanelCard title="Datos del proyecto" padded class="max-w-2xl">
-      <ProjectForm submit-label="Guardar proyecto" @submit="handleSubmit" />
+    <PanelCard title="Project details" padded class="max-w-2xl">
+      <ProjectForm submit-label="Save project" @submit="handleSubmit" />
     </PanelCard>
   </div>
 </template>

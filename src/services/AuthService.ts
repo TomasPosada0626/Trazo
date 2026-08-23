@@ -9,7 +9,7 @@ export class AuthService {
       (candidate) => candidate.email === email && candidate.password === password,
     );
     if (!user) {
-      throw new Error('Correo o contraseña incorrectos.');
+      throw new Error('Incorrect email or password.');
     }
 
     useAuthStore().currentUserId = user.id;

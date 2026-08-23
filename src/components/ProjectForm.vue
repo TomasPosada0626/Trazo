@@ -26,11 +26,11 @@ const description = ref(initialValues?.description ?? '');
 const status = ref<string>(initialValues?.status ?? 'active');
 
 const statusOptions = [
-  { value: 'planning', label: 'Planeado' },
-  { value: 'active', label: 'Activo' },
-  { value: 'at_risk', label: 'En riesgo' },
-  { value: 'paused', label: 'En pausa' },
-  { value: 'completed', label: 'Cerrado' },
+  { value: 'planning', label: 'Planned' },
+  { value: 'active', label: 'Active' },
+  { value: 'at_risk', label: 'At risk' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Closed' },
 ];
 
 function handleSubmit(): void {
@@ -47,20 +47,20 @@ function handleSubmit(): void {
     <TextField
       id="project-name"
       v-model="name"
-      label="Nombre"
-      placeholder="Ej. Portal de Clientes"
+      label="Name"
+      placeholder="e.g. Customer Portal"
       required
     />
     <TextField
       id="project-description"
       v-model="description"
-      label="Descripción"
-      placeholder="Objetivo del proyecto"
+      label="Description"
+      placeholder="Project goal"
     />
     <SelectField
       id="project-status"
       v-model="status"
-      label="Estado del proyecto"
+      label="Project status"
       :options="statusOptions"
     />
 
@@ -75,7 +75,7 @@ function handleSubmit(): void {
         to="/app/projects"
         class="border border-line px-5 py-2.5 text-sm font-medium transition-colors hover:border-ink"
       >
-        Cancelar
+        Cancel
       </RouterLink>
     </div>
   </form>

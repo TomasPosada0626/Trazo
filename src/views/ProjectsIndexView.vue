@@ -16,10 +16,10 @@ import { PROJECT_STATUS } from '@/utils/labels';
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Nombre' },
-  { key: 'status', label: 'Estado' },
-  { key: 'progress', label: 'Avance' },
-  { key: 'createdAt', label: 'Creado' },
+  { key: 'name', label: 'Name' },
+  { key: 'status', label: 'Status' },
+  { key: 'progress', label: 'Progress' },
+  { key: 'createdAt', label: 'Created' },
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
@@ -36,17 +36,17 @@ const projects = computed(() =>
 );
 
 const statusOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'planning', label: 'Planeados' },
-  { value: 'active', label: 'Activos' },
-  { value: 'at_risk', label: 'En riesgo' },
-  { value: 'paused', label: 'En pausa' },
-  { value: 'completed', label: 'Cerrados' },
+  { value: 'all', label: 'All' },
+  { value: 'planning', label: 'Planned' },
+  { value: 'active', label: 'Active' },
+  { value: 'at_risk', label: 'At risk' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Closed' },
 ];
 
 function handleDelete(project: ProjectInterface): void {
   const confirmed = window.confirm(
-    `¿Eliminar el proyecto "${project.name}"? Esta acción no se puede deshacer.`,
+    `Delete the project "${project.name}"? This action cannot be undone.`,
   );
   if (confirmed) {
     ProjectService.remove(project.id);
@@ -57,8 +57,8 @@ function handleDelete(project: ProjectInterface): void {
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Gestión de Proyectos"
-      subtitle="Crea, edita y da seguimiento al estado general de cada proyecto (entidad Project)."
+      title="Project management"
+      subtitle="Create, edit and track the overall status of each project (Project entity)."
       admin-only
     >
       <template #actions>
@@ -66,17 +66,17 @@ function handleDelete(project: ProjectInterface): void {
           to="/app/projects/new"
           class="bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          + Nuevo proyecto
+          + New project
         </RouterLink>
       </template>
     </PageHeader>
 
-    <PanelCard title="Todos los proyectos">
+    <PanelCard title="All projects">
       <template #actions>
         <SelectField
           id="project-status-filter"
           v-model="statusFilter"
-          label="Estado"
+          label="Status"
           compact
           :options="statusOptions"
           class="w-44"
@@ -86,7 +86,7 @@ function handleDelete(project: ProjectInterface): void {
       <DataTable
         :columns="columns"
         :rows="projects"
-        empty-message="No perteneces a ningún proyecto que coincida con el filtro."
+        empty-message="You do not belong to any project matching this filter."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
@@ -117,14 +117,14 @@ function handleDelete(project: ProjectInterface): void {
               :to="`/app/projects/${row.id}/edit`"
               class="text-sm font-medium text-accent hover:underline"
             >
-              Editar
+              Edit
             </RouterLink>
             <button
               type="button"
               class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
               @click="handleDelete(row)"
             >
-              Eliminar
+              Delete
             </button>
           </td>
         </template>
