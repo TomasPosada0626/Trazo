@@ -25,7 +25,7 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Autogestión de cuentas y facturación.',
     status: 'active',
     createdAt: '2026-03-18',
-    memberIds: ['USR-01'],
+    memberIds: ['USR-03'],
   },
   {
     id: 'PRJ-03',
@@ -33,7 +33,7 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Traslado de la infraestructura heredada.',
     status: 'at_risk',
     createdAt: '2026-01-05',
-    memberIds: ['USR-01', 'USR-02'],
+    memberIds: ['USR-03', 'USR-02'],
   },
   {
     id: 'PRJ-04',
