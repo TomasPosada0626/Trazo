@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router';
 import SelectField from '@/components/SelectField.vue';
 import TextField from '@/components/TextField.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
+import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
 export interface ProjectFormValues {
   name: string;
@@ -25,13 +26,7 @@ const description = ref(initialValues?.description ?? '');
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'active');
 
-const statusOptions = [
-  { value: 'planning', label: 'Planned' },
-  { value: 'active', label: 'Active' },
-  { value: 'at_risk', label: 'At risk' },
-  { value: 'paused', label: 'Paused' },
-  { value: 'completed', label: 'Closed' },
-];
+const statusOptions = toSelectOptions(PROJECT_STATUS);
 
 function handleSubmit(): void {
   emit('submit', {

@@ -8,7 +8,7 @@ import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { USER_ROLE } from '@/utils/labels';
+import { USER_ROLE, toFilterOptions } from '@/utils/labels';
 
 /**
  * The password never reaches the table, and the active-project count comes
@@ -54,11 +54,7 @@ const columns: DataTableColumn[] = [
 // Bound but inert: filtering belongs to UserService, not the view.
 const roleFilter = ref('all');
 
-const roleOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'admin', label: 'Administrator' },
-  { value: 'member', label: 'Team member' },
-];
+const roleOptions = toFilterOptions(USER_ROLE);
 </script>
 
 <template>

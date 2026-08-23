@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader.vue';
 import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import TextField from '@/components/TextField.vue';
+import { SPRINT_STATUS, toSelectOptions } from '@/utils/labels';
 
 const name = ref('');
 const goal = ref('');
@@ -20,11 +21,7 @@ const projectOptions = [
   { value: 'PRJ-03', label: 'Cloud Migration' },
 ];
 
-const statusOptions = [
-  { value: 'planned', label: 'Planned' },
-  { value: 'active', label: 'In progress' },
-  { value: 'completed', label: 'Closed' },
-];
+const statusOptions = toSelectOptions(SPRINT_STATUS);
 
 /** Placeholder: SprintService.create() takes over in the services slice. */
 function handleSubmit(): void {

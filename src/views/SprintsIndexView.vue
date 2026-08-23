@@ -9,7 +9,7 @@ import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import { formatDateRange } from '@/utils/date';
-import { SPRINT_STATUS } from '@/utils/labels';
+import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
 /**
  * completedPoints is summed by SprintService.getTotalCompletedPoints(sprint)
@@ -84,12 +84,7 @@ const projectOptions = [
   { value: 'PRJ-03', label: 'Cloud Migration' },
 ];
 
-const statusOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'active', label: 'In progress' },
-  { value: 'completed', label: 'Closed' },
-];
+const statusOptions = toFilterOptions(SPRINT_STATUS);
 </script>
 
 <template>

@@ -1,3 +1,4 @@
+import type { SelectOption } from '@/components/SelectField.vue';
 import type { BadgeTone } from '@/components/StatusBadge.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
@@ -45,3 +46,24 @@ export const USER_ROLE: Record<UserRole, LabelDescriptor> = {
   admin: { text: 'Administrator', tone: 'positive' },
   member: { text: 'Member', tone: 'neutral' },
 };
+
+/**
+ * Turns a label map into <SelectField> options, in declaration order.
+ *
+ * Every dropdown over an enum derives its options from the same map the badges
+ * read, so a new status shows up in the forms and the filters at once and the
+ * wording can never drift between them.
+ */
+export function toSelectOptions<T extends string>(
+  labels: Record<T, LabelDescriptor>,
+): SelectOption[] {
+  return (Object.keys(labels) as T[]).map((value) => ({ value, label: labels[value].text }));
+}
+
+/** Same, prefixed with the catch-all entry the table filters use. */
+export function toFilterOptions<T extends string>(
+  labels: Record<T, LabelDescriptor>,
+  allLabel = 'All',
+): SelectOption[] {
+  return [{ value: 'all', label: allLabel }, ...toSelectOptions(labels)];
+}

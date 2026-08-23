@@ -12,7 +12,7 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { PROJECT_STATUS } from '@/utils/labels';
+import { PROJECT_STATUS, toFilterOptions } from '@/utils/labels';
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -35,14 +35,7 @@ const projects = computed(() =>
     : [],
 );
 
-const statusOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'planning', label: 'Planned' },
-  { value: 'active', label: 'Active' },
-  { value: 'at_risk', label: 'At risk' },
-  { value: 'paused', label: 'Paused' },
-  { value: 'completed', label: 'Closed' },
-];
+const statusOptions = toFilterOptions(PROJECT_STATUS);
 
 function handleDelete(project: ProjectInterface): void {
   const confirmed = window.confirm(

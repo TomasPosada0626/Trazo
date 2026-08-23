@@ -5,16 +5,14 @@ import PageHeader from '@/components/PageHeader.vue';
 import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import TextField from '@/components/TextField.vue';
+import { USER_ROLE, toSelectOptions } from '@/utils/labels';
 
 const name = ref('');
 const email = ref('');
 const password = ref('');
 const role = ref('member');
 
-const roleOptions = [
-  { value: 'admin', label: 'Administrator' },
-  { value: 'member', label: 'Team member' },
-];
+const roleOptions = toSelectOptions(USER_ROLE);
 
 /** Placeholder: UserService.create() takes over in the services slice. */
 function handleSubmit(): void {
