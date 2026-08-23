@@ -45,6 +45,7 @@ const groups: NavGroup[] = [
       {
         label: 'Sprints',
         to: '/app/sprints',
+        adminOnly: true,
         icon: 'M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5',
       },
       {
@@ -61,6 +62,22 @@ const groups: NavGroup[] = [
     ],
   },
 ];
+
+const isAdmin = computed(() => AuthService.isAdmin());
+
+/**
+ * Admin-only entries are hidden from members rather than shown locked: the
+ * route guard would bounce them to the dashboard, so a padlocked link is a
+ * dead end. Admins still see the padlock, which marks the entry as restricted.
+ */
+const visibleGroups = computed(() =>
+  groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => isAdmin.value || !item.adminOnly),
+    }))
+    .filter((group) => group.items.length > 0),
+);
 
 const router = useRouter();
 
@@ -100,7 +117,7 @@ function handleLogout(): void {
     <div class="mx-5 border-t border-white/10"></div>
 
     <nav class="flex-1 overflow-y-auto py-5">
-      <div v-for="group in groups" :key="group.label" class="mb-6 last:mb-0">
+      <div v-for="group in visibleGroups" :key="group.label" class="mb-6 last:mb-0">
         <p class="px-5 pb-2 font-mono text-[10px] tracking-[0.16em] text-white/40 uppercase">
           {{ group.label }}
         </p>

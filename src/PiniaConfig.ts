@@ -1,5 +1,6 @@
 import { createPinia } from 'pinia';
 import { watch } from 'vue';
+import { projectSeeder } from '@/stores/projectseeder';
 import { userSeeder } from '@/stores/userseeder';
 
 const PINIA_STATE_KEY = 'piniaState';
@@ -8,17 +9,23 @@ export default class PiniaConfig {
   public static init() {
     const pinia = createPinia();
 
+    // Every store's initial data, keyed by store id, ready before any
+    // component calls useXStore() for the first time.
+    const seededState = {
+      user: { users: userSeeder },
+      project: { projects: projectSeeder },
+      auth: { currentUserId: null },
+    };
+
     const savedState = localStorage.getItem(PINIA_STATE_KEY);
     if (savedState) {
-      pinia.state.value = JSON.parse(savedState);
+      // Saved stores win, but a store added after this browser's last visit
+      // is missing from the saved blob, so it falls back to its seeder.
+      // Without this, adding an entity leaves existing users with an empty
+      // table until they clear LocalStorage by hand.
+      pinia.state.value = { ...seededState, ...JSON.parse(savedState) };
     } else {
-      // Initialize the state with the seeders. Every store's initial data
-      // lives here, keyed by store id, so it's ready before any component
-      // calls useXStore() for the first time.
-      pinia.state.value = {
-        user: { users: userSeeder },
-        auth: { currentUserId: null },
-      };
+      pinia.state.value = seededState;
       localStorage.setItem(PINIA_STATE_KEY, JSON.stringify(pinia.state.value));
     }
 

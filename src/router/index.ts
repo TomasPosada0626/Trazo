@@ -6,6 +6,7 @@ import DashboardView from '@/views/DashboardView.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
 import ProjectsCreateView from '@/views/ProjectsCreateView.vue';
+import ProjectsEditView from '@/views/ProjectsEditView.vue';
 import ProjectsIndexView from '@/views/ProjectsIndexView.vue';
 import SprintsCreateView from '@/views/SprintsCreateView.vue';
 import SprintsIndexView from '@/views/SprintsIndexView.vue';
@@ -71,16 +72,22 @@ const router = createRouter({
           meta: { title: 'Proyectos', section: 'nuevo', requiresAdmin: true },
         },
         {
+          path: 'projects/:id/edit',
+          name: 'projects-edit',
+          component: ProjectsEditView,
+          meta: { title: 'Proyectos', section: 'editar', requiresAdmin: true },
+        },
+        {
           path: 'sprints',
           name: 'sprints',
           component: SprintsIndexView,
-          meta: { title: 'Sprints', section: 'gestión' },
+          meta: { title: 'Sprints', section: 'gestión', requiresAdmin: true },
         },
         {
           path: 'sprints/new',
           name: 'sprints-create',
           component: SprintsCreateView,
-          meta: { title: 'Sprints', section: 'nuevo' },
+          meta: { title: 'Sprints', section: 'nuevo', requiresAdmin: true },
         },
         {
           path: 'tasks',
@@ -106,9 +113,8 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const currentUser = AuthService.getCurrentUser();
-  const isAuthenticated = currentUser !== undefined;
-  const isAdmin = currentUser?.role === 'admin';
+  const isAuthenticated = AuthService.getCurrentUser() !== undefined;
+  const isAdmin = AuthService.isAdmin();
 
   if (to.meta.requiresAdmin && !isAdmin) {
     return isAuthenticated ? { name: 'dashboard' } : { name: 'login' };

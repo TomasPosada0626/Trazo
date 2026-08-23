@@ -75,7 +75,7 @@ function handleSubmit(): void {
 
       <div class="mt-6 border border-dashed border-line p-4 text-xs leading-relaxed text-ink-soft">
         <p>
-          <code class="font-mono font-semibold text-ink">trazoState.user</code>
+          <code class="font-mono font-semibold text-ink">piniaState.user</code>
           — cuentas de prueba precargadas:
         </p>
         <ul class="mt-2 space-y-0.5">

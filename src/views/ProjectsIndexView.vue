@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue';
 import IdChip from '@/components/IdChip.vue';
@@ -7,55 +7,12 @@ import PageHeader from '@/components/PageHeader.vue';
 import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
+import { AuthService } from '@/services/AuthService';
+import { ProjectService } from '@/services/ProjectService';
 import { formatDate } from '@/utils/date';
+import { shortId } from '@/utils/id';
 import { PROJECT_STATUS } from '@/utils/labels';
-
-/**
- * Progress is derived by ProjectService.getOverallProgress(project), so it is
- * not part of ProjectInterface. The table joins it on for display.
- */
-type ProjectRow = ProjectInterface & { progress: number };
-
-// Hardcoded until the seeders and ProjectService exist.
-const projects: ProjectRow[] = [
-  {
-    id: 'PRJ-01',
-    name: 'Rediseño App Móvil',
-    description: 'Renovación completa de la experiencia móvil.',
-    status: 'active',
-    createdAt: '2026-02-02',
-    memberIds: [],
-    progress: 68,
-  },
-  {
-    id: 'PRJ-02',
-    name: 'Portal de Clientes',
-    description: 'Autogestión de cuentas y facturación.',
-    status: 'active',
-    createdAt: '2026-03-18',
-    memberIds: [],
-    progress: 42,
-  },
-  {
-    id: 'PRJ-03',
-    name: 'Migración a Cloud',
-    description: 'Traslado de la infraestructura heredada.',
-    status: 'at_risk',
-    createdAt: '2026-01-05',
-    memberIds: [],
-    progress: 55,
-  },
-  {
-    id: 'PRJ-04',
-    name: 'Programa de Fidelización',
-    description: 'Sistema de puntos y recompensas.',
-    status: 'completed',
-    createdAt: '2025-09-11',
-    memberIds: [],
-    progress: 100,
-  },
-];
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -66,16 +23,35 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// Bound but inert: filtering belongs to ProjectService, not the view.
-const statusFilter = ref('all');
+const statusFilter = ref<ProjectStatus | 'all'>('all');
+
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+// Only the signed-in user's projects. Recomputes when the filter changes or
+// the store is mutated.
+const projects = computed(() =>
+  currentUserId.value
+    ? ProjectService.getUserProjectsByStatus(currentUserId.value, statusFilter.value)
+    : [],
+);
 
 const statusOptions = [
   { value: 'all', label: 'Todos' },
+  { value: 'planning', label: 'Planeados' },
   { value: 'active', label: 'Activos' },
   { value: 'at_risk', label: 'En riesgo' },
   { value: 'paused', label: 'En pausa' },
   { value: 'completed', label: 'Cerrados' },
 ];
+
+function handleDelete(project: ProjectInterface): void {
+  const confirmed = window.confirm(
+    `¿Eliminar el proyecto "${project.name}"? Esta acción no se puede deshacer.`,
+  );
+  if (confirmed) {
+    ProjectService.remove(project.id);
+  }
+}
 </script>
 
 <template>
@@ -107,10 +83,14 @@ const statusOptions = [
         />
       </template>
 
-      <DataTable :columns="columns" :rows="projects">
+      <DataTable
+        :columns="columns"
+        :rows="projects"
+        empty-message="No perteneces a ningún proyecto que coincida con el filtro."
+      >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ row.id }}</IdChip>
+            <IdChip>{{ shortId('PRJ', row.id) }}</IdChip>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3">
@@ -121,15 +101,30 @@ const statusOptions = [
           <td class="px-4 py-3">
             <div class="flex items-center gap-2">
               <div class="h-1.5 w-24 bg-line">
-                <div class="h-full bg-emerald-600" :style="{ width: `${row.progress}%` }"></div>
+                <div
+                  class="h-full bg-emerald-600"
+                  :style="{ width: `${ProjectService.getOverallProgress(row)}%` }"
+                ></div>
               </div>
-              <span class="font-mono text-xs text-ink-soft">{{ row.progress }}%</span>
+              <span class="font-mono text-xs text-ink-soft">
+                {{ ProjectService.getOverallProgress(row) }}%
+              </span>
             </div>
           </td>
           <td class="px-4 py-3 text-ink-soft">{{ formatDate(row.createdAt) }}</td>
-          <td class="px-4 py-3 text-right">
-            <button type="button" class="text-sm font-medium text-accent hover:underline">
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <RouterLink
+              :to="`/app/projects/${row.id}/edit`"
+              class="text-sm font-medium text-accent hover:underline"
+            >
               Editar
+            </RouterLink>
+            <button
+              type="button"
+              class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
+              @click="handleDelete(row)"
+            >
+              Eliminar
             </button>
           </td>
         </template>

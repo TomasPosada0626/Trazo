@@ -28,4 +28,9 @@ export class AuthService {
 
     return useUserStore().users.find((user) => user.id === currentUserId);
   }
+
+  /** True when there is an active session and it belongs to an admin. */
+  static isAdmin(): boolean {
+    return AuthService.getCurrentUser()?.role === 'admin';
+  }
 }
