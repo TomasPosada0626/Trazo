@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BrandMark from '@/components/BrandMark.vue';
-import { AuthService } from '@/services/authService';
+import { AuthService } from '@/services/AuthService';
 
 const email = ref('');
 const password = ref('');
@@ -17,7 +17,7 @@ function handleSubmit(): void {
     AuthService.login(email.value, password.value);
     router.push({ name: 'dashboard' });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'No fue posible iniciar sesión.';
+    error.value = err instanceof Error ? err.message : 'Could not sign in.';
   }
 }
 </script>
@@ -31,12 +31,12 @@ function handleSubmit(): void {
       </div>
 
       <p class="mt-5 text-sm leading-relaxed text-ink-soft">
-        Ingresa con tu cuenta para ver tus proyectos y sprints.
+        Sign in with your account to see your projects and sprints.
       </p>
 
       <form class="mt-6 space-y-5" @submit.prevent="handleSubmit">
         <div>
-          <label for="email" class="block text-sm font-medium">Correo electrónico</label>
+          <label for="email" class="block text-sm font-medium">Email address</label>
           <input
             id="email"
             v-model="email"
@@ -49,7 +49,7 @@ function handleSubmit(): void {
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium">Contraseña</label>
+          <label for="password" class="block text-sm font-medium">Password</label>
           <input
             id="password"
             v-model="password"
@@ -69,28 +69,28 @@ function handleSubmit(): void {
           type="submit"
           class="w-full bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          Iniciar sesión
+          Sign in
         </button>
       </form>
 
       <div class="mt-6 border border-dashed border-line p-4 text-xs leading-relaxed text-ink-soft">
         <p>
-          <code class="font-mono font-semibold text-ink">trazoState.user</code>
-          — cuentas de prueba precargadas:
+          <code class="font-mono font-semibold text-ink">piniaState.user</code>
+          — preloaded demo accounts:
         </p>
         <ul class="mt-2 space-y-0.5">
           <li>
             <code class="font-mono font-semibold text-ink">admin@trazo.com</code>
-            · rol: Administrador
+            · role: Administrator
           </li>
           <li>
             <code class="font-mono font-semibold text-ink">maria@trazo.com</code>
-            · rol: Miembro de equipo
+            · role: Team member
           </li>
         </ul>
         <p class="mt-3">
-          Las credenciales se validan contra un arreglo de usuarios ficticios guardado en
-          LocalStorage al cargar la app.
+          Credentials are validated against a mock user array saved to LocalStorage when the app
+          first loads.
         </p>
       </div>
     </div>

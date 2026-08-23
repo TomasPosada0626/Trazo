@@ -9,7 +9,7 @@ export class AuthService {
       (candidate) => candidate.email === email && candidate.password === password,
     );
     if (!user) {
-      throw new Error('Correo o contraseña incorrectos.');
+      throw new Error('Incorrect email or password.');
     }
 
     useAuthStore().currentUserId = user.id;
@@ -27,5 +27,10 @@ export class AuthService {
     if (!currentUserId) return undefined;
 
     return useUserStore().users.find((user) => user.id === currentUserId);
+  }
+
+  /** True when there is an active session and it belongs to an admin. */
+  static isAdmin(): boolean {
+    return AuthService.getCurrentUser()?.role === 'admin';
   }
 }

@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import AppLayout from '@/layouts/AppLayout.vue';
-import { AuthService } from '@/services/authService';
+import { AuthService } from '@/services/AuthService';
 import DashboardView from '@/views/DashboardView.vue';
 import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
 import ProjectsCreateView from '@/views/ProjectsCreateView.vue';
+import ProjectsEditView from '@/views/ProjectsEditView.vue';
 import ProjectsIndexView from '@/views/ProjectsIndexView.vue';
 import SprintsCreateView from '@/views/SprintsCreateView.vue';
 import SprintsIndexView from '@/views/SprintsIndexView.vue';
@@ -56,49 +57,55 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardView,
-          meta: { title: 'Panel Principal', section: 'vista general' },
+          meta: { title: 'Dashboard', section: 'overview' },
         },
         {
           path: 'projects',
           name: 'projects',
           component: ProjectsIndexView,
-          meta: { title: 'Proyectos', section: 'gestión', requiresAdmin: true },
+          meta: { title: 'Projects', section: 'management', requiresAdmin: true },
         },
         {
           path: 'projects/new',
           name: 'projects-create',
           component: ProjectsCreateView,
-          meta: { title: 'Proyectos', section: 'nuevo', requiresAdmin: true },
+          meta: { title: 'Projects', section: 'new', requiresAdmin: true },
+        },
+        {
+          path: 'projects/:id/edit',
+          name: 'projects-edit',
+          component: ProjectsEditView,
+          meta: { title: 'Projects', section: 'edit', requiresAdmin: true },
         },
         {
           path: 'sprints',
           name: 'sprints',
           component: SprintsIndexView,
-          meta: { title: 'Sprints', section: 'gestión' },
+          meta: { title: 'Sprints', section: 'management', requiresAdmin: true },
         },
         {
           path: 'sprints/new',
           name: 'sprints-create',
           component: SprintsCreateView,
-          meta: { title: 'Sprints', section: 'nuevo' },
+          meta: { title: 'Sprints', section: 'new', requiresAdmin: true },
         },
         {
           path: 'tasks',
           name: 'tasks',
           component: TasksIndexView,
-          meta: { title: 'Tareas', section: 'tablero' },
+          meta: { title: 'Tasks', section: 'board' },
         },
         {
           path: 'users',
           name: 'users',
           component: UsersIndexView,
-          meta: { title: 'Usuarios', section: 'gestión', requiresAdmin: true },
+          meta: { title: 'Users', section: 'management', requiresAdmin: true },
         },
         {
           path: 'users/new',
           name: 'users-create',
           component: UsersCreateView,
-          meta: { title: 'Usuarios', section: 'nuevo', requiresAdmin: true },
+          meta: { title: 'Users', section: 'new', requiresAdmin: true },
         },
       ],
     },
@@ -106,9 +113,8 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const currentUser = AuthService.getCurrentUser();
-  const isAuthenticated = currentUser !== undefined;
-  const isAdmin = currentUser?.role === 'admin';
+  const isAuthenticated = AuthService.getCurrentUser() !== undefined;
+  const isAdmin = AuthService.isAdmin();
 
   if (to.meta.requiresAdmin && !isAdmin) {
     return isAuthenticated ? { name: 'dashboard' } : { name: 'login' };

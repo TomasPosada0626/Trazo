@@ -7,7 +7,7 @@ import PageHeader from '@/components/PageHeader.vue';
 
 <template>
   <PageHeader
-    title="Panel Principal"
-    subtitle="Resumen general del avance de proyectos, sprints activos y tareas del equipo."
+    title="Dashboard"
+    subtitle="Overview of project progress, active sprints and the team's tasks."
   />
 </template>

@@ -9,7 +9,7 @@ import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import { formatDateRange } from '@/utils/date';
-import { SPRINT_STATUS } from '@/utils/labels';
+import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
 /**
  * completedPoints is summed by SprintService.getTotalCompletedPoints(sprint)
@@ -21,8 +21,8 @@ type SprintRow = SprintInterface & { completedPoints: number };
 const sprints: SprintRow[] = [
   {
     id: 'SPR-06',
-    name: 'Diseño de flujos',
-    goal: 'Cerrar los flujos principales de la app.',
+    name: 'Flow design',
+    goal: "Close out the app's main flows.",
     startDate: '2026-01-05',
     endDate: '2026-01-19',
     status: 'completed',
@@ -33,7 +33,7 @@ const sprints: SprintRow[] = [
   {
     id: 'SPR-07',
     name: 'Onboarding v1',
-    goal: 'Primera versión del alta de usuarios.',
+    goal: 'First version of user sign-up.',
     startDate: '2026-01-20',
     endDate: '2026-02-03',
     status: 'completed',
@@ -44,7 +44,7 @@ const sprints: SprintRow[] = [
   {
     id: 'SPR-08',
     name: 'Onboarding v2',
-    goal: 'Verificación de correo y bienvenida.',
+    goal: 'Email verification and welcome.',
     startDate: '2026-02-04',
     endDate: '2026-02-18',
     status: 'active',
@@ -54,8 +54,8 @@ const sprints: SprintRow[] = [
   },
   {
     id: 'SPR-09',
-    name: 'Notificaciones push',
-    goal: 'Avisos de actividad en tiempo real.',
+    name: 'Push notifications',
+    goal: 'Real-time activity alerts.',
     startDate: '2026-02-19',
     endDate: '2026-03-05',
     status: 'planned',
@@ -68,10 +68,10 @@ const sprints: SprintRow[] = [
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Sprint' },
-  { key: 'dates', label: 'Fechas' },
-  { key: 'committed', label: 'Pts. comprometidos' },
-  { key: 'completed', label: 'Pts. completados' },
-  { key: 'status', label: 'Estado' },
+  { key: 'dates', label: 'Dates' },
+  { key: 'committed', label: 'Committed pts.' },
+  { key: 'completed', label: 'Completed pts.' },
+  { key: 'status', label: 'Status' },
 ];
 
 // Bound but inert: filtering belongs to SprintService, not the view.
@@ -79,30 +79,25 @@ const projectFilter = ref('PRJ-01');
 const statusFilter = ref('all');
 
 const projectOptions = [
-  { value: 'PRJ-01', label: 'Rediseño App Móvil' },
-  { value: 'PRJ-02', label: 'Portal de Clientes' },
-  { value: 'PRJ-03', label: 'Migración a Cloud' },
+  { value: 'PRJ-01', label: 'Mobile App Redesign' },
+  { value: 'PRJ-02', label: 'Customer Portal' },
+  { value: 'PRJ-03', label: 'Cloud Migration' },
 ];
 
-const statusOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'planned', label: 'Planeados' },
-  { value: 'active', label: 'En curso' },
-  { value: 'completed', label: 'Cerrados' },
-];
+const statusOptions = toFilterOptions(SPRINT_STATUS);
 </script>
 
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Gestión de Sprints"
-      subtitle="Consulta el avance, la velocidad y los días restantes de cada sprint (entidad Sprint)."
+      title="Sprint management"
+      subtitle="Review the progress, velocity and remaining days of each sprint (Sprint entity)."
     >
       <template #actions>
         <SelectField
           id="sprint-project-filter"
           v-model="projectFilter"
-          label="Proyecto"
+          label="Project"
           compact
           :options="projectOptions"
           class="w-52"
@@ -110,7 +105,7 @@ const statusOptions = [
         <SelectField
           id="sprint-status-filter"
           v-model="statusFilter"
-          label="Estado"
+          label="Status"
           compact
           :options="statusOptions"
           class="w-40"
@@ -119,12 +114,12 @@ const statusOptions = [
           to="/app/sprints/new"
           class="bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          + Nuevo sprint
+          + New sprint
         </RouterLink>
       </template>
     </PageHeader>
 
-    <PanelCard title='Sprints de "Rediseño App Móvil"'>
+    <PanelCard title='Sprints for "Mobile App Redesign"'>
       <DataTable :columns="columns" :rows="sprints">
         <template #row="{ row }">
           <td class="px-4 py-3">

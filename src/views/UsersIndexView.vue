@@ -8,7 +8,7 @@ import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { USER_ROLE } from '@/utils/labels';
+import { USER_ROLE, toFilterOptions } from '@/utils/labels';
 
 /**
  * The password never reaches the table, and the active-project count comes
@@ -44,28 +44,24 @@ const users: UserRow[] = [
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Nombre' },
-  { key: 'email', label: 'Correo' },
-  { key: 'role', label: 'Rol' },
-  { key: 'projects', label: 'Proyectos activos' },
+  { key: 'name', label: 'Name' },
+  { key: 'email', label: 'Email' },
+  { key: 'role', label: 'Role' },
+  { key: 'projects', label: 'Active projects' },
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
 // Bound but inert: filtering belongs to UserService, not the view.
 const roleFilter = ref('all');
 
-const roleOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'admin', label: 'Administrador' },
-  { value: 'member', label: 'Miembro de equipo' },
-];
+const roleOptions = toFilterOptions(USER_ROLE);
 </script>
 
 <template>
   <div class="space-y-8">
     <PageHeader
-      title="Gestión de Usuarios"
-      subtitle="Administra las cuentas y roles del sistema (entidad User), guardadas en LocalStorage."
+      title="User management"
+      subtitle="Manage the accounts and roles of the system (User entity), stored in LocalStorage."
       admin-only
     >
       <template #actions>
@@ -73,17 +69,17 @@ const roleOptions = [
           to="/app/users/new"
           class="bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
         >
-          + Agregar usuario
+          + Add user
         </RouterLink>
       </template>
     </PageHeader>
 
-    <PanelCard title="Usuarios registrados">
+    <PanelCard title="Registered users">
       <template #actions>
         <SelectField
           id="user-role-filter"
           v-model="roleFilter"
-          label="Rol"
+          label="Role"
           compact
           :options="roleOptions"
           class="w-52"
@@ -105,7 +101,7 @@ const roleOptions = [
           <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
           <td class="px-4 py-3 text-right">
             <button type="button" class="text-sm font-medium text-accent hover:underline">
-              Editar
+              Edit
             </button>
           </td>
         </template>

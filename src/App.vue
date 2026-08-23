@@ -17,7 +17,7 @@ const route = useRoute();
           <span class="leading-tight">
             <span class="block text-lg font-bold tracking-tight">Trazo</span>
             <span class="block font-mono text-[10px] tracking-[0.18em] text-ink-soft uppercase">
-              Gestión de proyectos
+              Project management
             </span>
           </span>
         </RouterLink>
@@ -33,7 +33,7 @@ const route = useRoute();
             to="/login"
             class="bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
           >
-            Iniciar sesión
+            Sign in
           </RouterLink>
         </nav>
       </div>
