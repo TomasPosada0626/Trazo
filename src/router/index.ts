@@ -12,6 +12,7 @@ import SprintsCreateView from '@/views/SprintsCreateView.vue';
 import SprintsIndexView from '@/views/SprintsIndexView.vue';
 import TasksIndexView from '@/views/TasksIndexView.vue';
 import UsersCreateView from '@/views/UsersCreateView.vue';
+import UsersEditView from '@/views/UsersEditView.vue';
 import UsersIndexView from '@/views/UsersIndexView.vue';
 
 declare module 'vue-router' {
@@ -106,6 +107,12 @@ const router = createRouter({
           name: 'users-create',
           component: UsersCreateView,
           meta: { title: 'Users', section: 'new', requiresAdmin: true },
+        },
+        {
+          path: 'users/:id/edit',
+          name: 'users-edit',
+          component: UsersEditView,
+          meta: { title: 'Users', section: 'edit', requiresAdmin: true },
         },
       ],
     },

@@ -1,26 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { useRouter } from 'vue-router';
 import PageHeader from '@/components/PageHeader.vue';
 import PanelCard from '@/components/PanelCard.vue';
-import SelectField from '@/components/SelectField.vue';
-import TextField from '@/components/TextField.vue';
-import { USER_ROLE, toSelectOptions } from '@/utils/labels';
+import UserForm, { type UserFormValues } from '@/components/UserForm.vue';
+import { UserService } from '@/services/UserService';
 
-const name = ref('');
-const email = ref('');
-const password = ref('');
-const role = ref('member');
+const router = useRouter();
 
-const roleOptions = toSelectOptions(USER_ROLE);
-
-/** Placeholder: UserService.create() takes over in the services slice. */
-function handleSubmit(): void {
-  console.log('Create user placeholder:', {
-    name: name.value,
-    email: email.value,
-    role: role.value,
-  });
+/** Creates the account and returns to the user list. */
+function handleSubmit(values: UserFormValues): void {
+  UserService.create(values);
+  router.push({ name: 'users' });
 }
 </script>
 
@@ -33,47 +23,7 @@ function handleSubmit(): void {
     />
 
     <PanelCard title="User details" padded class="max-w-2xl">
-      <form class="space-y-5" @submit.prevent="handleSubmit">
-        <TextField
-          id="user-name"
-          v-model="name"
-          label="Name"
-          placeholder="e.g. Julia Lopez"
-          required
-        />
-        <TextField
-          id="user-email"
-          v-model="email"
-          label="Email"
-          type="email"
-          placeholder="name@trazo.com"
-          required
-        />
-        <TextField
-          id="user-password"
-          v-model="password"
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          required
-        />
-        <SelectField id="user-role" v-model="role" label="Role" :options="roleOptions" />
-
-        <div class="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            class="bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-          >
-            Save user
-          </button>
-          <RouterLink
-            to="/app/users"
-            class="border border-line px-5 py-2.5 text-sm font-medium transition-colors hover:border-ink"
-          >
-            Cancel
-          </RouterLink>
-        </div>
-      </form>
+      <UserForm submit-label="Save user" @submit="handleSubmit" />
     </PanelCard>
   </div>
 </template>
