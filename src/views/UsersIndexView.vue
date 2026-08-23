@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import DataTable, { type DataTableColumn } from '@/components/DataTable.vue';
 import IdChip from '@/components/IdChip.vue';
@@ -8,6 +8,8 @@ import PanelCard from '@/components/PanelCard.vue';
 import SelectField from '@/components/SelectField.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
+import { AuthService } from '@/services/AuthService';
+import { UserService } from '@/services/UserService';
 import { USER_ROLE, toFilterOptions } from '@/utils/labels';
 
 /**
@@ -16,31 +18,15 @@ import { USER_ROLE, toFilterOptions } from '@/utils/labels';
  */
 type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
 
-// Hardcoded until the seeders and UserService exist.
-const users: UserRow[] = [
-  { id: 'USR-01', name: 'Ana Duarte', email: 'ana@trazo.com', role: 'admin', activeProjects: 3 },
-  {
-    id: 'USR-02',
-    name: 'Mateo García',
-    email: 'mateo@trazo.com',
-    role: 'member',
-    activeProjects: 2,
-  },
-  {
-    id: 'USR-03',
-    name: 'Julia López',
-    email: 'julia@trazo.com',
-    role: 'member',
-    activeProjects: 1,
-  },
-  {
-    id: 'USR-04',
-    name: 'Carlos Ruiz',
-    email: 'carlos@trazo.com',
-    role: 'member',
-    activeProjects: 2,
-  },
-];
+const users = computed<UserRow[]>(() =>
+  UserService.getAll().map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    activeProjects: UserService.getActiveProjects(user),
+  })),
+);
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -51,10 +37,25 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// Bound but inert: filtering belongs to UserService, not the view.
 const roleFilter = ref('all');
 
 const roleOptions = toFilterOptions(USER_ROLE);
+
+const filteredUsers = computed(() =>
+  roleFilter.value === 'all'
+    ? users.value
+    : users.value.filter((user) => user.role === roleFilter.value),
+);
+
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+/** Confirms and removes a user, while preserving the active account. */
+function handleDelete(user: UserRow): void {
+  if (user.id === currentUserId.value) return;
+
+  const confirmed = window.confirm(`Delete the user "${user.name}"? This action cannot be undone.`);
+  if (confirmed) UserService.remove(user.id);
+}
 </script>
 
 <template>
@@ -86,7 +87,7 @@ const roleOptions = toFilterOptions(USER_ROLE);
         />
       </template>
 
-      <DataTable :columns="columns" :rows="users">
+      <DataTable :columns="columns" :rows="filteredUsers">
         <template #row="{ row }">
           <td class="px-4 py-3">
             <IdChip>{{ row.id }}</IdChip>
@@ -100,8 +101,24 @@ const roleOptions = toFilterOptions(USER_ROLE);
           </td>
           <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
           <td class="px-4 py-3 text-right">
-            <button type="button" class="text-sm font-medium text-accent hover:underline">
+            <RouterLink
+              :to="`/app/users/${row.id}/edit`"
+              class="text-sm font-medium text-accent hover:underline"
+            >
               Edit
+            </RouterLink>
+            <button
+              type="button"
+              class="ml-4 text-sm font-medium transition-colors"
+              :class="
+                row.id === currentUserId
+                  ? 'cursor-not-allowed text-ink-soft/50'
+                  : 'text-ink-soft hover:text-red-600'
+              "
+              :disabled="row.id === currentUserId"
+              @click="handleDelete(row)"
+            >
+              Delete
             </button>
           </td>
         </template>
