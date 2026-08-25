@@ -13,7 +13,11 @@ export interface UserFormValues {
   role: UserRole;
 }
 
-const { initialValues, submitLabel, passwordRequired = true } = defineProps<{
+const {
+  initialValues,
+  submitLabel,
+  passwordRequired = true,
+} = defineProps<{
   initialValues?: Partial<UserFormValues>;
   submitLabel: string;
   passwordRequired?: boolean;
@@ -40,13 +44,7 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
-      id="user-name"
-      v-model="name"
-      label="Name"
-      placeholder="e.g. Julia Lopez"
-      required
-    />
+    <TextField id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
     <TextField
       id="user-email"
       v-model="email"
