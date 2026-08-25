@@ -2,7 +2,7 @@ import type { SelectOption } from '@/components/SelectField.vue';
 import type { BadgeTone } from '@/components/StatusBadge.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
-import type { TaskPriority, TaskStatus } from '@/interfaces/TaskInterface';
+import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import type { UserRole } from '@/interfaces/UserInterface';
 
 /**
@@ -33,6 +33,13 @@ export const TASK_STATUS: Record<TaskStatus, LabelDescriptor> = {
   todo: { text: 'To do', tone: 'neutral' },
   in_progress: { text: 'In progress', tone: 'warning' },
   done: { text: 'Done', tone: 'positive' },
+};
+
+export const TASK_TYPE: Record<TaskType, LabelDescriptor> = {
+  feature: { text: 'Feature', tone: 'positive' },
+  bug: { text: 'Bug', tone: 'danger' },
+  chore: { text: 'Chore', tone: 'neutral' },
+  research: { text: 'Research', tone: 'warning' },
 };
 
 export const TASK_PRIORITY: Record<TaskPriority, LabelDescriptor> = {

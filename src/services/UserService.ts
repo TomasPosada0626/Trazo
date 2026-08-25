@@ -1,8 +1,10 @@
 import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
+import { useTaskStore } from '@/stores/taskstore';
 import { useUserStore } from '@/stores/userstore';
 
 export class UserService {
@@ -48,5 +50,19 @@ export class UserService {
     return ProjectService.getAllUserProjects(user.id).filter(
       (project) => project.status === 'active',
     ).length;
+  }
+
+  /**
+   * Tasks currently assigned to the user. Implements User.getAssignedTasks()
+   * from the class diagram, which the interface cannot hold as a method.
+   *
+   * No membership filter is needed: a task can only be assigned to a member of
+   * its own project, so everything returned here is already visible to them.
+   *
+   * @param user The user whose workload is being listed.
+   * @returns The tasks assigned to that user, across every project.
+   */
+  static getAssignedTasks(user: UserInterface): TaskInterface[] {
+    return useTaskStore().tasks.filter((task) => task.assigneeId === user.id);
   }
 }

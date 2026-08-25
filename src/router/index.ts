@@ -10,6 +10,8 @@ import ProjectsEditView from '@/views/ProjectsEditView.vue';
 import ProjectsIndexView from '@/views/ProjectsIndexView.vue';
 import SprintsCreateView from '@/views/SprintsCreateView.vue';
 import SprintsIndexView from '@/views/SprintsIndexView.vue';
+import TasksCreateView from '@/views/TasksCreateView.vue';
+import TasksEditView from '@/views/TasksEditView.vue';
 import TasksIndexView from '@/views/TasksIndexView.vue';
 import UsersCreateView from '@/views/UsersCreateView.vue';
 import UsersEditView from '@/views/UsersEditView.vue';
@@ -94,7 +96,19 @@ const router = createRouter({
           path: 'tasks',
           name: 'tasks',
           component: TasksIndexView,
-          meta: { title: 'Tasks', section: 'board' },
+          meta: { title: 'Tasks', section: 'management' },
+        },
+        {
+          path: 'tasks/new',
+          name: 'tasks-create',
+          component: TasksCreateView,
+          meta: { title: 'Tasks', section: 'new' },
+        },
+        {
+          path: 'tasks/:id/edit',
+          name: 'tasks-edit',
+          component: TasksEditView,
+          meta: { title: 'Tasks', section: 'edit' },
         },
         {
           path: 'users',
