@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PageHeader from '@/components/PageHeader.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
 
 // Intentionally empty. The stat cards and Chart.js panels land with the admin
 // panel slice.

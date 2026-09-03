@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import BrandMark from '@/components/BrandMark.vue';
+import BrandMark from '@/components/ui/BrandMark.vue';
 import { AuthService } from '@/services/AuthService';
 
 const email = ref('');

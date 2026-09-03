@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import ProjectForm, { type ProjectFormValues } from '@/components/ProjectForm.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import ProjectForm, { type ProjectFormValues } from '@/components/projects/ProjectForm.vue';
 import { ProjectService } from '@/services/ProjectService';
 
 const router = useRouter();

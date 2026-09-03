@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import ProjectForm, { type ProjectFormValues } from '@/components/ProjectForm.vue';
-import ProjectMembers from '@/components/ProjectMembers.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import ProjectForm, { type ProjectFormValues } from '@/components/projects/ProjectForm.vue';
+import ProjectMembers from '@/components/projects/ProjectMembers.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 

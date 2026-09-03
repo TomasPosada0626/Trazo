@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router';
-import AppSidebar from '@/components/AppSidebar.vue';
+import AppSidebar from '@/components/layout/AppSidebar.vue';
 
 const route = useRoute();
 </script>

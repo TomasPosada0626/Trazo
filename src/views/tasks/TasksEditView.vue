@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import TaskForm, { type TaskFormValues } from '@/components/TaskForm.vue';
-import type { SelectOption } from '@/components/SelectField.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import TaskForm, { type TaskFormValues } from '@/components/tasks/TaskForm.vue';
+import type { SelectOption } from '@/components/ui/SelectField.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';

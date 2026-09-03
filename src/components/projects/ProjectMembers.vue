@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import SelectField from '@/components/SelectField.vue';
-import StatusBadge from '@/components/StatusBadge.vue';
+import SelectField from '@/components/ui/SelectField.vue';
+import StatusBadge from '@/components/ui/StatusBadge.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField, { type SelectOption } from '@/components/SelectField.vue';
-import TextField from '@/components/TextField.vue';
+import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
+import TextField from '@/components/ui/TextField.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';

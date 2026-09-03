@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/SelectField.vue';
-import TextField from '@/components/TextField.vue';
+import SelectField from '@/components/ui/SelectField.vue';
+import TextField from '@/components/ui/TextField.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 

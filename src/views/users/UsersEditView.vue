@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import UserForm, { type UserFormValues } from '@/components/UserForm.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import UserForm, { type UserFormValues } from '@/components/users/UserForm.vue';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
 import { UserService } from '@/services/UserService';
 

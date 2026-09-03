@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import SelectField from '@/components/SelectField.vue';
-import TextField from '@/components/TextField.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import SelectField from '@/components/ui/SelectField.vue';
+import TextField from '@/components/ui/TextField.vue';
 import { SPRINT_STATUS, toSelectOptions } from '@/utils/labels';
 
 const name = ref('');

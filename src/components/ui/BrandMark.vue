@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Trazo logo mark. Size and color come from the parent via fallthrough
-// classes, e.g. <BrandMark class="size-7 text-accent" />.
 </script>
 
 <template>

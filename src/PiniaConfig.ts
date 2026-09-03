@@ -1,8 +1,8 @@
 import { createPinia } from 'pinia';
 import { watch } from 'vue';
-import { projectSeeder } from '@/stores/projectseeder';
-import { taskSeeder } from '@/stores/taskseeder';
-import { userSeeder } from '@/stores/userseeder';
+import { projectSeeder } from '@/seeders/projectseeder';
+import { taskSeeder } from '@/seeders/taskseeder';
+import { userSeeder } from '@/seeders/userseeder';
 
 const PINIA_STATE_KEY = 'piniaState';
 

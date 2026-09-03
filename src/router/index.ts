@@ -1,21 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import AppLayout from '@/layouts/AppLayout.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { AuthService } from '@/services/AuthService';
-import DashboardView from '@/views/DashboardView.vue';
-import HomeView from '@/views/HomeView.vue';
-import LoginView from '@/views/LoginView.vue';
-import ProjectsCreateView from '@/views/ProjectsCreateView.vue';
-import ProjectsEditView from '@/views/ProjectsEditView.vue';
-import ProjectsIndexView from '@/views/ProjectsIndexView.vue';
-import SprintsCreateView from '@/views/SprintsCreateView.vue';
-import SprintsIndexView from '@/views/SprintsIndexView.vue';
-import TasksCreateView from '@/views/TasksCreateView.vue';
-import TasksEditView from '@/views/TasksEditView.vue';
-import TasksIndexView from '@/views/TasksIndexView.vue';
-import UsersCreateView from '@/views/UsersCreateView.vue';
-import UsersEditView from '@/views/UsersEditView.vue';
-import UsersIndexView from '@/views/UsersIndexView.vue';
+import DashboardView from '@/views/dashboard/DashboardView.vue';
+import HomeView from '@/views/home/HomeView.vue';
+import LoginView from '@/views/login/LoginView.vue';
+import ProjectsCreateView from '@/views/projects/ProjectsCreateView.vue';
+import ProjectsEditView from '@/views/projects/ProjectsEditView.vue';
+import ProjectsIndexView from '@/views/projects/ProjectsIndexView.vue';
+import SprintsCreateView from '@/views/sprints/SprintsCreateView.vue';
+import SprintsIndexView from '@/views/sprints/SprintsIndexView.vue';
+import TasksCreateView from '@/views/tasks/TasksCreateView.vue';
+import TasksEditView from '@/views/tasks/TasksEditView.vue';
+import TasksIndexView from '@/views/tasks/TasksIndexView.vue';
+import UsersCreateView from '@/views/users/UsersCreateView.vue';
+import UsersEditView from '@/views/users/UsersEditView.vue';
+import UsersIndexView from '@/views/users/UsersIndexView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {

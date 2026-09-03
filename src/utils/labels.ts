@@ -1,5 +1,5 @@
-import type { SelectOption } from '@/components/SelectField.vue';
-import type { BadgeTone } from '@/components/StatusBadge.vue';
+import type { SelectOption } from '@/components/ui/SelectField.vue';
+import type { BadgeTone } from '@/components/ui/StatusBadge.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';

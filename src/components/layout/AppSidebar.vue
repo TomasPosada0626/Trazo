@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import BrandMark from '@/components/BrandMark.vue';
+import BrandMark from '@/components/ui/BrandMark.vue';
 import { AuthService } from '@/services/AuthService';
 import { USER_ROLE } from '@/utils/labels';
 

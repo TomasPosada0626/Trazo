@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/DataTable.vue';
-import IdChip from '@/components/IdChip.vue';
-import PageHeader from '@/components/PageHeader.vue';
-import PanelCard from '@/components/PanelCard.vue';
-import SelectField, { type SelectOption } from '@/components/SelectField.vue';
-import StatusBadge from '@/components/StatusBadge.vue';
+import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
+import IdChip from '@/components/ui/IdChip.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import PanelCard from '@/components/ui/PanelCard.vue';
+import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
+import StatusBadge from '@/components/ui/StatusBadge.vue';
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
