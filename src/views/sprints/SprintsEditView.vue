@@ -43,7 +43,6 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
     projectId: sprint.value.projectId,
     startDate: sprint.value.startDate,
     endDate: sprint.value.endDate,
-    totalCommittedPoints: sprint.value.totalCommittedPoints,
     status: sprint.value.status,
     taskIds: SprintService.getTasks(sprint.value).map((task) => task.id),
   };

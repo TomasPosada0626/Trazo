@@ -3,6 +3,7 @@ import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
+import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { UserService } from '@/services/UserService';
 import { useProjectStore } from '@/stores/projectstore';
@@ -59,17 +60,22 @@ export class ProjectService {
   }
 
   /**
-   * Deletes a project and every task that belongs to it.
+   * Deletes a project, every task that belongs to it and every one of its
+   * sprints.
    *
-   * The cascade is not optional: a task's project is the only way it reaches a
-   * screen, so a task left behind would be invisible forever while still
-   * taking up room in LocalStorage. TaskService performs the deletion, since
-   * it owns the task store.
+   * The cascade is not optional: a project is the only way its tasks and
+   * sprints reach a screen, so anything left behind would be invisible forever
+   * while still taking up room in LocalStorage. Each entity is deleted by the
+   * service that owns its store.
+   *
+   * Tasks go first, so unscheduling them from their sprints is a no-op by the
+   * time the sprints are removed.
    *
    * @param id Id of the project to delete.
    */
   static remove(id: string): void {
     TaskService.removeByProject(id);
+    SprintService.removeByProject(id);
 
     const projects = useProjectStore().projects;
     const index = projects.findIndex((project) => project.id === id);

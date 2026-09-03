@@ -54,6 +54,19 @@ export class SprintService {
     sprints.splice(index, 1);
   }
 
+  /**
+   * Deletes every sprint of a project, for the cascade in ProjectService.
+   *
+   * Delegates to remove() per sprint so the task-unscheduling behaviour stays
+   * in one place. getByProject returns a fresh array, so splicing the store
+   * while iterating it is safe.
+   *
+   * @param projectId Id of the project being deleted.
+   */
+  static removeByProject(projectId: string): void {
+    SprintService.getByProject(projectId).forEach((sprint) => SprintService.remove(sprint.id));
+  }
+
   /** The tasks scheduled into this sprint. */
   static getTasks(sprint: SprintInterface): TaskInterface[] {
     return TaskService.getBySprint(sprint.id);
@@ -89,6 +102,17 @@ export class SprintService {
   }
 
   /**
+   * Story points scheduled into the sprint, whatever their status.
+   *
+   * Derived rather than stored: with tasks editable from the sprint form, a
+   * typed commitment would contradict the visible work the moment either side
+   * changed.
+   */
+  static getTotalCommittedPoints(sprint: SprintInterface): number {
+    return SprintService.getTasks(sprint).reduce((total, task) => total + task.storyPoints, 0);
+  }
+
+  /**
    * Story points delivered so far — the diagram's `getTotalCompletedPoints()`.
    * Derived rather than stored, so it cannot go stale when a task changes
    * status.
@@ -100,17 +124,16 @@ export class SprintService {
   }
 
   /**
-   * Delivered points as a share of what was committed, 0–100.
+   * Delivered points as a share of what was scheduled, 0–100.
    *
-   * Can exceed 100 when a team finishes more than it promised; that is real
-   * information, so it is not clamped.
+   * A sprint with no tasks reports 0 rather than 100: nothing was delivered,
+   * and dividing by zero would claim otherwise.
    */
   static calculateCompletionPercentage(sprint: SprintInterface): number {
-    if (sprint.totalCommittedPoints <= 0) return 0;
+    const committed = SprintService.getTotalCommittedPoints(sprint);
+    if (committed <= 0) return 0;
 
-    return Math.round(
-      (SprintService.getTotalCompletedPoints(sprint) / sprint.totalCommittedPoints) * 100,
-    );
+    return Math.round((SprintService.getTotalCompletedPoints(sprint) / committed) * 100);
   }
 
   /**

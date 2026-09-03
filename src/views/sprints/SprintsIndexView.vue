@@ -16,11 +16,12 @@ import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
 /**
- * completedPoints is summed by SprintService.getTotalCompletedPoints(sprint)
- * rather than stored — see the decision in CLAUDE.md. The table joins it on,
- * along with the days left, which is likewise derived.
+ * Committed and completed points are both summed from the sprint's tasks by
+ * SprintService rather than stored — see the decision in CLAUDE.md. The table
+ * joins them on, along with the days left, which is likewise derived.
  */
 type SprintRow = SprintInterface & {
+  committedPoints: number;
   completedPoints: number;
   remainingDays: number;
   taskCount: number;
@@ -59,6 +60,7 @@ const sprints = computed<SprintRow[]>(() => {
     .filter((sprint) => statusFilter.value === 'all' || sprint.status === statusFilter.value)
     .map((sprint) => ({
       ...sprint,
+      committedPoints: SprintService.getTotalCommittedPoints(sprint),
       completedPoints: SprintService.getTotalCompletedPoints(sprint),
       remainingDays: SprintService.getRemainingDays(sprint),
       taskCount: SprintService.getTasks(sprint).length,
@@ -143,7 +145,7 @@ function handleDelete(sprint: SprintRow): void {
           <td class="px-4 py-3 text-ink-soft">
             {{ formatDateRange(row.startDate, row.endDate) }}
           </td>
-          <td class="px-4 py-3 font-mono">{{ row.totalCommittedPoints }}</td>
+          <td class="px-4 py-3 font-mono">{{ row.committedPoints }}</td>
           <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
           <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
           <td class="px-4 py-3 text-ink-soft">

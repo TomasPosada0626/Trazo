@@ -202,7 +202,10 @@ export const taskSeeder: TaskInterface[] = [
     sprintId: null,
     assigneeId: 'USR-01',
   },
-  // Added so each sprint carries real delivered points.
+  // Added so each sprint carries real delivered points. TSK-17 stays unfinished
+  // inside a closed sprint on purpose: without work that was scheduled but not
+  // delivered, every completed sprint would show committed == completed and the
+  // velocity chart would have nothing to say.
   {
     id: 'TSK-14',
     title: 'Navigation shell and tab bar',
@@ -252,7 +255,7 @@ export const taskSeeder: TaskInterface[] = [
     type: 'feature',
     storyPoints: 3,
     priority: 'low',
-    status: 'done',
+    status: 'todo',
     createdAt: '2026-01-22',
     dueDate: '2026-02-02',
     projectId: 'PRJ-01',

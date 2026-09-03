@@ -15,7 +15,6 @@ export interface SprintFormValues {
   projectId: string;
   startDate: string;
   endDate: string;
-  totalCommittedPoints: number;
   status: SprintStatus;
   /** Tasks scheduled into the sprint. Empty is valid. */
   taskIds: string[];
@@ -37,7 +36,6 @@ const goal = ref(initialValues?.goal ?? '');
 const projectId = ref(initialValues?.projectId ?? projectOptions[0]?.value ?? '');
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
-const committedPoints = ref(String(initialValues?.totalCommittedPoints ?? ''));
 // Plain string: SelectField's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'planned');
@@ -72,6 +70,7 @@ watch(projectId, () => {
   selectedTaskIds.value = [];
 });
 
+/** The sprint's commitment, derived from the selection rather than typed. */
 const selectedPoints = computed(() =>
   projectTasks.value
     .filter((task) => selectedTaskIds.value.includes(task.id))
@@ -92,8 +91,6 @@ function handleSubmit(): void {
     projectId: projectId.value,
     startDate: startDate.value,
     endDate: endDate.value,
-    // The number input hands back a string; the interface stores a number.
-    totalCommittedPoints: Number(committedPoints.value) || 0,
     status: status.value as SprintStatus,
     taskIds: [...selectedTaskIds.value],
   });
@@ -129,22 +126,16 @@ function handleSubmit(): void {
       <TextField id="sprint-end" v-model="endDate" label="End date" type="date" required />
     </div>
 
-    <TextField
-      id="sprint-points"
-      v-model="committedPoints"
-      label="Committed points"
-      type="number"
-      placeholder="0"
-    />
     <SelectField id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
 
     <fieldset>
       <legend class="text-sm font-medium">Tasks in this sprint</legend>
       <p class="mt-1 text-xs text-ink-soft">
-        Optional — a sprint can be planned before any work is scheduled into it.
-        <span v-if="selectedTaskIds.length">
-          {{ selectedTaskIds.length }} selected · {{ selectedPoints }} pts.
-        </span>
+        Optional — a sprint can be planned before any work is scheduled into it. The commitment is
+        the total of whatever you select.
+      </p>
+      <p class="mt-2 font-mono text-xs text-ink">
+        {{ selectedTaskIds.length }} selected · {{ selectedPoints }} pts committed
       </p>
 
       <div v-if="projectTasks.length" class="mt-2 max-h-64 overflow-y-auto border border-line">

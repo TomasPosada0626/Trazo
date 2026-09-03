@@ -96,7 +96,7 @@ export class DashboardService {
 
     return {
       labels: sprints.map((sprint) => sprint.id),
-      committed: sprints.map((sprint) => sprint.totalCommittedPoints),
+      committed: sprints.map((sprint) => SprintService.getTotalCommittedPoints(sprint)),
       values: sprints.map((sprint) => SprintService.getTotalCompletedPoints(sprint)),
     };
   }

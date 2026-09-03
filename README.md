@@ -118,9 +118,9 @@ Code organization rules are detailed in [Programming Rules](https://github.com/T
   assigned to. _Done._
 - **Tasks** — task CRUD, associated with a project. _Done._
 - **Users** — account CRUD and role assignment. _Done._
-- **Sprints** — full CRUD, with derived completed points and days remaining.
-  The create and edit forms schedule tasks into the sprint, and leaving that
-  selection empty is valid. _Done._
+- **Sprints** — full CRUD. The create and edit forms schedule tasks into the
+  sprint, and leaving that selection empty is valid. Committed points,
+  completed points and days remaining are all derived, never stored. _Done._
 - **Dashboard** — four indicators and three Chart.js charts (tasks by status as
   a pie, sprint velocity and open tasks by assignee as bars), scoped by a
   project and range selector. _Done._

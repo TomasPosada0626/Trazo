@@ -3,8 +3,9 @@ import type { SprintInterface } from '@/interfaces/SprintInterface';
 /**
  * Mock sprints preloaded on first load.
  *
- * `completedPoints` is absent on purpose: it is summed from the sprint's done
- * tasks by SprintService.getTotalCompletedPoints(), never stored.
+ * Neither committed nor completed points are stored: both are summed from the
+ * sprint's tasks by SprintService, so they can never disagree with the work
+ * actually scheduled.
  *
  * PRJ-04 deliberately has no sprints, so the dashboard's range selector has a
  * project that exercises the "no sprints" state.
@@ -17,7 +18,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-01-05',
     endDate: '2026-01-19',
     status: 'completed',
-    totalCommittedPoints: 20,
     projectId: 'PRJ-01',
   },
   {
@@ -27,7 +27,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-01-20',
     endDate: '2026-02-03',
     status: 'completed',
-    totalCommittedPoints: 14,
     projectId: 'PRJ-01',
   },
   {
@@ -37,7 +36,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-02-04',
     endDate: '2026-02-18',
     status: 'active',
-    totalCommittedPoints: 18,
     projectId: 'PRJ-01',
   },
   {
@@ -47,7 +45,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-02-19',
     endDate: '2026-03-05',
     status: 'planned',
-    totalCommittedPoints: 8,
     projectId: 'PRJ-01',
   },
   {
@@ -57,7 +54,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-01-12',
     endDate: '2026-01-26',
     status: 'completed',
-    totalCommittedPoints: 15,
     projectId: 'PRJ-02',
   },
   {
@@ -67,7 +63,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-02-09',
     endDate: '2026-02-23',
     status: 'active',
-    totalCommittedPoints: 12,
     projectId: 'PRJ-02',
   },
   {
@@ -77,7 +72,6 @@ export const sprintSeeder: SprintInterface[] = [
     startDate: '2026-02-02',
     endDate: '2026-02-16',
     status: 'active',
-    totalCommittedPoints: 14,
     projectId: 'PRJ-03',
   },
 ];
