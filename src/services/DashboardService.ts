@@ -103,6 +103,34 @@ export class DashboardService {
   }
 
   /**
+   * The signed-in member's own tasks within the current scope.
+   *
+   * Members never see the workload chart, which compares people against each
+   * other; their dashboard answers "what is on my plate" instead. Unfinished
+   * work comes first, and within that the nearest deadline, so the top of the
+   * table is what to do next. Tasks with no due date sort last.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or null for the whole project.
+   * @param userId The signed-in user.
+   * @returns Their tasks, ordered by urgency.
+   */
+  static getUserTasks(projectId: number, sprintId: number | null, userId: number): TaskInterface[] {
+    const farFuture = '9999-12-31';
+
+    return DashboardService.scopedTasks(projectId, sprintId)
+      .filter((task) => task.assigneeId === userId)
+      .slice()
+      .sort((a, b) => {
+        const aDone = a.status === 'done' ? 1 : 0;
+        const bDone = b.status === 'done' ? 1 : 0;
+        if (aDone !== bDone) return aDone - bDone;
+
+        return (a.dueDate ?? farFuture).localeCompare(b.dueDate ?? farFuture);
+      });
+  }
+
+  /**
    * Open tasks per project member, busiest first.
    *
    * Counts only `todo` and `in_progress`: finished work is not workload.

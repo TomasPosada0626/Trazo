@@ -3,16 +3,20 @@ import { computed, ref, watch } from 'vue';
 import BarChart from '@/components/dashboard/BarChart.vue';
 import PieChart from '@/components/dashboard/PieChart.vue';
 import StatCard from '@/components/dashboard/StatCard.vue';
+import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
+import IdChip from '@/components/ui/IdChip.vue';
 import PageHeader from '@/components/ui/PageHeader.vue';
 import PanelCard from '@/components/ui/PanelCard.vue';
 import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
+import StatusBadge from '@/components/ui/StatusBadge.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_STATUS } from '@/utils/labels';
+import { TASK_PRIORITY, TASK_STATUS } from '@/utils/labels';
 
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
@@ -121,6 +125,27 @@ const velocityChart = computed(() => ({
   ],
 }));
 
+/**
+ * Admins get the workload comparison across the team; members get their own
+ * queue instead, since a chart ranking colleagues is neither useful nor
+ * theirs to see.
+ */
+const isAdmin = computed(() => AuthService.isAdmin());
+
+const userTasks = computed(() =>
+  currentUserId.value
+    ? DashboardService.getUserTasks(projectId.value, sprintId.value, currentUserId.value)
+    : [],
+);
+
+const myTaskColumns: DataTableColumn[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'title', label: 'Title' },
+  { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'dueDate', label: 'Due date' },
+];
+
 const workload = computed(() =>
   DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value),
 );
@@ -193,13 +218,41 @@ const workloadChart = computed(() => ({
         </PanelCard>
       </div>
 
-      <PanelCard title="Open tasks by assignee" padded>
+      <PanelCard v-if="isAdmin" title="Open tasks by assignee" padded>
         <BarChart
           :labels="workloadChart.labels"
           :series="workloadChart.series"
           horizontal
           :step-size="1"
         />
+      </PanelCard>
+
+      <PanelCard v-else title="My assigned tasks">
+        <DataTable
+          :columns="myTaskColumns"
+          :rows="userTasks"
+          empty-message="Nothing is assigned to you in this range."
+        >
+          <template #row="{ row }">
+            <td class="px-4 py-3">
+              <IdChip>{{ shortId('TSK', row.id) }}</IdChip>
+            </td>
+            <td class="px-4 py-3 font-medium">{{ row.title }}</td>
+            <td class="px-4 py-3">
+              <StatusBadge :tone="TASK_STATUS[row.status].tone">
+                {{ TASK_STATUS[row.status].text }}
+              </StatusBadge>
+            </td>
+            <td class="px-4 py-3">
+              <StatusBadge :tone="TASK_PRIORITY[row.priority].tone">
+                {{ TASK_PRIORITY[row.priority].text }}
+              </StatusBadge>
+            </td>
+            <td class="px-4 py-3 text-ink-soft">
+              {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
+            </td>
+          </template>
+        </DataTable>
       </PanelCard>
     </template>
   </div>
