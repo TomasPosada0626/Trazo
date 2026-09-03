@@ -99,23 +99,6 @@ function handleDelete(sprint: SprintRow): void {
       admin-only
     >
       <template #actions>
-        <SelectField
-          v-if="projects.length"
-          id="sprint-project-filter"
-          v-model="projectFilter"
-          label="Project"
-          compact
-          :options="projectOptions"
-          class="w-52"
-        />
-        <SelectField
-          id="sprint-status-filter"
-          v-model="statusFilter"
-          label="Status"
-          compact
-          :options="statusOptions"
-          class="w-40"
-        />
         <RouterLink
           to="/app/sprints/new"
           class="bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
@@ -131,7 +114,28 @@ function handleDelete(sprint: SprintRow): void {
       </p>
     </PanelCard>
 
-    <PanelCard v-else :title="`Sprints for &quot;${selectedProjectName}&quot;`">
+    <PanelCard v-else :title="`Sprints for ${selectedProjectName}`">
+      <template #actions>
+        <div class="flex flex-wrap items-end gap-3">
+          <SelectField
+            id="sprint-project-filter"
+            v-model="projectFilter"
+            label="Project"
+            compact
+            :options="projectOptions"
+            class="w-52"
+          />
+          <SelectField
+            id="sprint-status-filter"
+            v-model="statusFilter"
+            label="Status"
+            compact
+            :options="statusOptions"
+            class="w-44"
+          />
+        </div>
+      </template>
+
       <DataTable
         :columns="columns"
         :rows="sprints"

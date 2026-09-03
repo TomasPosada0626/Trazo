@@ -75,7 +75,7 @@ function handleDelete(user: UserRow): void {
       </template>
     </PageHeader>
 
-    <PanelCard title="Registered users">
+    <PanelCard title="Users">
       <template #actions>
         <SelectField
           id="user-role-filter"

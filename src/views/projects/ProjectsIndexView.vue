@@ -64,7 +64,7 @@ function handleDelete(project: ProjectInterface): void {
       </template>
     </PageHeader>
 
-    <PanelCard title="All projects">
+    <PanelCard title="Projects">
       <template #actions>
         <SelectField
           id="project-status-filter"

@@ -119,7 +119,7 @@ function handleDelete(task: TaskInterface): void {
       </button>
     </p>
 
-    <PanelCard v-if="projects.length" title="All tasks">
+    <PanelCard v-if="projects.length" title="Tasks">
       <template #actions>
         <div class="flex flex-wrap items-end gap-3">
           <SelectField
