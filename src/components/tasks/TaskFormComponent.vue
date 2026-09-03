@@ -1,12 +1,17 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
 import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
+// variables
 /**
  * What this form can produce. `sprintId` is left out on purpose: sprints have
  * no store yet, so there is nothing to pick from. Create sends null and edit
@@ -15,6 +20,7 @@ import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/
  */
 export type TaskFormValues = Omit<CreateTaskDTO, 'sprintId'>;
 
+// props
 const { initialValues, submitLabel, projectOptions, assignableUsers } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: TaskFormValues;
@@ -25,8 +31,10 @@ const { initialValues, submitLabel, projectOptions, assignableUsers } = definePr
   assignableUsers: Record<number, SelectOption<number>[]>;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
 
+// reactive variables
 /** 0 stands for "nobody": nextId never issues it. */
 const UNASSIGNED = 0;
 
@@ -42,6 +50,7 @@ const dueDate = ref(initialValues?.dueDate ?? '');
 const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const assigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
 
+// selectors
 const typeOptions = toSelectOptions(TASK_TYPE);
 const priorityOptions = toSelectOptions(TASK_PRIORITY);
 const statusOptions = toSelectOptions(TASK_STATUS);
@@ -52,15 +61,7 @@ const assigneeOptions = computed<SelectOption<number>[]>(() => [
   ...(assignableUsers[projectId.value] ?? []),
 ]);
 
-// Moving a task to another project can strand its assignee, who may not be a
-// member there. Clearing it keeps the form from submitting a pair the service
-// would reject.
-watch(assigneeOptions, (options) => {
-  if (!options.some((option) => option.value === assigneeId.value)) {
-    assigneeId.value = UNASSIGNED;
-  }
-});
-
+// functions
 /** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
@@ -76,6 +77,16 @@ function handleSubmit(): void {
     assigneeId: assigneeId.value || null,
   });
 }
+
+// watchers
+// Moving a task to another project can strand its assignee, who may not be a
+// member there. Clearing it keeps the form from submitting a pair the service
+// would reject.
+watch(assigneeOptions, (newOptions) => {
+  if (!newOptions.some((option) => option.value === assigneeId.value)) {
+    assigneeId.value = UNASSIGNED;
+  }
+});
 </script>
 
 <template>

@@ -1,11 +1,16 @@
 <script setup lang="ts">
+// Author: Tomás Posada
+
+// external imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { UserRole } from '@/interfaces/UserInterface';
-import { USER_ROLE, toSelectOptions } from '@/utils/labels';
+import { toSelectOptions, USER_ROLE } from '@/utils/labels';
 
+// variables
 export interface UserFormValues {
   name: string;
   email: string;
@@ -13,6 +18,7 @@ export interface UserFormValues {
   role: UserRole;
 }
 
+// props
 const {
   initialValues,
   submitLabel,
@@ -23,14 +29,19 @@ const {
   passwordRequired?: boolean;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: UserFormValues] }>();
 
+// reactive variables
 const name = ref(initialValues?.name ?? '');
 const email = ref(initialValues?.email ?? '');
 const password = ref('');
 const role = ref<string>(initialValues?.role ?? 'member');
+
+// selectors
 const roleOptions = toSelectOptions(USER_ROLE);
 
+// functions
 /** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {

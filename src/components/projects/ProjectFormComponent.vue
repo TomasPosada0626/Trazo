@@ -1,33 +1,43 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
+// variables
 export interface ProjectFormValues {
   name: string;
   description: string;
   status: ProjectStatus;
 }
 
+// props
 const { initialValues, submitLabel } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: ProjectFormValues;
   submitLabel: string;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
 
+// reactive variables
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
 // Plain string: SelectFieldComponent's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'active');
 
+// selectors
 const statusOptions = toSelectOptions(PROJECT_STATUS);
 
+// functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),

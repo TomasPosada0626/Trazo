@@ -1,5 +1,9 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
+// internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
@@ -7,8 +11,10 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { USER_ROLE } from '@/utils/labels';
 
+// props
 const { project } = defineProps<{ project: ProjectInterface }>();
 
+// reactive variables
 const members = computed(() => ProjectService.getMembers(project));
 const nonMembers = computed(() => ProjectService.getNonMembers(project));
 
@@ -16,23 +22,14 @@ const NONE = 0;
 
 const selectedUserId = ref<number>(NONE);
 
-// Keep the picker pointing at a user who is still addable.
-watch(
-  nonMembers,
-  (options) => {
-    if (!options.some((user) => user.id === selectedUserId.value)) {
-      selectedUserId.value = options[0]?.id ?? NONE;
-    }
-  },
-  { immediate: true },
-);
-
+// selectors
 const userOptions = computed(() =>
   nonMembers.value.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
 );
 
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
+// functions
 /**
  * You cannot remove yourself: to leave a project you administer, delete it.
  * This is also what stops a project from becoming unreachable, since only
@@ -50,6 +47,18 @@ function handleAdd(): void {
 function handleRemove(userId: number): void {
   ProjectService.removeMember(project.id, userId);
 }
+
+// watchers
+// Keep the picker pointing at a user who is still addable.
+watch(
+  nonMembers,
+  (newOptions) => {
+    if (!newOptions.some((user) => user.id === selectedUserId.value)) {
+      selectedUserId.value = newOptions[0]?.id ?? NONE;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
