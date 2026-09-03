@@ -1,10 +1,15 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+// internal imports
 import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { USER_ROLE } from '@/utils/labels';
 
+// variables
 interface NavItem {
   label: string;
   to: string;
@@ -63,6 +68,7 @@ const groups: NavGroup[] = [
   },
 ];
 
+// reactive variables
 const isAdmin = computed(() => AuthService.isAdmin());
 
 /**
@@ -96,6 +102,7 @@ const currentUser = computed(() => {
   };
 });
 
+// functions
 function handleLogout(): void {
   AuthService.logout();
   router.push({ name: 'login' });

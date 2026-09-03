@@ -1,7 +1,12 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { RouterView, useRoute } from 'vue-router';
+// internal imports
 import AppSidebarComponent from '@/components/layout/AppSidebarComponent.vue';
 
+// variables
 const route = useRoute();
 </script>
 
