@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// props
 const {
   label,
   id,
@@ -13,6 +16,7 @@ const {
   required?: boolean;
 }>();
 
+// variables
 const model = defineModel<string>({ required: true });
 </script>
 

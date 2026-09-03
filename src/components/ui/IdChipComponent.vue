@@ -1,7 +1,8 @@
 <script setup lang="ts">
-// Short human-readable record code, e.g. PRJ-01. See the display-id note in
-// CLAUDE.md: real ids are UUIDs, so this will need a formatting helper once
-// the seeders replace the hardcoded arrays.
+// Author: Mateo Garcia Carreno
+
+// Short human-readable record code, e.g. PRJ-01, built from a plain integer
+// id by utils/id.ts's shortId().
 </script>
 
 <template>

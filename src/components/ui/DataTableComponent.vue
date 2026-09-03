@@ -1,4 +1,7 @@
 <script setup lang="ts" generic="T extends { id: number }">
+// Author: Mateo Garcia Carreno
+
+// variables
 export interface DataTableColumn {
   key: string;
   label: string;
@@ -6,6 +9,7 @@ export interface DataTableColumn {
   class?: string;
 }
 
+// props
 const { emptyMessage = 'No records to display.' } = defineProps<{
   columns: DataTableColumn[];
   rows: T[];
