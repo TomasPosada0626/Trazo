@@ -1,27 +1,52 @@
+// Author: Hever-Alfonso
+
+// internal imports
 import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { TaskService } from '@/services/TaskService';
 import { useSprintStore } from '@/stores/sprintstore';
-import { nextId } from '@/utils/id';
 import { daysBetween, startOfToday } from '@/utils/date';
+import { nextId } from '@/utils/id';
 
 export class SprintService {
-  /** Every sprint of a project, in seeded order. */
+  /**
+   * Every sprint of a project, in seeded order.
+   *
+   * @param projectId Id of the owning project.
+   * @returns The project's sprints, empty when it has none or does not exist.
+   */
   static getByProject(projectId: number): SprintInterface[] {
     return useSprintStore().sprints.filter((sprint) => sprint.projectId === projectId);
   }
 
+  /**
+   * Finds a sprint by id.
+   *
+   * @param id Id of the sprint.
+   * @returns The sprint, or `undefined` when no sprint carries that id.
+   */
   static getById(id: number): SprintInterface | undefined {
     return useSprintStore().sprints.find((sprint) => sprint.id === id);
   }
 
-  /** Sprints currently running, i.e. `Project.getActiveSprints()` in the diagram. */
+  /**
+   * Sprints currently running, i.e. `Project.getActiveSprints()` in the diagram.
+   *
+   * @param projectId Id of the owning project.
+   * @returns The project's active sprints.
+   */
   static getActiveSprints(projectId: number): SprintInterface[] {
     return SprintService.getByProject(projectId).filter((sprint) => sprint.status === 'active');
   }
 
+  /**
+   * Creates and stores a sprint with a generated id.
+   *
+   * @param data Sprint fields supplied by the form.
+   * @returns The stored sprint.
+   */
   static create(data: CreateSprintDTO): SprintInterface {
     const sprint: SprintInterface = { id: nextId(useSprintStore().sprints), ...data };
 
@@ -30,7 +55,12 @@ export class SprintService {
     return sprint;
   }
 
-  /** Applies a partial update. No-op when the id does not exist. */
+  /**
+   * Applies a partial update. No-op when the id does not exist.
+   *
+   * @param id Id of the sprint to update.
+   * @param changes Fields to overwrite; omitted fields keep their value.
+   */
   static update(id: number, changes: UpdateSprintDTO): void {
     const sprint = SprintService.getById(id);
     if (!sprint) return;
@@ -44,6 +74,8 @@ export class SprintService {
    * Tasks are not deleted with it: a task belongs to its project, and the
    * sprint is only where it was scheduled. Leaving a dangling `sprintId` would
    * hide those tasks from every sprint-scoped view with no way back.
+   *
+   * @param id Id of the sprint to delete.
    */
   static remove(id: number): void {
     const sprints = useSprintStore().sprints;
@@ -68,7 +100,12 @@ export class SprintService {
     SprintService.getByProject(projectId).forEach((sprint) => SprintService.remove(sprint.id));
   }
 
-  /** The tasks scheduled into this sprint. */
+  /**
+   * The tasks scheduled into this sprint.
+   *
+   * @param sprint The sprint to read tasks from.
+   * @returns Its scheduled tasks.
+   */
   static getTasks(sprint: SprintInterface): TaskInterface[] {
     return TaskService.getBySprint(sprint.id);
   }
@@ -84,6 +121,9 @@ export class SprintService {
    *
    * Passing an empty array clears the sprint, which is a valid state — a
    * sprint can be planned before any work is scheduled into it.
+   *
+   * @param sprintId Id of the sprint being scheduled.
+   * @param taskIds Ids of the tasks that should end up in the sprint.
    */
   static setTasks(sprintId: number, taskIds: number[]): void {
     const sprint = SprintService.getById(sprintId);
@@ -108,6 +148,9 @@ export class SprintService {
    * Derived rather than stored: with tasks editable from the sprint form, a
    * typed commitment would contradict the visible work the moment either side
    * changed.
+   *
+   * @param sprint The sprint to measure.
+   * @returns Total committed story points.
    */
   static getTotalCommittedPoints(sprint: SprintInterface): number {
     return SprintService.getTasks(sprint).reduce((total, task) => total + task.storyPoints, 0);
@@ -117,6 +160,9 @@ export class SprintService {
    * Story points delivered so far — the diagram's `getTotalCompletedPoints()`.
    * Derived rather than stored, so it cannot go stale when a task changes
    * status.
+   *
+   * @param sprint The sprint to measure.
+   * @returns Total completed story points.
    */
   static getTotalCompletedPoints(sprint: SprintInterface): number {
     return SprintService.getTasks(sprint)
@@ -125,10 +171,13 @@ export class SprintService {
   }
 
   /**
-   * Delivered points as a share of what was scheduled, 0–100.
+   * Delivered points as a share of what was scheduled.
    *
    * A sprint with no tasks reports 0 rather than 100: nothing was delivered,
    * and dividing by zero would claim otherwise.
+   *
+   * @param sprint The sprint to measure.
+   * @returns Completion percentage, 0 to 100.
    */
   static calculateCompletionPercentage(sprint: SprintInterface): number {
     const committed = SprintService.getTotalCommittedPoints(sprint);
@@ -143,6 +192,9 @@ export class SprintService {
    *
    * Only completed sprints count: an in-flight sprint has not had its chance
    * to deliver yet, and including it would drag the average down every time.
+   *
+   * @param projectId Id of the project to compute velocity for.
+   * @returns Average completed points per finished sprint, 0 when there are none.
    */
   static calculateVelocity(projectId: number): number {
     const finished = SprintService.getByProject(projectId).filter(
@@ -163,6 +215,9 @@ export class SprintService {
    *
    * Returns 0 for a sprint that has already ended rather than a negative
    * number, since the UI reads it as "days remaining".
+   *
+   * @param sprint The sprint to measure.
+   * @returns Days remaining until `endDate`.
    */
   static getRemainingDays(sprint: SprintInterface): number {
     return Math.max(0, daysBetween(startOfToday(), sprint.endDate));
