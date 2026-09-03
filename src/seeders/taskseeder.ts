@@ -8,9 +8,9 @@ import type { TaskInterface } from '@/interfaces/TaskInterface';
  * only offers a project's members as assignees, so seeded data has to obey the
  * same rule the forms enforce.
  *
- * `sprintId` is null on every row. Sprints have no store or service yet, so
- * pointing a task at 'SPR-08' would be a dangling reference the app cannot
- * resolve. The sprint slice fills these in.
+ * `sprintId` points at a sprint of the same project, or is null when the task
+ * sits in the backlog. PRJ-04 has no sprints at all, so both of its tasks stay
+ * unscheduled — that is the case the dashboard's range selector has to handle.
  */
 export const taskSeeder: TaskInterface[] = [
   // PRJ-01 — Mobile App Redesign. Members: USR-01, USR-02.
@@ -25,7 +25,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-02-04',
     dueDate: '2026-02-14',
     projectId: 'PRJ-01',
-    sprintId: null,
+    sprintId: 'SPR-06',
     assigneeId: 'USR-02',
   },
   {
@@ -39,7 +39,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-02-05',
     dueDate: '2026-02-16',
     projectId: 'PRJ-01',
-    sprintId: null,
+    sprintId: 'SPR-07',
     assigneeId: 'USR-01',
   },
   {
@@ -53,7 +53,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-02-10',
     dueDate: '2026-02-20',
     projectId: 'PRJ-01',
-    sprintId: null,
+    sprintId: 'SPR-08',
     assigneeId: 'USR-02',
   },
   {
@@ -67,7 +67,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-02-11',
     dueDate: '2026-03-02',
     projectId: 'PRJ-01',
-    sprintId: null,
+    sprintId: 'SPR-08',
     assigneeId: null,
   },
   {
@@ -81,7 +81,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-02-12',
     dueDate: null,
     projectId: 'PRJ-01',
-    sprintId: null,
+    sprintId: 'SPR-09',
     assigneeId: 'USR-01',
   },
 
@@ -97,7 +97,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-03-19',
     dueDate: '2026-03-30',
     projectId: 'PRJ-02',
-    sprintId: null,
+    sprintId: 'SPR-10',
     assigneeId: 'USR-03',
   },
   {
@@ -111,7 +111,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-03-20',
     dueDate: '2026-04-03',
     projectId: 'PRJ-02',
-    sprintId: null,
+    sprintId: 'SPR-11',
     assigneeId: 'USR-03',
   },
   {
@@ -125,7 +125,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-03-22',
     dueDate: null,
     projectId: 'PRJ-02',
-    sprintId: null,
+    sprintId: 'SPR-11',
     assigneeId: null,
   },
 
@@ -141,7 +141,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-01-08',
     dueDate: '2026-02-28',
     projectId: 'PRJ-03',
-    sprintId: null,
+    sprintId: 'SPR-12',
     assigneeId: 'USR-03',
   },
   {
@@ -155,7 +155,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-01-15',
     dueDate: '2026-02-05',
     projectId: 'PRJ-03',
-    sprintId: null,
+    sprintId: 'SPR-12',
     assigneeId: 'USR-02',
   },
   {
@@ -169,7 +169,7 @@ export const taskSeeder: TaskInterface[] = [
     createdAt: '2026-01-20',
     dueDate: '2026-01-31',
     projectId: 'PRJ-03',
-    sprintId: null,
+    sprintId: 'SPR-12',
     assigneeId: 'USR-02',
   },
 
@@ -201,5 +201,118 @@ export const taskSeeder: TaskInterface[] = [
     projectId: 'PRJ-04',
     sprintId: null,
     assigneeId: 'USR-01',
+  },
+  // Added so each sprint carries real delivered points.
+  {
+    id: 'TSK-14',
+    title: 'Navigation shell and tab bar',
+    description: 'Bottom navigation with per-tab state.',
+    type: 'feature',
+    storyPoints: 8,
+    priority: 'high',
+    status: 'done',
+    createdAt: '2026-01-06',
+    dueDate: '2026-01-16',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-06',
+    assigneeId: 'USR-01',
+  },
+  {
+    id: 'TSK-15',
+    title: 'Typography and colour tokens',
+    description: 'Shared scale for headings, body and captions.',
+    type: 'chore',
+    storyPoints: 5,
+    priority: 'medium',
+    status: 'done',
+    createdAt: '2026-01-07',
+    dueDate: '2026-01-17',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-06',
+    assigneeId: 'USR-02',
+  },
+  {
+    id: 'TSK-16',
+    title: 'Sign-up form validation',
+    description: 'Inline errors for every field on the sign-up screen.',
+    type: 'feature',
+    storyPoints: 5,
+    priority: 'high',
+    status: 'done',
+    createdAt: '2026-01-21',
+    dueDate: '2026-01-30',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-07',
+    assigneeId: 'USR-01',
+  },
+  {
+    id: 'TSK-17',
+    title: 'Password strength meter',
+    description: 'Live feedback while the password is typed.',
+    type: 'feature',
+    storyPoints: 3,
+    priority: 'low',
+    status: 'done',
+    createdAt: '2026-01-22',
+    dueDate: '2026-02-02',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-07',
+    assigneeId: 'USR-02',
+  },
+  {
+    id: 'TSK-18',
+    title: 'Welcome screen copy',
+    description: 'Final wording for the post-verification screen.',
+    type: 'chore',
+    storyPoints: 5,
+    priority: 'medium',
+    status: 'done',
+    createdAt: '2026-02-05',
+    dueDate: '2026-02-12',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-08',
+    assigneeId: 'USR-02',
+  },
+  {
+    id: 'TSK-19',
+    title: 'Resend verification email',
+    description: 'Rate-limited resend with a countdown.',
+    type: 'feature',
+    storyPoints: 3,
+    priority: 'high',
+    status: 'in_progress',
+    createdAt: '2026-02-06',
+    dueDate: '2026-02-17',
+    projectId: 'PRJ-01',
+    sprintId: 'SPR-08',
+    assigneeId: 'USR-01',
+  },
+  {
+    id: 'TSK-20',
+    title: 'Invoice detail view',
+    description: 'Line items, totals and download action.',
+    type: 'feature',
+    storyPoints: 8,
+    priority: 'high',
+    status: 'done',
+    createdAt: '2026-01-13',
+    dueDate: '2026-01-23',
+    projectId: 'PRJ-02',
+    sprintId: 'SPR-10',
+    assigneeId: 'USR-03',
+  },
+  {
+    id: 'TSK-21',
+    title: 'Saved payment methods',
+    description: 'List and remove stored cards.',
+    type: 'feature',
+    storyPoints: 3,
+    priority: 'medium',
+    status: 'done',
+    createdAt: '2026-02-10',
+    dueDate: '2026-02-19',
+    projectId: 'PRJ-02',
+    sprintId: 'SPR-11',
+    assigneeId: 'USR-03',
   },
 ];

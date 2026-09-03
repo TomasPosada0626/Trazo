@@ -15,7 +15,8 @@ More project context (verbal model, class diagram, architecture diagram, program
 - [Pinia](https://pinia.vuejs.org/)
 - [Tailwind CSS v4](https://tailwindcss.com/) (theme tokens declared in `src/assets/css/input.css`)
 - [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)
-- [Chart.js](https://www.chartjs.org/) — required for the admin panel, **not installed yet**
+- [Chart.js](https://www.chartjs.org/) — dashboard charts
+- [CountUp.js](https://inorganik.github.io/countUp.js/) — animated dashboard counters
 
 ## Prerequisites
 
@@ -117,10 +118,11 @@ Code organization rules are detailed in [Programming Rules](https://github.com/T
   assigned to. _Done._
 - **Tasks** — task CRUD, associated with a project. _Done._
 - **Users** — account CRUD and role assignment. _Done._
-- **Sprints** — layout only: the views render fixture data and the form does not
-  persist yet. Needs its store, seeder, DTOs and service.
-- **Admin panel** — indicators, filters and charts for administrators. _Pending;_
-  Chart.js still has to be added.
+- **Sprints** — sprint creation, listing and deletion, with derived completed
+  points and days remaining. Editing is still missing. _Mostly done._
+- **Dashboard** — four indicators and three Chart.js charts (tasks by status as
+  a pie, sprint velocity and open tasks by assignee as bars), scoped by a
+  project and range selector. _Done._
 - **Reusable components** — table, fields, badges and cards in `components/ui/`,
   shared by every module above.
 

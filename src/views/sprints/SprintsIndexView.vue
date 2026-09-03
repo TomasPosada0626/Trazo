@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
 import IdChip from '@/components/ui/IdChip.vue';
@@ -7,63 +7,62 @@ import PageHeader from '@/components/ui/PageHeader.vue';
 import PanelCard from '@/components/ui/PanelCard.vue';
 import SelectField from '@/components/ui/SelectField.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
-import type { SprintInterface } from '@/interfaces/SprintInterface';
+import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
+import { AuthService } from '@/services/AuthService';
+import { ProjectService } from '@/services/ProjectService';
+import { SprintService } from '@/services/SprintService';
 import { formatDateRange } from '@/utils/date';
+import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
 /**
  * completedPoints is summed by SprintService.getTotalCompletedPoints(sprint)
- * rather than stored — see the decision in CLAUDE.md. The table joins it on.
+ * rather than stored — see the decision in CLAUDE.md. The table joins it on,
+ * along with the days left, which is likewise derived.
  */
-type SprintRow = SprintInterface & { completedPoints: number };
+type SprintRow = SprintInterface & { completedPoints: number; remainingDays: number };
 
-// Hardcoded until the seeders and SprintService exist.
-const sprints: SprintRow[] = [
-  {
-    id: 'SPR-06',
-    name: 'Flow design',
-    goal: "Close out the app's main flows.",
-    startDate: '2026-01-05',
-    endDate: '2026-01-19',
-    status: 'completed',
-    totalCommittedPoints: 32,
-    projectId: 'PRJ-01',
-    completedPoints: 32,
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+const projects = computed(() =>
+  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
+);
+
+const projectFilter = ref('');
+
+// Select the first project, and recover if the current one disappears.
+watch(
+  projects,
+  (list) => {
+    if (!list.some((project) => project.id === projectFilter.value)) {
+      projectFilter.value = list[0]?.id ?? '';
+    }
   },
-  {
-    id: 'SPR-07',
-    name: 'Onboarding v1',
-    goal: 'First version of user sign-up.',
-    startDate: '2026-01-20',
-    endDate: '2026-02-03',
-    status: 'completed',
-    totalCommittedPoints: 28,
-    projectId: 'PRJ-01',
-    completedPoints: 25,
-  },
-  {
-    id: 'SPR-08',
-    name: 'Onboarding v2',
-    goal: 'Email verification and welcome.',
-    startDate: '2026-02-04',
-    endDate: '2026-02-18',
-    status: 'active',
-    totalCommittedPoints: 30,
-    projectId: 'PRJ-01',
-    completedPoints: 22,
-  },
-  {
-    id: 'SPR-09',
-    name: 'Push notifications',
-    goal: 'Real-time activity alerts.',
-    startDate: '2026-02-19',
-    endDate: '2026-03-05',
-    status: 'planned',
-    totalCommittedPoints: 24,
-    projectId: 'PRJ-01',
-    completedPoints: 0,
-  },
-];
+  { immediate: true },
+);
+
+const projectOptions = computed(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+const statusFilter = ref<SprintStatus | 'all'>('all');
+const statusOptions = toFilterOptions(SPRINT_STATUS);
+
+const sprints = computed<SprintRow[]>(() => {
+  if (!projectFilter.value) return [];
+
+  return SprintService.getByProject(projectFilter.value)
+    .filter((sprint) => statusFilter.value === 'all' || sprint.status === statusFilter.value)
+    .map((sprint) => ({
+      ...sprint,
+      completedPoints: SprintService.getTotalCompletedPoints(sprint),
+      remainingDays: SprintService.getRemainingDays(sprint),
+    }));
+});
+
+const selectedProjectName = computed(
+  () => projects.value.find((project) => project.id === projectFilter.value)?.name ?? '',
+);
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -71,20 +70,17 @@ const columns: DataTableColumn[] = [
   { key: 'dates', label: 'Dates' },
   { key: 'committed', label: 'Committed pts.' },
   { key: 'completed', label: 'Completed pts.' },
+  { key: 'remaining', label: 'Days left' },
   { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// Bound but inert: filtering belongs to SprintService, not the view.
-const projectFilter = ref('PRJ-01');
-const statusFilter = ref('all');
-
-const projectOptions = [
-  { value: 'PRJ-01', label: 'Mobile App Redesign' },
-  { value: 'PRJ-02', label: 'Customer Portal' },
-  { value: 'PRJ-03', label: 'Cloud Migration' },
-];
-
-const statusOptions = toFilterOptions(SPRINT_STATUS);
+function handleDelete(sprint: SprintRow): void {
+  const confirmed = window.confirm(
+    `Delete the sprint "${sprint.name}"? Its tasks return to the backlog.`,
+  );
+  if (confirmed) SprintService.remove(sprint.id);
+}
 </script>
 
 <template>
@@ -92,9 +88,11 @@ const statusOptions = toFilterOptions(SPRINT_STATUS);
     <PageHeader
       title="Sprint management"
       subtitle="Review the progress, velocity and remaining days of each sprint (Sprint entity)."
+      admin-only
     >
       <template #actions>
         <SelectField
+          v-if="projects.length"
           id="sprint-project-filter"
           v-model="projectFilter"
           label="Project"
@@ -119,11 +117,21 @@ const statusOptions = toFilterOptions(SPRINT_STATUS);
       </template>
     </PageHeader>
 
-    <PanelCard title='Sprints for "Mobile App Redesign"'>
-      <DataTable :columns="columns" :rows="sprints">
+    <PanelCard v-if="!projects.length" title="No projects yet" padded>
+      <p class="text-sm text-ink-soft">
+        Sprints belong to a project. Create a project first, then plan its sprints.
+      </p>
+    </PanelCard>
+
+    <PanelCard v-else :title="`Sprints for &quot;${selectedProjectName}&quot;`">
+      <DataTable
+        :columns="columns"
+        :rows="sprints"
+        empty-message="This project has no sprints matching the filter."
+      >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ row.id }}</IdChip>
+            <IdChip>{{ shortId('SPR', row.id) }}</IdChip>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">
@@ -131,10 +139,22 @@ const statusOptions = toFilterOptions(SPRINT_STATUS);
           </td>
           <td class="px-4 py-3 font-mono">{{ row.totalCommittedPoints }}</td>
           <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
+          <td class="px-4 py-3 text-ink-soft">
+            {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
+          </td>
           <td class="px-4 py-3">
             <StatusBadge :tone="SPRINT_STATUS[row.status].tone">
               {{ SPRINT_STATUS[row.status].text }}
             </StatusBadge>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button
+              type="button"
+              class="text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
+              @click="handleDelete(row)"
+            >
+              Delete
+            </button>
           </td>
         </template>
       </DataTable>

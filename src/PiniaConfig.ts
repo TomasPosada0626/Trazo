@@ -1,6 +1,7 @@
 import { createPinia } from 'pinia';
 import { watch } from 'vue';
 import { projectSeeder } from '@/seeders/projectseeder';
+import { sprintSeeder } from '@/seeders/sprintseeder';
 import { taskSeeder } from '@/seeders/taskseeder';
 import { userSeeder } from '@/seeders/userseeder';
 
@@ -15,6 +16,7 @@ export default class PiniaConfig {
     const seededState = {
       user: { users: userSeeder },
       project: { projects: projectSeeder },
+      sprint: { sprints: sprintSeeder },
       task: { tasks: taskSeeder },
       auth: { currentUserId: null },
     };

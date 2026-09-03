@@ -4,12 +4,14 @@ export interface SelectOption {
   label: string;
 }
 
-const { compact = false } = defineProps<{
+const { compact = false, disabled = false } = defineProps<{
   label: string;
   id: string;
   options: SelectOption[];
   /** Toolbar variant: micro mono label, used for the table filters. */
   compact?: boolean;
+  /** Greys the control out, e.g. a range filter with nothing to range over. */
+  disabled?: boolean;
 }>();
 
 const model = defineModel<string>({ required: true });
@@ -34,8 +36,9 @@ const CHEVRON =
     <select
       :id="id"
       v-model="model"
+      :disabled="disabled"
       :style="{ backgroundImage: CHEVRON }"
-      class="w-full appearance-none border border-line bg-paper bg-[length:16px_16px] bg-[position:right_0.65rem_center] bg-no-repeat pr-8 text-sm focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+      class="w-full appearance-none border border-line bg-paper bg-[length:16px_16px] bg-[position:right_0.65rem_center] bg-no-repeat pr-8 text-sm focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:bg-ink/[0.03] disabled:text-ink-soft"
       :class="compact ? 'mt-1.5 py-2 pl-3' : 'mt-2 py-2.5 pl-3'"
     >
       <option v-for="option in options" :key="option.value" :value="option.value">
