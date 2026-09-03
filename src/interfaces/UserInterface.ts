@@ -5,7 +5,7 @@
 export type UserRole = 'admin' | 'member';
 
 export interface UserInterface {
-  id: string;
+  id: number;
   name: string;
   email: string;
   /** Plain text, LocalStorage-only MVP. Never do this in a real app. */

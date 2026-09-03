@@ -3,8 +3,9 @@ import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
+import { UserService } from '@/services/UserService';
 import { useTaskStore } from '@/stores/taskstore';
-import { useUserStore } from '@/stores/userstore';
+import { nextId } from '@/utils/id';
 
 export class TaskService {
   /**
@@ -13,7 +14,7 @@ export class TaskService {
    * @param projectId Id of the owning project.
    * @returns The project's tasks, empty when it has none or does not exist.
    */
-  static getByProject(projectId: string): TaskInterface[] {
+  static getByProject(projectId: number): TaskInterface[] {
     return useTaskStore().tasks.filter((task) => task.projectId === projectId);
   }
 
@@ -27,7 +28,7 @@ export class TaskService {
    * @param userId Id of the user whose tasks are being listed.
    * @returns Tasks across every project the user belongs to.
    */
-  static getAllUserTasks(userId: string): TaskInterface[] {
+  static getAllUserTasks(userId: number): TaskInterface[] {
     const projectIds = ProjectService.getAllUserProjects(userId).map((project) => project.id);
 
     return useTaskStore().tasks.filter((task) => projectIds.includes(task.projectId));
@@ -42,8 +43,8 @@ export class TaskService {
    * @returns The matching tasks, in store order.
    */
   static getUserTasksFiltered(
-    userId: string,
-    projectId: string | 'all',
+    userId: number,
+    projectId: number | 'all',
     status: TaskStatus | 'all',
   ): TaskInterface[] {
     return TaskService.getAllUserTasks(userId).filter(
@@ -59,7 +60,7 @@ export class TaskService {
    * @param id Id of the task.
    * @returns The task, or `undefined` when no task carries that id.
    */
-  static getById(id: string): TaskInterface | undefined {
+  static getById(id: number): TaskInterface | undefined {
     return useTaskStore().tasks.find((task) => task.id === id);
   }
 
@@ -75,7 +76,7 @@ export class TaskService {
     TaskService.assertValid(data.title, data.projectId, data.assigneeId);
 
     const task: TaskInterface = {
-      id: crypto.randomUUID(),
+      id: nextId(useTaskStore().tasks),
       createdAt: new Date().toISOString(),
       ...data,
       title: data.title.trim(),
@@ -93,7 +94,7 @@ export class TaskService {
    * @param changes Fields to overwrite; omitted fields keep their value.
    * @throws {Error} When a supplied field fails the same checks as create().
    */
-  static update(id: string, changes: UpdateTaskDTO): void {
+  static update(id: number, changes: UpdateTaskDTO): void {
     const task = TaskService.getById(id);
     if (!task) return;
 
@@ -106,11 +107,77 @@ export class TaskService {
   }
 
   /**
+   * Tasks scheduled into the given sprint.
+   *
+   * @param sprintId Id of the sprint.
+   * @returns Its tasks, empty when nothing is scheduled into it.
+   */
+  static getBySprint(sprintId: number): TaskInterface[] {
+    return useTaskStore().tasks.filter((task) => task.sprintId === sprintId);
+  }
+
+  /**
+   * Tasks assigned to the given user, across every project.
+   *
+   * @param userId Id of the assignee.
+   * @returns Their tasks, empty when they have none.
+   */
+  static getByAssignee(userId: number): TaskInterface[] {
+    return useTaskStore().tasks.filter((task) => task.assigneeId === userId);
+  }
+
+  /**
+   * Schedules a task into a sprint, or returns it to the backlog with `null`.
+   *
+   * `sprintId` is a field of the task, so this class owns the write even when
+   * the change is driven from the sprint side. SprintService calls this rather
+   * than editing tasks itself.
+   *
+   * @param taskId Id of the task to move.
+   * @param sprintId Sprint to schedule it into, or null for the backlog.
+   */
+  static setSprint(taskId: number, sprintId: number | null): void {
+    const task = TaskService.getById(taskId);
+    if (!task) return;
+
+    task.sprintId = sprintId;
+  }
+
+  /**
+   * Clears the assignee on every task held by the given user.
+   *
+   * Called when a user is deleted. Ids are reused once the highest is freed,
+   * so a stale `assigneeId` would silently attach the old user's work to
+   * whoever is created next.
+   *
+   * @param userId Id of the user being removed.
+   */
+  static unassignUser(userId: number): void {
+    TaskService.getByAssignee(userId).forEach((task) => {
+      task.assigneeId = null;
+    });
+  }
+
+  /**
+   * Deletes every task of a project, for the cascade in ProjectService.remove.
+   *
+   * @param projectId Id of the project being deleted.
+   */
+  static removeByProject(projectId: number): void {
+    const tasks = useTaskStore().tasks;
+    for (let index = tasks.length - 1; index >= 0; index -= 1) {
+      if (tasks[index]?.projectId === projectId) {
+        tasks.splice(index, 1);
+      }
+    }
+  }
+
+  /**
    * Removes a task from the store.
    *
    * @param id Id of the task to remove.
    */
-  static remove(id: string): void {
+  static remove(id: number): void {
     const tasks = useTaskStore().tasks;
     const index = tasks.findIndex((task) => task.id === id);
     if (index !== -1) {
@@ -153,7 +220,7 @@ export class TaskService {
    * @param projectId Id of the project the task belongs to.
    * @returns The project's members, empty when the project does not exist.
    */
-  static getAssignableUsers(projectId: string): UserInterface[] {
+  static getAssignableUsers(projectId: number): UserInterface[] {
     const project = ProjectService.getById(projectId);
 
     return project ? ProjectService.getMembers(project) : [];
@@ -168,7 +235,7 @@ export class TaskService {
   static getAssignee(task: TaskInterface): UserInterface | undefined {
     if (!task.assigneeId) return undefined;
 
-    return useUserStore().users.find((user) => user.id === task.assigneeId);
+    return UserService.getById(task.assigneeId);
   }
 
   /**
@@ -180,7 +247,7 @@ export class TaskService {
    * @param assigneeId Id of the assignee, or `null` when unassigned.
    * @throws {Error} When any of the three is invalid.
    */
-  private static assertValid(title: string, projectId: string, assigneeId: string | null): void {
+  private static assertValid(title: string, projectId: number, assigneeId: number | null): void {
     if (!title.trim()) {
       throw new Error('The task title is required.');
     }

@@ -1,7 +1,7 @@
 export type ProjectStatus = 'planning' | 'active' | 'at_risk' | 'paused' | 'completed';
 
 export interface ProjectInterface {
-  id: string;
+  id: number;
   name: string;
   description: string;
   status: ProjectStatus;
@@ -12,5 +12,5 @@ export interface ProjectInterface {
    * relation, so it is stored here and nowhere else; a user's projects are
    * derived with UserService.getProjects(user).
    */
-  memberIds: string[];
+  memberIds: number[];
 }
