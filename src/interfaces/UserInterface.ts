@@ -1,3 +1,5 @@
+// Author: Mateo Garcia Carreno
+
 /**
  * Role decides what a user can reach. `admin` unlocks the admin panel;
  * `member` only sees the projects they belong to.
