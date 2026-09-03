@@ -1,7 +1,7 @@
 export type SprintStatus = 'planned' | 'active' | 'completed';
 
 export interface SprintInterface {
-  id: string;
+  id: number;
   name: string;
   goal: string;
   /** ISO 8601 string. */
@@ -9,5 +9,5 @@ export interface SprintInterface {
   /** ISO 8601 string. */
   endDate: string;
   status: SprintStatus;
-  projectId: string;
+  projectId: number;
 }

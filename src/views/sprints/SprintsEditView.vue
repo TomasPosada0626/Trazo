@@ -11,7 +11,9 @@ import { SprintService } from '@/services/SprintService';
 const route = useRoute();
 const router = useRouter();
 
-const sprintId = String(route.params.id);
+// A non-numeric URL yields NaN, which no record matches, so the view
+// falls through to its "not found" panel.
+const sprintId = Number(route.params.id);
 
 /**
  * Membership is the visibility rule, and the route guard only checks the admin

@@ -7,19 +7,20 @@ import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { UserService } from '@/services/UserService';
 import { useProjectStore } from '@/stores/projectstore';
+import { nextId } from '@/utils/id';
 
 export class ProjectService {
   /**
    * Projects the given user belongs to. Membership is the visibility rule:
    * a project the user is not a member of never reaches their screen.
    */
-  static getAllUserProjects(userId: string): ProjectInterface[] {
+  static getAllUserProjects(userId: number): ProjectInterface[] {
     return useProjectStore().projects.filter((project) => project.memberIds.includes(userId));
   }
 
   /** The user's projects, narrowed by status. Pass 'all' to skip filtering. */
   static getUserProjectsByStatus(
-    userId: string,
+    userId: number,
     status: ProjectStatus | 'all',
   ): ProjectInterface[] {
     const projects = ProjectService.getAllUserProjects(userId);
@@ -28,7 +29,7 @@ export class ProjectService {
     return projects.filter((project) => project.status === status);
   }
 
-  static getById(id: string): ProjectInterface | undefined {
+  static getById(id: number): ProjectInterface | undefined {
     return useProjectStore().projects.find((project) => project.id === id);
   }
 
@@ -40,7 +41,7 @@ export class ProjectService {
   static create(data: CreateProjectDTO): ProjectInterface {
     const creator = AuthService.getCurrentUser();
     const project: ProjectInterface = {
-      id: crypto.randomUUID(),
+      id: nextId(useProjectStore().projects),
       createdAt: new Date().toISOString(),
       memberIds: creator ? [creator.id] : [],
       ...data,
@@ -52,7 +53,7 @@ export class ProjectService {
   }
 
   /** Applies a partial update. No-op when the id does not exist. */
-  static update(id: string, changes: UpdateProjectDTO): void {
+  static update(id: number, changes: UpdateProjectDTO): void {
     const project = ProjectService.getById(id);
     if (!project) return;
 
@@ -73,7 +74,7 @@ export class ProjectService {
    *
    * @param id Id of the project to delete.
    */
-  static remove(id: string): void {
+  static remove(id: number): void {
     TaskService.removeByProject(id);
     SprintService.removeByProject(id);
 
@@ -97,7 +98,7 @@ export class ProjectService {
   }
 
   /** Adds a user to the project. Ignores unknown users and repeat additions. */
-  static addMember(projectId: string, userId: string): void {
+  static addMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project || project.memberIds.includes(userId)) return;
 
@@ -106,8 +107,26 @@ export class ProjectService {
     project.memberIds.push(userId);
   }
 
+  /**
+   * Removes a user from every project they belong to.
+   *
+   * Called when a user is deleted, for the same reason as
+   * TaskService.unassignUser: a leftover id would make the next user created
+   * a member of projects they were never added to.
+   *
+   * @param userId Id of the user being removed.
+   */
+  static removeMemberEverywhere(userId: number): void {
+    useProjectStore().projects.forEach((project) => {
+      const index = project.memberIds.indexOf(userId);
+      if (index !== -1) {
+        project.memberIds.splice(index, 1);
+      }
+    });
+  }
+
   /** True when the user belongs to the project. */
-  static isMember(project: ProjectInterface, userId: string): boolean {
+  static isMember(project: ProjectInterface, userId: number): boolean {
     return project.memberIds.includes(userId);
   }
 
@@ -119,7 +138,7 @@ export class ProjectService {
    * open this screen, and only over projects they belong to, so refusing
    * self-removal guarantees at least one admin member always remains.
    */
-  static removeMember(projectId: string, userId: string): void {
+  static removeMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project) return;
 

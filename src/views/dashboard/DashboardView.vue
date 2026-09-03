@@ -5,14 +5,16 @@ import PieChart from '@/components/dashboard/PieChart.vue';
 import StatCard from '@/components/dashboard/StatCard.vue';
 import PageHeader from '@/components/ui/PageHeader.vue';
 import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField from '@/components/ui/SelectField.vue';
+import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { shortId } from '@/utils/id';
 import { TASK_STATUS } from '@/utils/labels';
 
+/** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
 
 /** Palette drawn from the Tailwind theme tokens in input.css. */
@@ -40,14 +42,14 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectId = ref('');
+const projectId = ref<number>(0);
 
 // Pick the first project once, and recover if the selected one is deleted.
 watch(
   projects,
   (list) => {
     if (!list.some((project) => project.id === projectId.value)) {
-      projectId.value = list[0]?.id ?? '';
+      projectId.value = list[0]?.id ?? 0;
     }
   },
   { immediate: true },
@@ -64,7 +66,7 @@ const sprints = computed(() =>
 /** The range selector is only meaningful once the project has a sprint. */
 const hasSprints = computed(() => sprints.value.length > 0);
 
-const range = ref(ALL_TIME);
+const range = ref<number | 'all'>(ALL_TIME);
 
 // Reset to "All time" whenever the chosen sprint stops belonging to the
 // selected project, which happens on every project change.
@@ -78,9 +80,12 @@ watch(
   { immediate: true },
 );
 
-const rangeOptions = computed(() => [
+const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
-  ...sprints.value.map((sprint) => ({ value: sprint.id, label: `${sprint.id} · ${sprint.name}` })),
+  ...sprints.value.map((sprint) => ({
+    value: sprint.id,
+    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
+  })),
 ]);
 
 /** null means "the whole project" for every DashboardService call. */

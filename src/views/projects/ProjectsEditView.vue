@@ -11,7 +11,9 @@ import { ProjectService } from '@/services/ProjectService';
 const route = useRoute();
 const router = useRouter();
 
-const projectId = String(route.params.id);
+// A non-numeric URL yields NaN, which no record matches, so the view
+// falls through to its "not found" panel.
+const projectId = Number(route.params.id);
 
 /**
  * Membership is the visibility rule, and the route guard only checks the admin

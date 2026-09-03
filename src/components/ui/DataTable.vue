@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends { id: string }">
+<script setup lang="ts" generic="T extends { id: number }">
 export interface DataTableColumn {
   key: string;
   label: string;

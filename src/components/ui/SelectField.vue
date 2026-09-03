@@ -1,20 +1,20 @@
-<script setup lang="ts">
-export interface SelectOption {
-  value: string;
+<script setup lang="ts" generic="TValue extends string | number">
+export interface SelectOption<TValue extends string | number = string> {
+  value: TValue;
   label: string;
 }
 
 const { compact = false, disabled = false } = defineProps<{
   label: string;
   id: string;
-  options: SelectOption[];
+  options: SelectOption<TValue>[];
   /** Toolbar variant: micro mono label, used for the table filters. */
   compact?: boolean;
   /** Greys the control out, e.g. a range filter with nothing to range over. */
   disabled?: boolean;
 }>();
 
-const model = defineModel<string>({ required: true });
+const model = defineModel<TValue>({ required: true });
 
 // Inlined chevron so the control needs no external asset.
 const CHEVRON =

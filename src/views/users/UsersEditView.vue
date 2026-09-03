@@ -9,7 +9,9 @@ import { UserService } from '@/services/UserService';
 
 const route = useRoute();
 const router = useRouter();
-const userId = String(route.params.id);
+// A non-numeric URL yields NaN, which no record matches, so the view
+// falls through to its "not found" panel.
+const userId = Number(route.params.id);
 const user = computed(() => UserService.getById(userId));
 
 /** Updates the account and returns to the user list. */

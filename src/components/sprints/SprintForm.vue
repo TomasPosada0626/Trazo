@@ -7,39 +7,40 @@ import TextField from '@/components/ui/TextField.vue';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
+import { shortId } from '@/utils/id';
 import { TASK_STATUS, SPRINT_STATUS, toSelectOptions } from '@/utils/labels';
 
 export interface SprintFormValues {
   name: string;
   goal: string;
-  projectId: string;
+  projectId: number;
   startDate: string;
   endDate: string;
   status: SprintStatus;
   /** Tasks scheduled into the sprint. Empty is valid. */
-  taskIds: string[];
+  taskIds: number[];
 }
 
 const { initialValues, submitLabel, projectOptions, currentSprintId } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: SprintFormValues;
   submitLabel: string;
-  projectOptions: { value: string; label: string }[];
+  projectOptions: { value: number; label: string }[];
   /** The sprint being edited, so its own tasks are excluded from "in another sprint". */
-  currentSprintId?: string;
+  currentSprintId?: number;
 }>();
 
 const emit = defineEmits<{ submit: [values: SprintFormValues] }>();
 
 const name = ref(initialValues?.name ?? '');
 const goal = ref(initialValues?.goal ?? '');
-const projectId = ref(initialValues?.projectId ?? projectOptions[0]?.value ?? '');
+const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
 // Plain string: SelectField's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'planned');
-const selectedTaskIds = ref<string[]>([...(initialValues?.taskIds ?? [])]);
+const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
 const error = ref('');
 
 const statusOptions = toSelectOptions(SPRINT_STATUS);
@@ -55,12 +56,13 @@ const projectTasks = computed(() =>
   projectId.value ? TaskService.getByProject(projectId.value) : [],
 );
 
-/** Where a task currently sits, for the "already in SPR-07" hint. */
-function otherSprintId(taskId: string): string | null {
+/** Where a task currently sits, for the "already in SPR-02" hint. */
+function otherSprintLabel(taskId: number): string | null {
   const task = projectTasks.value.find((candidate) => candidate.id === taskId);
   if (!task?.sprintId || task.sprintId === currentSprintId) return null;
 
-  return SprintService.getById(task.sprintId)?.id ?? null;
+  const sprint = SprintService.getById(task.sprintId);
+  return sprint ? shortId('SPR', sprint.id) : null;
 }
 
 // A task list from the previous project is meaningless, so drop the selection
@@ -154,8 +156,8 @@ function handleSubmit(): void {
             <span class="block truncate text-sm">{{ task.title }}</span>
             <span class="block text-xs text-ink-soft">
               {{ task.storyPoints }} pts
-              <template v-if="otherSprintId(task.id)">
-                · currently in {{ otherSprintId(task.id) }}
+              <template v-if="otherSprintLabel(task.id)">
+                · currently in {{ otherSprintLabel(task.id) }}
               </template>
             </span>
           </span>

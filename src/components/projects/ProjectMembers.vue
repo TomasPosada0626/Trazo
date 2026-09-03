@@ -12,14 +12,16 @@ const { project } = defineProps<{ project: ProjectInterface }>();
 const members = computed(() => ProjectService.getMembers(project));
 const nonMembers = computed(() => ProjectService.getNonMembers(project));
 
-const selectedUserId = ref('');
+const NONE = 0;
+
+const selectedUserId = ref<number>(NONE);
 
 // Keep the picker pointing at a user who is still addable.
 watch(
   nonMembers,
   (options) => {
     if (!options.some((user) => user.id === selectedUserId.value)) {
-      selectedUserId.value = options[0]?.id ?? '';
+      selectedUserId.value = options[0]?.id ?? NONE;
     }
   },
   { immediate: true },
@@ -36,7 +38,7 @@ const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
  * This is also what stops a project from becoming unreachable, since only
  * admins reach this screen and only for projects they belong to.
  */
-function canRemove(userId: string): boolean {
+function canRemove(userId: number): boolean {
   return userId !== currentUserId.value;
 }
 
@@ -45,7 +47,7 @@ function handleAdd(): void {
   ProjectService.addMember(project.id, selectedUserId.value);
 }
 
-function handleRemove(userId: string): void {
+function handleRemove(userId: number): void {
   ProjectService.removeMember(project.id, userId);
 }
 </script>

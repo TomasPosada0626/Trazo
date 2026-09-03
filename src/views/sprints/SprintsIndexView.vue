@@ -33,14 +33,14 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectFilter = ref('');
+const projectFilter = ref<number>(0);
 
 // Select the first project, and recover if the current one disappears.
 watch(
   projects,
   (list) => {
     if (!list.some((project) => project.id === projectFilter.value)) {
-      projectFilter.value = list[0]?.id ?? '';
+      projectFilter.value = list[0]?.id ?? 0;
     }
   },
   { immediate: true },

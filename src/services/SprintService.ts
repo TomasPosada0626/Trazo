@@ -4,25 +4,26 @@ import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { TaskService } from '@/services/TaskService';
 import { useSprintStore } from '@/stores/sprintstore';
+import { nextId } from '@/utils/id';
 import { daysBetween, startOfToday } from '@/utils/date';
 
 export class SprintService {
   /** Every sprint of a project, in seeded order. */
-  static getByProject(projectId: string): SprintInterface[] {
+  static getByProject(projectId: number): SprintInterface[] {
     return useSprintStore().sprints.filter((sprint) => sprint.projectId === projectId);
   }
 
-  static getById(id: string): SprintInterface | undefined {
+  static getById(id: number): SprintInterface | undefined {
     return useSprintStore().sprints.find((sprint) => sprint.id === id);
   }
 
   /** Sprints currently running, i.e. `Project.getActiveSprints()` in the diagram. */
-  static getActiveSprints(projectId: string): SprintInterface[] {
+  static getActiveSprints(projectId: number): SprintInterface[] {
     return SprintService.getByProject(projectId).filter((sprint) => sprint.status === 'active');
   }
 
   static create(data: CreateSprintDTO): SprintInterface {
-    const sprint: SprintInterface = { id: crypto.randomUUID(), ...data };
+    const sprint: SprintInterface = { id: nextId(useSprintStore().sprints), ...data };
 
     // Mutating in place keeps PiniaConfig's deep watcher cheap.
     useSprintStore().sprints.push(sprint);
@@ -30,7 +31,7 @@ export class SprintService {
   }
 
   /** Applies a partial update. No-op when the id does not exist. */
-  static update(id: string, changes: UpdateSprintDTO): void {
+  static update(id: number, changes: UpdateSprintDTO): void {
     const sprint = SprintService.getById(id);
     if (!sprint) return;
 
@@ -44,7 +45,7 @@ export class SprintService {
    * sprint is only where it was scheduled. Leaving a dangling `sprintId` would
    * hide those tasks from every sprint-scoped view with no way back.
    */
-  static remove(id: string): void {
+  static remove(id: number): void {
     const sprints = useSprintStore().sprints;
     const index = sprints.findIndex((sprint) => sprint.id === id);
     if (index === -1) return;
@@ -63,7 +64,7 @@ export class SprintService {
    *
    * @param projectId Id of the project being deleted.
    */
-  static removeByProject(projectId: string): void {
+  static removeByProject(projectId: number): void {
     SprintService.getByProject(projectId).forEach((sprint) => SprintService.remove(sprint.id));
   }
 
@@ -84,7 +85,7 @@ export class SprintService {
    * Passing an empty array clears the sprint, which is a valid state — a
    * sprint can be planned before any work is scheduled into it.
    */
-  static setTasks(sprintId: string, taskIds: string[]): void {
+  static setTasks(sprintId: number, taskIds: number[]): void {
     const sprint = SprintService.getById(sprintId);
     if (!sprint) return;
 
@@ -143,7 +144,7 @@ export class SprintService {
    * Only completed sprints count: an in-flight sprint has not had its chance
    * to deliver yet, and including it would drag the average down every time.
    */
-  static calculateVelocity(projectId: string): number {
+  static calculateVelocity(projectId: number): number {
     const finished = SprintService.getByProject(projectId).filter(
       (sprint) => sprint.status === 'completed',
     );

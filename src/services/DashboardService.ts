@@ -3,6 +3,7 @@ import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { isPastDate } from '@/utils/date';
+import { shortId } from '@/utils/id';
 
 /** A chart-ready series: matching label and value arrays. */
 export interface ChartSeries {
@@ -31,7 +32,7 @@ export interface VelocitySeries extends ChartSeries {
  */
 export class DashboardService {
   /** The tasks a metric should consider, honouring the range selection. */
-  private static scopedTasks(projectId: string, sprintId: string | null): TaskInterface[] {
+  private static scopedTasks(projectId: number, sprintId: number | null): TaskInterface[] {
     const tasks = TaskService.getByProject(projectId);
     if (!sprintId) return tasks;
 
@@ -39,7 +40,7 @@ export class DashboardService {
   }
 
   /** Share of scoped tasks that are done, 0–100. */
-  static getProgress(projectId: string, sprintId: string | null): number {
+  static getProgress(projectId: number, sprintId: number | null): number {
     const tasks = DashboardService.scopedTasks(projectId, sprintId);
     if (!tasks.length) return 0;
 
@@ -48,17 +49,17 @@ export class DashboardService {
     return Math.round((done / tasks.length) * 100);
   }
 
-  static getCompletedTaskCount(projectId: string, sprintId: string | null): number {
+  static getCompletedTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).filter(
       (task) => task.status === 'done',
     ).length;
   }
 
-  static getTotalTaskCount(projectId: string, sprintId: string | null): number {
+  static getTotalTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).length;
   }
 
-  static getActiveSprintCount(projectId: string): number {
+  static getActiveSprintCount(projectId: number): number {
     return SprintService.getActiveSprints(projectId).length;
   }
 
@@ -68,14 +69,14 @@ export class DashboardService {
    * A done task is never overdue no matter when it was finished, and a task
    * without a due date cannot be late.
    */
-  static getOverdueTaskCount(projectId: string, sprintId: string | null): number {
+  static getOverdueTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).filter(
       (task) => task.status !== 'done' && task.dueDate !== null && isPastDate(task.dueDate),
     ).length;
   }
 
   /** Task counts per status, in board order. */
-  static getTasksByStatus(projectId: string, sprintId: string | null): StatusSeries {
+  static getTasksByStatus(projectId: number, sprintId: number | null): StatusSeries {
     const tasks = DashboardService.scopedTasks(projectId, sprintId);
     const order: TaskStatus[] = ['todo', 'in_progress', 'done'];
 
@@ -91,11 +92,11 @@ export class DashboardService {
    * Always spans the whole project: a velocity chart of a single sprint would
    * be one pair of bars with nothing to compare against.
    */
-  static getVelocitySeries(projectId: string): VelocitySeries {
+  static getVelocitySeries(projectId: number): VelocitySeries {
     const sprints = SprintService.getByProject(projectId);
 
     return {
-      labels: sprints.map((sprint) => sprint.id),
+      labels: sprints.map((sprint) => shortId('SPR', sprint.id)),
       committed: sprints.map((sprint) => SprintService.getTotalCommittedPoints(sprint)),
       values: sprints.map((sprint) => SprintService.getTotalCompletedPoints(sprint)),
     };
@@ -108,7 +109,7 @@ export class DashboardService {
    * Members with nothing open still appear, since an idle member is exactly
    * what this chart should reveal.
    */
-  static getWorkloadByAssignee(projectId: string, sprintId: string | null): ChartSeries {
+  static getWorkloadByAssignee(projectId: number, sprintId: number | null): ChartSeries {
     const project = ProjectService.getById(projectId);
     if (!project) return { labels: [], values: [] };
 

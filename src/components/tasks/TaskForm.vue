@@ -20,14 +20,15 @@ const { initialValues, submitLabel, projectOptions, assignableUsers } = definePr
   initialValues?: TaskFormValues;
   submitLabel: string;
   /** Projects the signed-in user may file a task under. */
-  projectOptions: SelectOption[];
+  projectOptions: SelectOption<number>[];
   /** Member pool per project id, so the assignee list follows the project. */
-  assignableUsers: Record<string, SelectOption[]>;
+  assignableUsers: Record<number, SelectOption<number>[]>;
 }>();
 
 const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
 
-const UNASSIGNED = '';
+/** 0 stands for "nobody": nextId never issues it. */
+const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
 const description = ref(initialValues?.description ?? '');
@@ -38,15 +39,15 @@ const priority = ref<string>(initialValues?.priority ?? 'medium');
 const status = ref<string>(initialValues?.status ?? 'todo');
 const storyPoints = ref(String(initialValues?.storyPoints ?? 0));
 const dueDate = ref(initialValues?.dueDate ?? '');
-const projectId = ref(initialValues?.projectId ?? projectOptions[0]?.value ?? '');
-const assigneeId = ref(initialValues?.assigneeId ?? UNASSIGNED);
+const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
+const assigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
 
 const typeOptions = toSelectOptions(TASK_TYPE);
 const priorityOptions = toSelectOptions(TASK_PRIORITY);
 const statusOptions = toSelectOptions(TASK_STATUS);
 
 /** Members of the selected project, plus the "nobody yet" entry. */
-const assigneeOptions = computed<SelectOption[]>(() => [
+const assigneeOptions = computed<SelectOption<number>[]>(() => [
   { value: UNASSIGNED, label: 'Unassigned' },
   ...(assignableUsers[projectId.value] ?? []),
 ]);

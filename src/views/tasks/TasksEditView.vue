@@ -12,7 +12,9 @@ import { TaskService } from '@/services/TaskService';
 const route = useRoute();
 const router = useRouter();
 
-const taskId = String(route.params.id);
+// A non-numeric URL yields NaN, which no record matches, so the view
+// falls through to its "not found" panel.
+const taskId = Number(route.params.id);
 
 const error = ref('');
 
@@ -35,11 +37,11 @@ const task = computed(() => {
   return projects.value.some((project) => project.id === found.projectId) ? found : undefined;
 });
 
-const projectOptions = computed<SelectOption[]>(() =>
+const projectOptions = computed<SelectOption<number>[]>(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const assignableUsers = computed<Record<string, SelectOption[]>>(() =>
+const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   Object.fromEntries(
     projects.value.map((project) => [
       project.id,

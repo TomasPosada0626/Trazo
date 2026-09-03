@@ -34,7 +34,7 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-const projectFilter = ref('all');
+const projectFilter = ref<number | 'all'>('all');
 const statusFilter = ref<TaskStatus | 'all'>('all');
 
 // Read once at setup: the banner reports what just happened, so it should not
@@ -48,7 +48,7 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectOptions = computed<SelectOption[]>(() => [
+const projectOptions = computed<SelectOption<number | 'all'>[]>(() => [
   { value: 'all', label: 'All projects' },
   ...projects.value.map((project) => ({ value: project.id, label: project.name })),
 ]);

@@ -20,11 +20,11 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectOptions = computed<SelectOption[]>(() =>
+const projectOptions = computed<SelectOption<number>[]>(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const assignableUsers = computed<Record<string, SelectOption[]>>(() =>
+const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   Object.fromEntries(
     projects.value.map((project) => [
       project.id,
