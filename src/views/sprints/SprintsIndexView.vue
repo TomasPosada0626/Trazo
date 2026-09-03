@@ -20,7 +20,11 @@ import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
  * rather than stored — see the decision in CLAUDE.md. The table joins it on,
  * along with the days left, which is likewise derived.
  */
-type SprintRow = SprintInterface & { completedPoints: number; remainingDays: number };
+type SprintRow = SprintInterface & {
+  completedPoints: number;
+  remainingDays: number;
+  taskCount: number;
+};
 
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
@@ -57,6 +61,7 @@ const sprints = computed<SprintRow[]>(() => {
       ...sprint,
       completedPoints: SprintService.getTotalCompletedPoints(sprint),
       remainingDays: SprintService.getRemainingDays(sprint),
+      taskCount: SprintService.getTasks(sprint).length,
     }));
 });
 
@@ -70,6 +75,7 @@ const columns: DataTableColumn[] = [
   { key: 'dates', label: 'Dates' },
   { key: 'committed', label: 'Committed pts.' },
   { key: 'completed', label: 'Completed pts.' },
+  { key: 'tasks', label: 'Tasks' },
   { key: 'remaining', label: 'Days left' },
   { key: 'status', label: 'Status' },
   { key: 'actions', label: '', class: 'text-right' },
@@ -139,6 +145,7 @@ function handleDelete(sprint: SprintRow): void {
           </td>
           <td class="px-4 py-3 font-mono">{{ row.totalCommittedPoints }}</td>
           <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
+          <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
           <td class="px-4 py-3 text-ink-soft">
             {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
           </td>
@@ -147,10 +154,16 @@ function handleDelete(sprint: SprintRow): void {
               {{ SPRINT_STATUS[row.status].text }}
             </StatusBadge>
           </td>
-          <td class="px-4 py-3 text-right">
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <RouterLink
+              :to="`/app/sprints/${row.id}/edit`"
+              class="text-sm font-medium text-accent hover:underline"
+            >
+              Edit
+            </RouterLink>
             <button
               type="button"
-              class="text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
+              class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
               @click="handleDelete(row)"
             >
               Delete

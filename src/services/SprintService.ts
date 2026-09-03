@@ -2,8 +2,8 @@ import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { TaskService } from '@/services/TaskService';
 import { useSprintStore } from '@/stores/sprintstore';
-import { useTaskStore } from '@/stores/taskstore';
 import { daysBetween, startOfToday } from '@/utils/date';
 
 export class SprintService {
@@ -49,18 +49,43 @@ export class SprintService {
     const index = sprints.findIndex((sprint) => sprint.id === id);
     if (index === -1) return;
 
-    useTaskStore()
-      .tasks.filter((task) => task.sprintId === id)
-      .forEach((task) => {
-        task.sprintId = null;
-      });
+    TaskService.getBySprint(id).forEach((task) => TaskService.setSprint(task.id, null));
 
     sprints.splice(index, 1);
   }
 
   /** The tasks scheduled into this sprint. */
   static getTasks(sprint: SprintInterface): TaskInterface[] {
-    return useTaskStore().tasks.filter((task) => task.sprintId === sprint.id);
+    return TaskService.getBySprint(sprint.id);
+  }
+
+  /**
+   * Replaces the sprint's task list.
+   *
+   * The relation lives on the task (`task.sprintId`), so scheduling work is a
+   * write across tasks rather than a field on the sprint. Only tasks of the
+   * sprint's own project are considered: selecting one that sits in a sibling
+   * sprint moves it here, deselecting one returns it to the backlog, and a
+   * task belonging to another sprint that was never selected is left alone.
+   *
+   * Passing an empty array clears the sprint, which is a valid state — a
+   * sprint can be planned before any work is scheduled into it.
+   */
+  static setTasks(sprintId: string, taskIds: string[]): void {
+    const sprint = SprintService.getById(sprintId);
+    if (!sprint) return;
+
+    const selected = new Set(taskIds);
+
+    // Scoped to the sprint's own project, so a task can never point at a
+    // sprint that belongs somewhere else.
+    TaskService.getByProject(sprint.projectId).forEach((task) => {
+      if (selected.has(task.id)) {
+        TaskService.setSprint(task.id, sprintId);
+      } else if (task.sprintId === sprintId) {
+        TaskService.setSprint(task.id, null);
+      }
+    });
   }
 
   /**

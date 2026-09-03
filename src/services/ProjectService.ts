@@ -3,9 +3,9 @@ import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
+import { TaskService } from '@/services/TaskService';
+import { UserService } from '@/services/UserService';
 import { useProjectStore } from '@/stores/projectstore';
-import { useTaskStore } from '@/stores/taskstore';
-import { useUserStore } from '@/stores/userstore';
 
 export class ProjectService {
   /**
@@ -63,19 +63,13 @@ export class ProjectService {
    *
    * The cascade is not optional: a task's project is the only way it reaches a
    * screen, so a task left behind would be invisible forever while still
-   * taking up room in LocalStorage. The task store is read here rather than
-   * through TaskService, which already depends on this class — going the other
-   * way too would make the two services import each other.
+   * taking up room in LocalStorage. TaskService performs the deletion, since
+   * it owns the task store.
    *
    * @param id Id of the project to delete.
    */
   static remove(id: string): void {
-    const tasks = useTaskStore().tasks;
-    for (let index = tasks.length - 1; index >= 0; index -= 1) {
-      if (tasks[index]?.projectId === id) {
-        tasks.splice(index, 1);
-      }
-    }
+    TaskService.removeByProject(id);
 
     const projects = useProjectStore().projects;
     const index = projects.findIndex((project) => project.id === id);
@@ -86,15 +80,14 @@ export class ProjectService {
 
   /** Resolves the project's members from the stored memberIds. */
   static getMembers(project: ProjectInterface): UserInterface[] {
-    const users = useUserStore().users;
     return project.memberIds
-      .map((memberId) => users.find((user) => user.id === memberId))
+      .map((memberId) => UserService.getById(memberId))
       .filter((user): user is UserInterface => user !== undefined);
   }
 
   /** Users who are not members yet — the options for the "add member" picker. */
   static getNonMembers(project: ProjectInterface): UserInterface[] {
-    return useUserStore().users.filter((user) => !project.memberIds.includes(user.id));
+    return UserService.getAll().filter((user) => !project.memberIds.includes(user.id));
   }
 
   /** Adds a user to the project. Ignores unknown users and repeat additions. */
@@ -102,8 +95,7 @@ export class ProjectService {
     const project = ProjectService.getById(projectId);
     if (!project || project.memberIds.includes(userId)) return;
 
-    const userExists = useUserStore().users.some((user) => user.id === userId);
-    if (!userExists) return;
+    if (!UserService.getById(userId)) return;
 
     project.memberIds.push(userId);
   }
@@ -144,7 +136,7 @@ export class ProjectService {
    * @returns Completion from 0 to 100.
    */
   static getOverallProgress(project: ProjectInterface): number {
-    const tasks = useTaskStore().tasks.filter((task) => task.projectId === project.id);
+    const tasks = TaskService.getByProject(project.id);
     if (!tasks.length) return 0;
 
     const done = tasks.filter((task) => task.status === 'done').length;

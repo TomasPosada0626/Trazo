@@ -3,8 +3,8 @@ import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
+import { UserService } from '@/services/UserService';
 import { useTaskStore } from '@/stores/taskstore';
-import { useUserStore } from '@/stores/userstore';
 
 export class TaskService {
   /**
@@ -106,6 +106,57 @@ export class TaskService {
   }
 
   /**
+   * Tasks scheduled into the given sprint.
+   *
+   * @param sprintId Id of the sprint.
+   * @returns Its tasks, empty when nothing is scheduled into it.
+   */
+  static getBySprint(sprintId: string): TaskInterface[] {
+    return useTaskStore().tasks.filter((task) => task.sprintId === sprintId);
+  }
+
+  /**
+   * Tasks assigned to the given user, across every project.
+   *
+   * @param userId Id of the assignee.
+   * @returns Their tasks, empty when they have none.
+   */
+  static getByAssignee(userId: string): TaskInterface[] {
+    return useTaskStore().tasks.filter((task) => task.assigneeId === userId);
+  }
+
+  /**
+   * Schedules a task into a sprint, or returns it to the backlog with `null`.
+   *
+   * `sprintId` is a field of the task, so this class owns the write even when
+   * the change is driven from the sprint side. SprintService calls this rather
+   * than editing tasks itself.
+   *
+   * @param taskId Id of the task to move.
+   * @param sprintId Sprint to schedule it into, or null for the backlog.
+   */
+  static setSprint(taskId: string, sprintId: string | null): void {
+    const task = TaskService.getById(taskId);
+    if (!task) return;
+
+    task.sprintId = sprintId;
+  }
+
+  /**
+   * Deletes every task of a project, for the cascade in ProjectService.remove.
+   *
+   * @param projectId Id of the project being deleted.
+   */
+  static removeByProject(projectId: string): void {
+    const tasks = useTaskStore().tasks;
+    for (let index = tasks.length - 1; index >= 0; index -= 1) {
+      if (tasks[index]?.projectId === projectId) {
+        tasks.splice(index, 1);
+      }
+    }
+  }
+
+  /**
    * Removes a task from the store.
    *
    * @param id Id of the task to remove.
@@ -168,7 +219,7 @@ export class TaskService {
   static getAssignee(task: TaskInterface): UserInterface | undefined {
     if (!task.assigneeId) return undefined;
 
-    return useUserStore().users.find((user) => user.id === task.assigneeId);
+    return UserService.getById(task.assigneeId);
   }
 
   /**

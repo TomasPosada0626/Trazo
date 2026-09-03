@@ -1,7 +1,7 @@
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { useTaskStore } from '@/stores/taskstore';
+import { TaskService } from '@/services/TaskService';
 import { isPastDate } from '@/utils/date';
 
 /** A chart-ready series: matching label and value arrays. */
@@ -32,7 +32,7 @@ export interface VelocitySeries extends ChartSeries {
 export class DashboardService {
   /** The tasks a metric should consider, honouring the range selection. */
   private static scopedTasks(projectId: string, sprintId: string | null): TaskInterface[] {
-    const tasks = useTaskStore().tasks.filter((task) => task.projectId === projectId);
+    const tasks = TaskService.getByProject(projectId);
     if (!sprintId) return tasks;
 
     return tasks.filter((task) => task.sprintId === sprintId);

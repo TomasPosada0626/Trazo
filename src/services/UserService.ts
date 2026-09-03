@@ -4,7 +4,7 @@ import type { TaskInterface } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
-import { useTaskStore } from '@/stores/taskstore';
+import { TaskService } from '@/services/TaskService';
 import { useUserStore } from '@/stores/userstore';
 
 export class UserService {
@@ -63,6 +63,6 @@ export class UserService {
    * @returns The tasks assigned to that user, across every project.
    */
   static getAssignedTasks(user: UserInterface): TaskInterface[] {
-    return useTaskStore().tasks.filter((task) => task.assigneeId === user.id);
+    return TaskService.getByAssignee(user.id);
   }
 }
