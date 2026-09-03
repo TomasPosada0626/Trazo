@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -93,7 +93,7 @@ function handleDelete(sprint: SprintRow): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Sprint management"
       subtitle="Review the progress, velocity and remaining days of each sprint (Sprint entity)."
       admin-only
@@ -106,18 +106,18 @@ function handleDelete(sprint: SprintRow): void {
           + New sprint
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
-    <PanelCard v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         Sprints belong to a project. Create a project first, then plan its sprints.
       </p>
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-else :title="`Sprints for ${selectedProjectName}`">
+    <PanelCardComponent v-else :title="`Sprints for ${selectedProjectName}`">
       <template #actions>
         <div class="flex flex-wrap items-end gap-3">
-          <SelectField
+          <SelectFieldComponent
             id="sprint-project-filter"
             v-model="projectFilter"
             label="Project"
@@ -125,7 +125,7 @@ function handleDelete(sprint: SprintRow): void {
             :options="projectOptions"
             class="w-52"
           />
-          <SelectField
+          <SelectFieldComponent
             id="sprint-status-filter"
             v-model="statusFilter"
             label="Status"
@@ -136,14 +136,14 @@ function handleDelete(sprint: SprintRow): void {
         </div>
       </template>
 
-      <DataTable
+      <DataTableComponent
         :columns="columns"
         :rows="sprints"
         empty-message="This project has no sprints matching the filter."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ shortId('SPR', row.id) }}</IdChip>
+            <IdChipComponent>{{ shortId('SPR', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">
@@ -156,9 +156,9 @@ function handleDelete(sprint: SprintRow): void {
             {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
           </td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="SPRINT_STATUS[row.status].tone">
+            <StatusBadgeComponent :tone="SPRINT_STATUS[row.status].tone">
               {{ SPRINT_STATUS[row.status].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
             <RouterLink
@@ -176,7 +176,7 @@ function handleDelete(sprint: SprintRow): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
   </div>
 </template>

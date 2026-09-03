@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
@@ -22,7 +22,7 @@ const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
 
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain string: SelectField's v-model is string-typed, so the union is
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'active');
 
@@ -39,20 +39,20 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="project-name"
       v-model="name"
       label="Name"
       placeholder="e.g. Customer Portal"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="project-description"
       v-model="description"
       label="Description"
       placeholder="Project goal"
     />
-    <SelectField
+    <SelectFieldComponent
       id="project-status"
       v-model="status"
       label="Project status"

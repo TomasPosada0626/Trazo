@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -49,7 +49,7 @@ function handleDelete(project: ProjectInterface): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Project management"
       subtitle="Create, edit and track the overall status of each project (Project entity)."
       admin-only
@@ -62,11 +62,11 @@ function handleDelete(project: ProjectInterface): void {
           + New project
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
-    <PanelCard title="Projects">
+    <PanelCardComponent title="Projects">
       <template #actions>
-        <SelectField
+        <SelectFieldComponent
           id="project-status-filter"
           v-model="statusFilter"
           label="Status"
@@ -76,20 +76,20 @@ function handleDelete(project: ProjectInterface): void {
         />
       </template>
 
-      <DataTable
+      <DataTableComponent
         :columns="columns"
         :rows="projects"
         empty-message="You do not belong to any project matching this filter."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ shortId('PRJ', row.id) }}</IdChip>
+            <IdChipComponent>{{ shortId('PRJ', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="PROJECT_STATUS[row.status].tone">
+            <StatusBadgeComponent :tone="PROJECT_STATUS[row.status].tone">
               {{ PROJECT_STATUS[row.status].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2">
@@ -121,7 +121,7 @@ function handleDelete(project: ProjectInterface): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
   </div>
 </template>

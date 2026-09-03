@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import AppLayout from '@/components/layout/AppLayout.vue';
+import AppLayoutComponent from '@/components/layout/AppLayoutComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import DashboardView from '@/views/dashboard/DashboardView.vue';
 import LoginView from '@/views/login/LoginView.vue';
@@ -49,7 +49,7 @@ const router = createRouter({
       // Authenticated area. requiresAuth is set once here and inherited by
       // every child via the merged meta.
       path: '/app',
-      component: AppLayout,
+      component: AppLayoutComponent,
       meta: { requiresAuth: true },
       children: [
         { path: '', redirect: { name: 'dashboard' } },

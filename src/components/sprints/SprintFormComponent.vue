@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
-import TextField from '@/components/ui/TextField.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
@@ -37,7 +37,7 @@ const goal = ref(initialValues?.goal ?? '');
 const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
-// Plain string: SelectField's v-model is string-typed, so the union is
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'planned');
 const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
@@ -101,20 +101,20 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="sprint-name"
       v-model="name"
       label="Name"
       placeholder="e.g. Onboarding v2"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="sprint-goal"
       v-model="goal"
       label="Goal"
       placeholder="What the sprint aims to achieve"
     />
-    <SelectField
+    <SelectFieldComponent
       id="sprint-project"
       v-model="projectId"
       label="Project"
@@ -124,11 +124,11 @@ function handleSubmit(): void {
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <TextField id="sprint-start" v-model="startDate" label="Start date" type="date" required />
-      <TextField id="sprint-end" v-model="endDate" label="End date" type="date" required />
+      <TextFieldComponent id="sprint-start" v-model="startDate" label="Start date" type="date" required />
+      <TextFieldComponent id="sprint-end" v-model="endDate" label="End date" type="date" required />
     </div>
 
-    <SelectField id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
+    <SelectFieldComponent id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
 
     <fieldset>
       <legend class="text-sm font-medium">Tasks in this sprint</legend>
@@ -161,9 +161,9 @@ function handleSubmit(): void {
               </template>
             </span>
           </span>
-          <StatusBadge :tone="TASK_STATUS[task.status].tone" class="shrink-0">
+          <StatusBadgeComponent :tone="TASK_STATUS[task.status].tone" class="shrink-0">
             {{ TASK_STATUS[task.status].text }}
-          </StatusBadge>
+          </StatusBadgeComponent>
         </label>
       </div>
 

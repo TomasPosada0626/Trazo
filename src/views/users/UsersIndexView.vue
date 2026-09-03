@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
@@ -60,7 +60,7 @@ function handleDelete(user: UserRow): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="User management"
       subtitle="Manage the accounts and roles of the system (User entity), stored in LocalStorage."
       admin-only
@@ -73,11 +73,11 @@ function handleDelete(user: UserRow): void {
           + Add user
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
-    <PanelCard title="Users">
+    <PanelCardComponent title="Users">
       <template #actions>
-        <SelectField
+        <SelectFieldComponent
           id="user-role-filter"
           v-model="roleFilter"
           label="Role"
@@ -87,17 +87,17 @@ function handleDelete(user: UserRow): void {
         />
       </template>
 
-      <DataTable :columns="columns" :rows="filteredUsers">
+      <DataTableComponent :columns="columns" :rows="filteredUsers">
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ row.id }}</IdChip>
+            <IdChipComponent>{{ row.id }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="USER_ROLE[row.role].tone">
+            <StatusBadgeComponent :tone="USER_ROLE[row.role].tone">
               {{ USER_ROLE[row.role].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
           <td class="px-4 py-3 text-right">
@@ -122,7 +122,7 @@ function handleDelete(user: UserRow): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
   </div>
 </template>

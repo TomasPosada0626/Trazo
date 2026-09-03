@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import UserForm, { type UserFormValues } from '@/components/users/UserForm.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
 import { UserService } from '@/services/UserService';
 
 const router = useRouter();
@@ -16,14 +16,14 @@ function handleSubmit(values: UserFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Add user"
       subtitle="Register an account and assign it a role within the system."
       admin-only
     />
 
-    <PanelCard title="User details" padded class="max-w-2xl">
-      <UserForm submit-label="Save user" @submit="handleSubmit" />
-    </PanelCard>
+    <PanelCardComponent title="User details" padded class="max-w-2xl">
+      <UserFormComponent submit-label="Save user" @submit="handleSubmit" />
+    </PanelCardComponent>
   </div>
 </template>

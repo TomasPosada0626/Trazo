@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import BrandMark from '@/components/ui/BrandMark.vue';
+import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
 
 const email = ref('');
@@ -26,7 +26,7 @@ function handleSubmit(): void {
   <main class="flex min-h-screen items-center justify-center px-6 py-16">
     <div class="w-full max-w-md border border-line bg-paper p-8 shadow-sm sm:p-10">
       <div class="flex items-center gap-2.5">
-        <BrandMark class="size-7 shrink-0 text-accent" />
+        <BrandMarkComponent class="size-7 shrink-0 text-accent" />
         <span class="text-2xl font-bold tracking-tight">Trazo</span>
       </div>
 

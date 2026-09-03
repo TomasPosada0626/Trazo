@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { UserRole } from '@/interfaces/UserInterface';
 import { USER_ROLE, toSelectOptions } from '@/utils/labels';
 
@@ -44,8 +44,8 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
-    <TextField
+    <TextFieldComponent id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
+    <TextFieldComponent
       id="user-email"
       v-model="email"
       label="Email"
@@ -53,7 +53,7 @@ function handleSubmit(): void {
       placeholder="name@trazo.com"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="user-password"
       v-model="password"
       label="Password"
@@ -61,7 +61,7 @@ function handleSubmit(): void {
       :placeholder="passwordRequired ? '••••••••' : 'Leave blank to keep current password'"
       :required="passwordRequired"
     />
-    <SelectField id="user-role" v-model="role" label="Role" :options="roleOptions" />
+    <SelectFieldComponent id="user-role" v-model="role" label="Role" :options="roleOptions" />
 
     <div class="flex items-center gap-3 pt-2">
       <button

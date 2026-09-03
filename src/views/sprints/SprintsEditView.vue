@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import SprintForm, { type SprintFormValues } from '@/components/sprints/SprintForm.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
+import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
@@ -62,23 +62,23 @@ function handleSubmit(values: SprintFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Edit sprint"
       subtitle="Update the dates, the commitment or the work scheduled into this sprint."
       admin-only
     />
 
-    <PanelCard v-if="initialValues" title="Sprint details" padded class="max-w-2xl">
-      <SprintForm
+    <PanelCardComponent v-if="initialValues" title="Sprint details" padded class="max-w-2xl">
+      <SprintFormComponent
         :initial-values="initialValues"
         :project-options="projectOptions"
         :current-sprint-id="sprintId"
         submit-label="Save changes"
         @submit="handleSubmit"
       />
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-else title="Sprint not found" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="Sprint not found" padded class="max-w-2xl">
       <p class="text-sm text-ink-soft">
         The sprint you are trying to edit does not exist, or it belongs to a project you are not a
         member of.
@@ -89,6 +89,6 @@ function handleSubmit(values: SprintFormValues): void {
       >
         Back to sprints
       </RouterLink>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -90,7 +90,7 @@ function handleDelete(task: TaskInterface): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Task management"
       subtitle="Create, assign and track the tasks of each project (Task entity), stored in LocalStorage."
     >
@@ -103,7 +103,7 @@ function handleDelete(task: TaskInterface): void {
           + New task
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
     <p
       v-if="notice"
@@ -119,10 +119,10 @@ function handleDelete(task: TaskInterface): void {
       </button>
     </p>
 
-    <PanelCard v-if="projects.length" title="Tasks">
+    <PanelCardComponent v-if="projects.length" title="Tasks">
       <template #actions>
         <div class="flex flex-wrap items-end gap-3">
-          <SelectField
+          <SelectFieldComponent
             id="task-project-filter"
             v-model="projectFilter"
             label="Project"
@@ -130,7 +130,7 @@ function handleDelete(task: TaskInterface): void {
             :options="projectOptions"
             class="w-52"
           />
-          <SelectField
+          <SelectFieldComponent
             id="task-status-filter"
             v-model="statusFilter"
             label="Status"
@@ -141,26 +141,26 @@ function handleDelete(task: TaskInterface): void {
         </div>
       </template>
 
-      <DataTable
+      <DataTableComponent
         :columns="columns"
         :rows="tasks"
         empty-message="No tasks match this filter. Create one to get started."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ shortId('TSK', row.id) }}</IdChip>
+            <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.title }}</td>
           <td class="px-4 py-3 text-ink-soft">{{ projectName(row) }}</td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="TASK_STATUS[row.status].tone">
+            <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
               {{ TASK_STATUS[row.status].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="TASK_PRIORITY[row.priority].tone">
+            <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
               {{ TASK_PRIORITY[row.priority].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-ink-soft">{{ assigneeName(row) }}</td>
           <td class="px-4 py-3 text-ink-soft">
@@ -182,14 +182,14 @@ function handleDelete(task: TaskInterface): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
 
-    <PanelCard v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.
       </p>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

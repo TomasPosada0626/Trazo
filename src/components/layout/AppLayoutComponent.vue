@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router';
-import AppSidebar from '@/components/layout/AppSidebar.vue';
+import AppSidebarComponent from '@/components/layout/AppSidebarComponent.vue';
 
 const route = useRoute();
 </script>
 
 <template>
   <div class="flex min-h-screen bg-paper text-ink">
-    <AppSidebar class="sticky top-0 h-screen" />
+    <AppSidebarComponent class="sticky top-0 h-screen" />
 
     <div class="grid-paper flex min-w-0 flex-1 flex-col bg-paper">
       <header

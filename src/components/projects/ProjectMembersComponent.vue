@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -69,9 +69,9 @@ function handleRemove(userId: number): void {
           <span class="block truncate text-xs text-ink-soft">{{ member.email }}</span>
         </span>
 
-        <StatusBadge :tone="USER_ROLE[member.role].tone" class="ml-auto shrink-0">
+        <StatusBadgeComponent :tone="USER_ROLE[member.role].tone" class="ml-auto shrink-0">
           {{ USER_ROLE[member.role].text }}
-        </StatusBadge>
+        </StatusBadgeComponent>
 
         <button
           type="button"
@@ -95,7 +95,7 @@ function handleRemove(userId: number): void {
     </ul>
 
     <div v-if="userOptions.length" class="flex items-end gap-3">
-      <SelectField
+      <SelectFieldComponent
         id="project-add-member"
         v-model="selectedUserId"
         label="Add member"

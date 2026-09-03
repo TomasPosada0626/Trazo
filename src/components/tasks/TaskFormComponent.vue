@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
@@ -32,7 +32,7 @@ const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain strings: SelectField and TextField are string-typed, so the unions and
+// Plain strings: SelectFieldComponent and TextFieldComponent are string-typed, so the unions and
 // the number are re-applied on submit.
 const type = ref<string>(initialValues?.type ?? 'feature');
 const priority = ref<string>(initialValues?.priority ?? 'medium');
@@ -80,22 +80,22 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="task-title"
       v-model="title"
       label="Title"
       placeholder="e.g. Design the onboarding flow"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="task-description"
       v-model="description"
       label="Description"
       placeholder="What the task involves"
     />
 
-    <SelectField id="task-project" v-model="projectId" label="Project" :options="projectOptions" />
-    <SelectField
+    <SelectFieldComponent id="task-project" v-model="projectId" label="Project" :options="projectOptions" />
+    <SelectFieldComponent
       id="task-assignee"
       v-model="assigneeId"
       label="Assignee"
@@ -103,8 +103,8 @@ function handleSubmit(): void {
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectField id="task-type" v-model="type" label="Type" :options="typeOptions" />
-      <SelectField
+      <SelectFieldComponent id="task-type" v-model="type" label="Type" :options="typeOptions" />
+      <SelectFieldComponent
         id="task-priority"
         v-model="priority"
         label="Priority"
@@ -113,8 +113,8 @@ function handleSubmit(): void {
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectField id="task-status" v-model="status" label="Status" :options="statusOptions" />
-      <TextField
+      <SelectFieldComponent id="task-status" v-model="status" label="Status" :options="statusOptions" />
+      <TextFieldComponent
         id="task-points"
         v-model="storyPoints"
         label="Story points"
@@ -123,7 +123,7 @@ function handleSubmit(): void {
       />
     </div>
 
-    <TextField id="task-due-date" v-model="dueDate" label="Due date" type="date" />
+    <TextFieldComponent id="task-due-date" v-model="dueDate" label="Due date" type="date" />
 
     <div class="flex items-center gap-3 pt-2">
       <button
