@@ -1,3 +1,5 @@
+// Author: Mateo Garcia Carreno
+
 export type TaskType = 'feature' | 'bug' | 'chore' | 'research';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';

@@ -1,3 +1,6 @@
+// Author: Mateo Garcia Carreno
+
+// internal imports
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 
 /**

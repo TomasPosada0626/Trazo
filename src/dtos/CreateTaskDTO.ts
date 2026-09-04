@@ -1,3 +1,6 @@
+// Author: Hever-Alfonso
+
+// internal imports
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 
 /**

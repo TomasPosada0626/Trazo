@@ -1,5 +1,8 @@
-import type { SelectOption } from '@/components/ui/SelectField.vue';
-import type { BadgeTone } from '@/components/ui/StatusBadge.vue';
+// Author: Mateo Garcia Carreno
+
+// internal imports
+import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import type { BadgeTone } from '@/components/ui/StatusBadgeComponent.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
@@ -55,11 +58,14 @@ export const USER_ROLE: Record<UserRole, LabelDescriptor> = {
 };
 
 /**
- * Turns a label map into <SelectField> options, in declaration order.
+ * Turns a label map into <SelectFieldComponent> options, in declaration order.
  *
  * Every dropdown over an enum derives its options from the same map the badges
  * read, so a new status shows up in the forms and the filters at once and the
  * wording can never drift between them.
+ *
+ * @param labels The label map to convert.
+ * @returns One select option per entry, in declaration order.
  */
 export function toSelectOptions<T extends string>(
   labels: Record<T, LabelDescriptor>,
@@ -67,7 +73,14 @@ export function toSelectOptions<T extends string>(
   return (Object.keys(labels) as T[]).map((value) => ({ value, label: labels[value].text }));
 }
 
-/** Same, prefixed with the catch-all entry the table filters use. */
+/**
+ * Same as {@link toSelectOptions}, prefixed with the catch-all entry the table
+ * filters use.
+ *
+ * @param labels The label map to convert.
+ * @param allLabel Text for the leading "all" option.
+ * @returns The catch-all option followed by one per entry.
+ */
 export function toFilterOptions<T extends string>(
   labels: Record<T, LabelDescriptor>,
   allLabel = 'All',

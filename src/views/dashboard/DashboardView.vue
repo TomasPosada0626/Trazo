@@ -1,14 +1,18 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
-import BarChart from '@/components/dashboard/BarChart.vue';
-import PieChart from '@/components/dashboard/PieChart.vue';
-import StatCard from '@/components/dashboard/StatCard.vue';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+// internal imports
+import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { DashboardService } from '@/services/DashboardService';
@@ -18,6 +22,7 @@ import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
 import { TASK_PRIORITY, TASK_STATUS } from '@/utils/labels';
 
+// variables
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
 
@@ -29,7 +34,7 @@ const COLORS = {
 };
 
 /**
- * Slice colours per task status, matching the tones StatusBadge already uses
+ * Slice colours per task status, matching the tones StatusBadgeComponent already uses
  * on the board and the tables, so a status reads the same colour everywhere.
  */
 const STATUS_COLORS: Record<TaskStatus, string> = {
@@ -38,25 +43,25 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   done: '#059669',
 };
 
+const myTaskColumns: DataTableColumn[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'title', label: 'Title' },
+  { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'dueDate', label: 'Due date' },
+];
+
+// reactive variables
+const projectId = ref<number>(0);
+const range = ref<number | 'all'>(ALL_TIME);
+
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // Membership decides visibility here exactly as it does on the projects
 // screen, so a member sees only the projects they belong to.
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const projectId = ref<number>(0);
-
-// Pick the first project once, and recover if the selected one is deleted.
-watch(
-  projects,
-  (list) => {
-    if (!list.some((project) => project.id === projectId.value)) {
-      projectId.value = list[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
 );
 
 const projectOptions = computed(() =>
@@ -69,20 +74,6 @@ const sprints = computed(() =>
 
 /** The range selector is only meaningful once the project has a sprint. */
 const hasSprints = computed(() => sprints.value.length > 0);
-
-const range = ref<number | 'all'>(ALL_TIME);
-
-// Reset to "All time" whenever the chosen sprint stops belonging to the
-// selected project, which happens on every project change.
-watch(
-  sprints,
-  (list) => {
-    if (!list.some((sprint) => sprint.id === range.value)) {
-      range.value = ALL_TIME;
-    }
-  },
-  { immediate: true },
-);
 
 const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
@@ -138,14 +129,6 @@ const userTasks = computed(() =>
     : [],
 );
 
-const myTaskColumns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'dueDate', label: 'Due date' },
-];
-
 const workload = computed(() =>
   DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value),
 );
@@ -153,16 +136,40 @@ const workloadChart = computed(() => ({
   labels: workload.value.labels,
   series: [{ label: 'Open tasks', values: workload.value.values, color: COLORS.ink }],
 }));
+
+// watchers
+// Pick the first project once, and recover if the selected one is deleted.
+watch(
+  projects,
+  (newProjects) => {
+    if (!newProjects.some((project) => project.id === projectId.value)) {
+      projectId.value = newProjects[0]?.id ?? 0;
+    }
+  },
+  { immediate: true },
+);
+
+// Reset to "All time" whenever the chosen sprint stops belonging to the
+// selected project, which happens on every project change.
+watch(
+  sprints,
+  (newSprints) => {
+    if (!newSprints.some((sprint) => sprint.id === range.value)) {
+      range.value = ALL_TIME;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Dashboard"
       subtitle="Overview of project progress, active sprints and the team's workload."
     >
       <template v-if="projects.length" #actions>
-        <SelectField
+        <SelectFieldComponent
           id="dashboard-project"
           v-model="projectId"
           label="Project"
@@ -170,7 +177,7 @@ const workloadChart = computed(() => ({
           :options="projectOptions"
           class="w-56"
         />
-        <SelectField
+        <SelectFieldComponent
           id="dashboard-range"
           v-model="range"
           label="Range"
@@ -181,33 +188,33 @@ const workloadChart = computed(() => ({
           class="w-56"
         />
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
-    <PanelCard v-if="!projects.length" title="Nothing to show yet" padded>
+    <PanelCardComponent v-if="!projects.length" title="Nothing to show yet" padded>
       <p class="text-sm text-ink-soft">
         You do not belong to any project yet. Once you are added to one, its progress appears here.
       </p>
-    </PanelCard>
+    </PanelCardComponent>
 
     <template v-else>
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Overall progress" :value="progress" suffix="%" />
-        <StatCard label="Active sprints" :value="activeSprints" />
-        <StatCard label="Completed tasks" :value="completedTasks" :total="totalTasks" />
-        <StatCard label="Overdue tasks" :value="overdueTasks" />
+        <StatCardComponent label="Overall progress" :value="progress" suffix="%" />
+        <StatCardComponent label="Active sprints" :value="activeSprints" />
+        <StatCardComponent label="Completed tasks" :value="completedTasks" :total="totalTasks" />
+        <StatCardComponent label="Overdue tasks" :value="overdueTasks" />
       </div>
 
       <div class="grid gap-4 xl:grid-cols-2">
-        <PanelCard title="Tasks by status" padded>
-          <PieChart
+        <PanelCardComponent title="Tasks by status" padded>
+          <PieChartComponent
             :labels="statusChart.labels"
             :values="statusChart.values"
             :colors="statusChart.colors"
           />
-        </PanelCard>
+        </PanelCardComponent>
 
-        <PanelCard title="Sprint velocity" padded>
-          <BarChart
+        <PanelCardComponent title="Sprint velocity" padded>
+          <BarChartComponent
             v-if="hasSprints"
             :labels="velocityChart.labels"
             :series="velocityChart.series"
@@ -215,45 +222,45 @@ const workloadChart = computed(() => ({
           <p v-else class="py-16 text-center text-sm text-ink-soft">
             This project has no sprints yet, so there is no velocity to compare.
           </p>
-        </PanelCard>
+        </PanelCardComponent>
       </div>
 
-      <PanelCard v-if="isAdmin" title="Open tasks by assignee" padded>
-        <BarChart
+      <PanelCardComponent v-if="isAdmin" title="Open tasks by assignee" padded>
+        <BarChartComponent
           :labels="workloadChart.labels"
           :series="workloadChart.series"
           horizontal
           :step-size="1"
         />
-      </PanelCard>
+      </PanelCardComponent>
 
-      <PanelCard v-else title="My assigned tasks">
-        <DataTable
+      <PanelCardComponent v-else title="My assigned tasks">
+        <DataTableComponent
           :columns="myTaskColumns"
           :rows="userTasks"
           empty-message="Nothing is assigned to you in this range."
         >
           <template #row="{ row }">
             <td class="px-4 py-3">
-              <IdChip>{{ shortId('TSK', row.id) }}</IdChip>
+              <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
             </td>
             <td class="px-4 py-3 font-medium">{{ row.title }}</td>
             <td class="px-4 py-3">
-              <StatusBadge :tone="TASK_STATUS[row.status].tone">
+              <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
                 {{ TASK_STATUS[row.status].text }}
-              </StatusBadge>
+              </StatusBadgeComponent>
             </td>
             <td class="px-4 py-3">
-              <StatusBadge :tone="TASK_PRIORITY[row.priority].tone">
+              <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
                 {{ TASK_PRIORITY[row.priority].text }}
-              </StatusBadge>
+              </StatusBadgeComponent>
             </td>
             <td class="px-4 py-3 text-ink-soft">
               {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
             </td>
           </template>
-        </DataTable>
-      </PanelCard>
+        </DataTableComponent>
+      </PanelCardComponent>
     </template>
   </div>
 </template>

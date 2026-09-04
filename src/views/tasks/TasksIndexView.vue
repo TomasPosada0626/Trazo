@@ -1,27 +1,39 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+// internal imports
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS, toFilterOptions } from '@/utils/labels';
+import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toFilterOptions } from '@/utils/labels';
 
+// variables
 /** Copy for the banner shown after returning from the create or edit form. */
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
 };
 
-const route = useRoute();
+/** Slice colours per task type, one distinct hue per value for readability. */
+const TYPE_COLORS: Record<TaskInterface['type'], string> = {
+  feature: '#059669',
+  bug: '#ef4444',
+  chore: '#94a3b8',
+  research: '#f59e0b',
+};
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -34,6 +46,9 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
+const route = useRoute();
+
+// reactive variables
 const projectFilter = ref<number | 'all'>('all');
 const statusFilter = ref<TaskStatus | 'all'>('all');
 
@@ -41,6 +56,7 @@ const statusFilter = ref<TaskStatus | 'all'>('all');
 // come back when the user navigates around and returns to this URL.
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 /** The signed-in user's projects, which is also the scope of their tasks. */
@@ -62,6 +78,22 @@ const tasks = computed(() =>
     : [],
 );
 
+/** Breakdown of the filtered tasks by type, orthogonal to both filters above. */
+const typeChart = computed(() => {
+  const counts: Record<string, number> = { feature: 0, bug: 0, chore: 0, research: 0 };
+  for (const task of tasks.value) {
+    counts[task.type] = (counts[task.type] ?? 0) + 1;
+  }
+
+  const types = Object.keys(counts) as (keyof typeof TYPE_COLORS)[];
+  return {
+    labels: types.map((type) => TASK_TYPE[type].text),
+    values: types.map((type) => counts[type] ?? 0),
+    colors: types.map((type) => TYPE_COLORS[type]),
+  };
+});
+
+// functions
 /**
  * Project name for a row. Tasks are already scoped to the user's projects, so
  * a miss here would mean stored data pointing at a project that no longer
@@ -90,7 +122,7 @@ function handleDelete(task: TaskInterface): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Task management"
       subtitle="Create, assign and track the tasks of each project (Task entity), stored in LocalStorage."
     >
@@ -103,7 +135,7 @@ function handleDelete(task: TaskInterface): void {
           + New task
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
     <p
       v-if="notice"
@@ -119,10 +151,14 @@ function handleDelete(task: TaskInterface): void {
       </button>
     </p>
 
-    <PanelCard v-if="projects.length" title="Tasks">
+    <PanelCardComponent v-if="projects.length" title="Tasks by type" padded class="max-w-md">
+      <PieChartComponent :labels="typeChart.labels" :values="typeChart.values" :colors="typeChart.colors" />
+    </PanelCardComponent>
+
+    <PanelCardComponent v-if="projects.length" title="Tasks">
       <template #actions>
         <div class="flex flex-wrap items-end gap-3">
-          <SelectField
+          <SelectFieldComponent
             id="task-project-filter"
             v-model="projectFilter"
             label="Project"
@@ -130,7 +166,7 @@ function handleDelete(task: TaskInterface): void {
             :options="projectOptions"
             class="w-52"
           />
-          <SelectField
+          <SelectFieldComponent
             id="task-status-filter"
             v-model="statusFilter"
             label="Status"
@@ -141,26 +177,26 @@ function handleDelete(task: TaskInterface): void {
         </div>
       </template>
 
-      <DataTable
+      <DataTableComponent
         :columns="columns"
         :rows="tasks"
         empty-message="No tasks match this filter. Create one to get started."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ shortId('TSK', row.id) }}</IdChip>
+            <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.title }}</td>
           <td class="px-4 py-3 text-ink-soft">{{ projectName(row) }}</td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="TASK_STATUS[row.status].tone">
+            <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
               {{ TASK_STATUS[row.status].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="TASK_PRIORITY[row.priority].tone">
+            <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
               {{ TASK_PRIORITY[row.priority].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-ink-soft">{{ assigneeName(row) }}</td>
           <td class="px-4 py-3 text-ink-soft">
@@ -182,14 +218,14 @@ function handleDelete(task: TaskInterface): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
 
-    <PanelCard v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.
       </p>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

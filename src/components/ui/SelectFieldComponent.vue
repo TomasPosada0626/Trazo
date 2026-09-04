@@ -1,9 +1,13 @@
 <script setup lang="ts" generic="TValue extends string | number">
+// Author: Mateo Garcia Carreno
+
+// variables
 export interface SelectOption<TValue extends string | number = string> {
   value: TValue;
   label: string;
 }
 
+// props
 const { compact = false, disabled = false } = defineProps<{
   label: string;
   id: string;
@@ -14,6 +18,7 @@ const { compact = false, disabled = false } = defineProps<{
   disabled?: boolean;
 }>();
 
+// variables
 const model = defineModel<TValue>({ required: true });
 
 // Inlined chevron so the control needs no external asset.

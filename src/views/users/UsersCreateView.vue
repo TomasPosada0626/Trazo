@@ -1,12 +1,18 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { useRouter } from 'vue-router';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import UserForm, { type UserFormValues } from '@/components/users/UserForm.vue';
+// internal imports
+import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { UserService } from '@/services/UserService';
 
+// variables
 const router = useRouter();
 
+// functions
 /** Creates the account and returns to the user list. */
 function handleSubmit(values: UserFormValues): void {
   UserService.create(values);
@@ -16,14 +22,14 @@ function handleSubmit(values: UserFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Add user"
       subtitle="Register an account and assign it a role within the system."
       admin-only
     />
 
-    <PanelCard title="User details" padded class="max-w-2xl">
-      <UserForm submit-label="Save user" @submit="handleSubmit" />
-    </PanelCard>
+    <PanelCardComponent title="User details" padded class="max-w-2xl">
+      <UserFormComponent submit-label="Save user" @submit="handleSubmit" />
+    </PanelCardComponent>
   </div>
 </template>

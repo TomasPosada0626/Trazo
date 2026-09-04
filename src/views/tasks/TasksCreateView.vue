@@ -1,18 +1,25 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import TaskForm, { type TaskFormValues } from '@/components/tasks/TaskForm.vue';
-import type { SelectOption } from '@/components/ui/SelectField.vue';
+// internal imports
+import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
+import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 
+// variables
 const router = useRouter();
 
+// reactive variables
 const error = ref('');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 /** A task can only be filed under a project the user belongs to. */
@@ -36,6 +43,7 @@ const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   ),
 );
 
+// functions
 /**
  * Creates the task and returns to the list. The service validates the title,
  * the project and the assignee, so a rejected save is reported in place
@@ -55,12 +63,12 @@ function handleSubmit(values: TaskFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="New task"
       subtitle="Describe the work, file it under a project and hand it to a teammate."
     />
 
-    <PanelCard v-if="projectOptions.length" title="Task details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="projectOptions.length" title="Task details" padded class="max-w-2xl">
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -68,15 +76,15 @@ function handleSubmit(values: TaskFormValues): void {
         {{ error }}
       </p>
 
-      <TaskForm
+      <TaskFormComponent
         :project-options="projectOptions"
         :assignable-users="assignableUsers"
         submit-label="Save task"
         @submit="handleSubmit"
       />
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-else title="No projects available" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="No projects available" padded class="max-w-2xl">
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.
@@ -87,6 +95,6 @@ function handleSubmit(values: TaskFormValues): void {
       >
         Back to tasks
       </RouterLink>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

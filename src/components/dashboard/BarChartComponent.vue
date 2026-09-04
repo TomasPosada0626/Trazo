@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import {
   BarController,
   BarElement,
@@ -15,12 +18,14 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 // Chart.js (line, pie, radar, the date adapters...).
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+// variables
 export interface BarSeries {
   label: string;
   values: number[];
   color: string;
 }
 
+// props
 const {
   labels,
   series,
@@ -35,9 +40,11 @@ const {
   stepSize?: number;
 }>();
 
+// reactive variables
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 
+// functions
 function datasets(): ChartDataset<'bar'>[] {
   return series.map((entry) => ({
     label: entry.label,
@@ -83,8 +90,10 @@ function render(): void {
 
 onMounted(render);
 
+// watchers
 // Rebuilding the data in place keeps Chart.js's own transition, which a
-// destroy-and-recreate would lose.
+// destroy-and-recreate would lose. Every field is read straight from the
+// props inside the callback, so there is no old/new value to name here.
 watch(
   () => [labels, series],
   () => {

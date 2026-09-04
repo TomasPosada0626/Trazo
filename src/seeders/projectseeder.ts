@@ -1,3 +1,6 @@
+// Author: Mateo Garcia Carreno
+
+// internal imports
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 
 /**

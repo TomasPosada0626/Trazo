@@ -1,12 +1,17 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField, { type SelectOption } from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+// internal imports
+import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
+// variables
 /**
  * What this form can produce. `sprintId` is left out on purpose: sprints have
  * no store yet, so there is nothing to pick from. Create sends null and edit
@@ -15,6 +20,7 @@ import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/
  */
 export type TaskFormValues = Omit<CreateTaskDTO, 'sprintId'>;
 
+// props
 const { initialValues, submitLabel, projectOptions, assignableUsers } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: TaskFormValues;
@@ -25,14 +31,16 @@ const { initialValues, submitLabel, projectOptions, assignableUsers } = definePr
   assignableUsers: Record<number, SelectOption<number>[]>;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
 
+// reactive variables
 /** 0 stands for "nobody": nextId never issues it. */
 const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain strings: SelectField and TextField are string-typed, so the unions and
+// Plain strings: SelectFieldComponent and TextFieldComponent are string-typed, so the unions and
 // the number are re-applied on submit.
 const type = ref<string>(initialValues?.type ?? 'feature');
 const priority = ref<string>(initialValues?.priority ?? 'medium');
@@ -42,6 +50,7 @@ const dueDate = ref(initialValues?.dueDate ?? '');
 const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const assigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
 
+// selectors
 const typeOptions = toSelectOptions(TASK_TYPE);
 const priorityOptions = toSelectOptions(TASK_PRIORITY);
 const statusOptions = toSelectOptions(TASK_STATUS);
@@ -52,15 +61,7 @@ const assigneeOptions = computed<SelectOption<number>[]>(() => [
   ...(assignableUsers[projectId.value] ?? []),
 ]);
 
-// Moving a task to another project can strand its assignee, who may not be a
-// member there. Clearing it keeps the form from submitting a pair the service
-// would reject.
-watch(assigneeOptions, (options) => {
-  if (!options.some((option) => option.value === assigneeId.value)) {
-    assigneeId.value = UNASSIGNED;
-  }
-});
-
+// functions
 /** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
@@ -76,26 +77,36 @@ function handleSubmit(): void {
     assigneeId: assigneeId.value || null,
   });
 }
+
+// watchers
+// Moving a task to another project can strand its assignee, who may not be a
+// member there. Clearing it keeps the form from submitting a pair the service
+// would reject.
+watch(assigneeOptions, (newOptions) => {
+  if (!newOptions.some((option) => option.value === assigneeId.value)) {
+    assigneeId.value = UNASSIGNED;
+  }
+});
 </script>
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="task-title"
       v-model="title"
       label="Title"
       placeholder="e.g. Design the onboarding flow"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="task-description"
       v-model="description"
       label="Description"
       placeholder="What the task involves"
     />
 
-    <SelectField id="task-project" v-model="projectId" label="Project" :options="projectOptions" />
-    <SelectField
+    <SelectFieldComponent id="task-project" v-model="projectId" label="Project" :options="projectOptions" />
+    <SelectFieldComponent
       id="task-assignee"
       v-model="assigneeId"
       label="Assignee"
@@ -103,8 +114,8 @@ function handleSubmit(): void {
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectField id="task-type" v-model="type" label="Type" :options="typeOptions" />
-      <SelectField
+      <SelectFieldComponent id="task-type" v-model="type" label="Type" :options="typeOptions" />
+      <SelectFieldComponent
         id="task-priority"
         v-model="priority"
         label="Priority"
@@ -113,8 +124,8 @@ function handleSubmit(): void {
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectField id="task-status" v-model="status" label="Status" :options="statusOptions" />
-      <TextField
+      <SelectFieldComponent id="task-status" v-model="status" label="Status" :options="statusOptions" />
+      <TextFieldComponent
         id="task-points"
         v-model="storyPoints"
         label="Story points"
@@ -123,7 +134,7 @@ function handleSubmit(): void {
       />
     </div>
 
-    <TextField id="task-due-date" v-model="dueDate" label="Due date" type="date" />
+    <TextFieldComponent id="task-due-date" v-model="dueDate" label="Due date" type="date" />
 
     <div class="flex items-center gap-3 pt-2">
       <button

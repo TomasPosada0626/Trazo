@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+// Author: Mateo Garcia Carreno
+</script>
 
 <template>
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

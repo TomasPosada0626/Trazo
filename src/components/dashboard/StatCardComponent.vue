@@ -1,7 +1,11 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { CountUp } from 'countup.js';
 import { onMounted, ref, watch } from 'vue';
 
+// props
 const {
   value,
   suffix = '',
@@ -15,9 +19,11 @@ const {
   total?: number;
 }>();
 
+// reactive variables
 const valueEl = ref<HTMLElement | null>(null);
 let counter: CountUp | null = null;
 
+// functions
 onMounted(() => {
   if (!valueEl.value) return;
 
@@ -30,10 +36,11 @@ onMounted(() => {
   if (!counter.error) counter.start();
 });
 
+// watchers
 // Re-run the animation when the project or range filter changes.
 watch(
   () => value,
-  (next) => counter?.update(next),
+  (newValue) => counter?.update(newValue),
 );
 </script>
 

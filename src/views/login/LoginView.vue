@@ -1,20 +1,26 @@
 <script setup lang="ts">
+// Author: Tomás Posada
+
+// external imports
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import BrandMark from '@/components/ui/BrandMark.vue';
+// internal imports
+import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
 
+// reactive variables
 const email = ref('');
 const password = ref('');
 const error = ref('');
 
 const router = useRouter();
 
+// functions
 /** Handles the login form submission via AuthService. */
 function handleSubmit(): void {
   error.value = '';
   try {
-    AuthService.login(email.value, password.value);
+    AuthService.login({ email: email.value, password: password.value });
     router.push({ name: 'dashboard' });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Could not sign in.';
@@ -26,7 +32,7 @@ function handleSubmit(): void {
   <main class="flex min-h-screen items-center justify-center px-6 py-16">
     <div class="w-full max-w-md border border-line bg-paper p-8 shadow-sm sm:p-10">
       <div class="flex items-center gap-2.5">
-        <BrandMark class="size-7 shrink-0 text-accent" />
+        <BrandMarkComponent class="size-7 shrink-0 text-accent" />
         <span class="text-2xl font-bold tracking-tight">Trazo</span>
       </div>
 

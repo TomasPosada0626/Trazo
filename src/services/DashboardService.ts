@@ -1,3 +1,6 @@
+// Author: Mateo Garcia Carreno
+
+// internal imports
 import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
@@ -31,7 +34,13 @@ export interface VelocitySeries extends ChartSeries {
  * `sprintId` narrows a metric to one sprint; `null` means the whole project.
  */
 export class DashboardService {
-  /** The tasks a metric should consider, honouring the range selection. */
+  /**
+   * The tasks a metric should consider, honouring the range selection.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns The matching tasks.
+   */
   private static scopedTasks(projectId: number, sprintId: number | null): TaskInterface[] {
     const tasks = TaskService.getByProject(projectId);
     if (!sprintId) return tasks;
@@ -39,7 +48,13 @@ export class DashboardService {
     return tasks.filter((task) => task.sprintId === sprintId);
   }
 
-  /** Share of scoped tasks that are done, 0–100. */
+  /**
+   * Share of scoped tasks that are done.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Completion percentage, 0 to 100.
+   */
   static getProgress(projectId: number, sprintId: number | null): number {
     const tasks = DashboardService.scopedTasks(projectId, sprintId);
     if (!tasks.length) return 0;
@@ -49,16 +64,36 @@ export class DashboardService {
     return Math.round((done / tasks.length) * 100);
   }
 
+  /**
+   * Counts scoped tasks that are done.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Number of completed tasks.
+   */
   static getCompletedTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).filter(
       (task) => task.status === 'done',
     ).length;
   }
 
+  /**
+   * Counts every scoped task, regardless of status.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Total number of tasks in scope.
+   */
   static getTotalTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).length;
   }
 
+  /**
+   * Counts the project's active sprints.
+   *
+   * @param projectId Project to count sprints for.
+   * @returns Number of sprints currently active.
+   */
   static getActiveSprintCount(projectId: number): number {
     return SprintService.getActiveSprints(projectId).length;
   }
@@ -68,6 +103,10 @@ export class DashboardService {
    *
    * A done task is never overdue no matter when it was finished, and a task
    * without a due date cannot be late.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Number of overdue tasks.
    */
   static getOverdueTaskCount(projectId: number, sprintId: number | null): number {
     return DashboardService.scopedTasks(projectId, sprintId).filter(
@@ -75,7 +114,13 @@ export class DashboardService {
     ).length;
   }
 
-  /** Task counts per status, in board order. */
+  /**
+   * Task counts per status, in board order.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Labels and values ready for a pie/bar chart.
+   */
   static getTasksByStatus(projectId: number, sprintId: number | null): StatusSeries {
     const tasks = DashboardService.scopedTasks(projectId, sprintId);
     const order: TaskStatus[] = ['todo', 'in_progress', 'done'];
@@ -91,6 +136,9 @@ export class DashboardService {
    *
    * Always spans the whole project: a velocity chart of a single sprint would
    * be one pair of bars with nothing to compare against.
+   *
+   * @param projectId Project to build the velocity series for.
+   * @returns Committed and completed points per sprint.
    */
   static getVelocitySeries(projectId: number): VelocitySeries {
     const sprints = SprintService.getByProject(projectId);
@@ -136,6 +184,11 @@ export class DashboardService {
    * Counts only `todo` and `in_progress`: finished work is not workload.
    * Members with nothing open still appear, since an idle member is exactly
    * what this chart should reveal.
+   *
+   * @param projectId Project the dashboard is scoped to.
+   * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @returns Labels and open-task counts, one entry per member (plus
+   * "Unassigned" when applicable).
    */
   static getWorkloadByAssignee(projectId: number, sprintId: number | null): ChartSeries {
     const project = ProjectService.getById(projectId);

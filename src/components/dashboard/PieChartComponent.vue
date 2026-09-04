@@ -1,10 +1,14 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { ArcElement, Chart, Legend, PieController, Tooltip } from 'chart.js';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 // Only the pie pieces, so the bar/line/radar controllers stay tree-shaken.
 Chart.register(PieController, ArcElement, Tooltip, Legend);
 
+// props
 const { labels, values, colors } = defineProps<{
   labels: string[];
   values: number[];
@@ -12,12 +16,14 @@ const { labels, values, colors } = defineProps<{
   colors: string[];
 }>();
 
+// reactive variables
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 
 /** A pie of all zeros renders as an empty circle, so say so instead. */
 const isEmpty = ref(false);
 
+// functions
 function syncEmpty(): void {
   isEmpty.value = values.every((value) => value === 0);
 }
@@ -61,6 +67,9 @@ function render(): void {
 
 onMounted(render);
 
+// watchers
+// Every field is read straight from the props inside the callback, so there
+// is no old/new value to name here.
 watch(
   () => [labels, values, colors],
   () => {

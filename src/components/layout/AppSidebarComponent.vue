@@ -1,10 +1,15 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import BrandMark from '@/components/ui/BrandMark.vue';
+// internal imports
+import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { USER_ROLE } from '@/utils/labels';
 
+// variables
 interface NavItem {
   label: string;
   to: string;
@@ -63,6 +68,7 @@ const groups: NavGroup[] = [
   },
 ];
 
+// reactive variables
 const isAdmin = computed(() => AuthService.isAdmin());
 
 /**
@@ -96,6 +102,7 @@ const currentUser = computed(() => {
   };
 });
 
+// functions
 function handleLogout(): void {
   AuthService.logout();
   router.push({ name: 'login' });
@@ -105,7 +112,7 @@ function handleLogout(): void {
 <template>
   <aside class="flex w-56 shrink-0 flex-col bg-ink text-white">
     <RouterLink to="/" class="flex items-center gap-2.5 px-5 py-5">
-      <BrandMark class="size-7 shrink-0 text-accent" />
+      <BrandMarkComponent class="size-7 shrink-0 text-accent" />
       <span class="leading-tight">
         <span class="block text-lg font-bold tracking-tight">Trazo</span>
         <span class="block font-mono text-[9px] tracking-[0.18em] text-white/50 uppercase">

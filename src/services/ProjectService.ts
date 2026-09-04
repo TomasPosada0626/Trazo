@@ -1,3 +1,6 @@
+// Author: Mateo Garcia Carreno
+
+// internal imports
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
@@ -13,12 +16,21 @@ export class ProjectService {
   /**
    * Projects the given user belongs to. Membership is the visibility rule:
    * a project the user is not a member of never reaches their screen.
+   *
+   * @param userId Id of the user whose projects are being listed.
+   * @returns The user's projects, empty when they belong to none.
    */
   static getAllUserProjects(userId: number): ProjectInterface[] {
     return useProjectStore().projects.filter((project) => project.memberIds.includes(userId));
   }
 
-  /** The user's projects, narrowed by status. Pass 'all' to skip filtering. */
+  /**
+   * The user's projects, narrowed by status.
+   *
+   * @param userId Id of the user whose projects are being listed.
+   * @param status Status to restrict to, or `'all'` to skip filtering.
+   * @returns The matching projects.
+   */
   static getUserProjectsByStatus(
     userId: number,
     status: ProjectStatus | 'all',
@@ -29,6 +41,12 @@ export class ProjectService {
     return projects.filter((project) => project.status === status);
   }
 
+  /**
+   * Finds a project by id.
+   *
+   * @param id Id of the project.
+   * @returns The project, or `undefined` when no project carries that id.
+   */
   static getById(id: number): ProjectInterface | undefined {
     return useProjectStore().projects.find((project) => project.id === id);
   }
@@ -37,6 +55,9 @@ export class ProjectService {
    * Creates a project owned by the current session's user, who becomes its
    * first member. Without that the creator could not see what they just made,
    * since getAllUserProjects filters on membership.
+   *
+   * @param data Project fields supplied by the form.
+   * @returns The stored project.
    */
   static create(data: CreateProjectDTO): ProjectInterface {
     const creator = AuthService.getCurrentUser();
@@ -52,7 +73,12 @@ export class ProjectService {
     return project;
   }
 
-  /** Applies a partial update. No-op when the id does not exist. */
+  /**
+   * Applies a partial update. No-op when the id does not exist.
+   *
+   * @param id Id of the project to update.
+   * @param changes Fields to overwrite; omitted fields keep their value.
+   */
   static update(id: number, changes: UpdateProjectDTO): void {
     const project = ProjectService.getById(id);
     if (!project) return;
@@ -85,19 +111,34 @@ export class ProjectService {
     }
   }
 
-  /** Resolves the project's members from the stored memberIds. */
+  /**
+   * Resolves the project's members from the stored memberIds.
+   *
+   * @param project The project whose members are being resolved.
+   * @returns The project's members.
+   */
   static getMembers(project: ProjectInterface): UserInterface[] {
     return project.memberIds
       .map((memberId) => UserService.getById(memberId))
       .filter((user): user is UserInterface => user !== undefined);
   }
 
-  /** Users who are not members yet — the options for the "add member" picker. */
+  /**
+   * Users who are not members yet — the options for the "add member" picker.
+   *
+   * @param project The project to compare against.
+   * @returns Every registered user who isn't already a member.
+   */
   static getNonMembers(project: ProjectInterface): UserInterface[] {
     return UserService.getAll().filter((user) => !project.memberIds.includes(user.id));
   }
 
-  /** Adds a user to the project. Ignores unknown users and repeat additions. */
+  /**
+   * Adds a user to the project. Ignores unknown users and repeat additions.
+   *
+   * @param projectId Id of the project to add the user to.
+   * @param userId Id of the user to add.
+   */
   static addMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project || project.memberIds.includes(userId)) return;
@@ -125,7 +166,13 @@ export class ProjectService {
     });
   }
 
-  /** True when the user belongs to the project. */
+  /**
+   * Checks membership.
+   *
+   * @param project The project to check.
+   * @param userId Id of the user to check for.
+   * @returns `true` when the user belongs to the project.
+   */
   static isMember(project: ProjectInterface, userId: number): boolean {
     return project.memberIds.includes(userId);
   }
@@ -137,6 +184,9 @@ export class ProjectService {
    * deleting it. That is also what keeps a project reachable — only admins can
    * open this screen, and only over projects they belong to, so refusing
    * self-removal guarantees at least one admin member always remains.
+   *
+   * @param projectId Id of the project to remove the member from.
+   * @param userId Id of the user to remove.
    */
   static removeMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);

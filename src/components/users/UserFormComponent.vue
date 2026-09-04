@@ -1,11 +1,16 @@
 <script setup lang="ts">
+// Author: Tomás Posada
+
+// external imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+// internal imports
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { UserRole } from '@/interfaces/UserInterface';
-import { USER_ROLE, toSelectOptions } from '@/utils/labels';
+import { toSelectOptions, USER_ROLE } from '@/utils/labels';
 
+// variables
 export interface UserFormValues {
   name: string;
   email: string;
@@ -13,6 +18,7 @@ export interface UserFormValues {
   role: UserRole;
 }
 
+// props
 const {
   initialValues,
   submitLabel,
@@ -23,14 +29,19 @@ const {
   passwordRequired?: boolean;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: UserFormValues] }>();
 
+// reactive variables
 const name = ref(initialValues?.name ?? '');
 const email = ref(initialValues?.email ?? '');
 const password = ref('');
 const role = ref<string>(initialValues?.role ?? 'member');
+
+// selectors
 const roleOptions = toSelectOptions(USER_ROLE);
 
+// functions
 /** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
@@ -44,8 +55,8 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
-    <TextField
+    <TextFieldComponent id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
+    <TextFieldComponent
       id="user-email"
       v-model="email"
       label="Email"
@@ -53,7 +64,7 @@ function handleSubmit(): void {
       placeholder="name@trazo.com"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="user-password"
       v-model="password"
       label="Password"
@@ -61,7 +72,7 @@ function handleSubmit(): void {
       :placeholder="passwordRequired ? '••••••••' : 'Leave blank to keep current password'"
       :required="passwordRequired"
     />
-    <SelectField id="user-role" v-model="role" label="Role" :options="roleOptions" />
+    <SelectFieldComponent id="user-role" v-model="role" label="Role" :options="roleOptions" />
 
     <div class="flex items-center gap-3 pt-2">
       <button

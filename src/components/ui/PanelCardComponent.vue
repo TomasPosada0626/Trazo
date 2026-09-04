@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// props
 const { title = '', padded = false } = defineProps<{
   title?: string;
   /** Adds padding to the body. Tables sit flush, forms do not. */

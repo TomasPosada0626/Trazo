@@ -1,3 +1,5 @@
+// Author: Mateo Garcia Carreno
+
 export type ProjectStatus = 'planning' | 'active' | 'at_risk' | 'paused' | 'completed';
 
 export interface ProjectInterface {

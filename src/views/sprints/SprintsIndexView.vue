@@ -1,12 +1,16 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import DataTable, { type DataTableColumn } from '@/components/ui/DataTable.vue';
-import IdChip from '@/components/ui/IdChip.vue';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
+// internal imports
+import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
+import IdChipComponent from '@/components/ui/IdChipComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -15,10 +19,11 @@ import { formatDateRange } from '@/utils/date';
 import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
+// variables
 /**
  * Committed and completed points are both summed from the sprint's tasks by
- * SprintService rather than stored — see the decision in CLAUDE.md. The table
- * joins them on, along with the days left, which is likewise derived.
+ * SprintService rather than stored, so the table joins them on along with the
+ * days left, which is likewise derived.
  */
 type SprintRow = SprintInterface & {
   committedPoints: number;
@@ -27,30 +32,33 @@ type SprintRow = SprintInterface & {
   taskCount: number;
 };
 
+const columns: DataTableColumn[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'name', label: 'Sprint' },
+  { key: 'dates', label: 'Dates' },
+  { key: 'committed', label: 'Committed pts.' },
+  { key: 'completed', label: 'Completed pts.' },
+  { key: 'tasks', label: 'Tasks' },
+  { key: 'remaining', label: 'Days left' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', class: 'text-right' },
+];
+
+// reactive variables
+const projectFilter = ref<number>(0);
+const statusFilter = ref<SprintStatus | 'all'>('all');
+
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectFilter = ref<number>(0);
-
-// Select the first project, and recover if the current one disappears.
-watch(
-  projects,
-  (list) => {
-    if (!list.some((project) => project.id === projectFilter.value)) {
-      projectFilter.value = list[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
-
 const projectOptions = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const statusFilter = ref<SprintStatus | 'all'>('all');
 const statusOptions = toFilterOptions(SPRINT_STATUS);
 
 const sprints = computed<SprintRow[]>(() => {
@@ -71,29 +79,31 @@ const selectedProjectName = computed(
   () => projects.value.find((project) => project.id === projectFilter.value)?.name ?? '',
 );
 
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Sprint' },
-  { key: 'dates', label: 'Dates' },
-  { key: 'committed', label: 'Committed pts.' },
-  { key: 'completed', label: 'Completed pts.' },
-  { key: 'tasks', label: 'Tasks' },
-  { key: 'remaining', label: 'Days left' },
-  { key: 'status', label: 'Status' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
-
+// functions
+/** Confirms with the user, then deletes the sprint. */
 function handleDelete(sprint: SprintRow): void {
   const confirmed = window.confirm(
     `Delete the sprint "${sprint.name}"? Its tasks return to the backlog.`,
   );
   if (confirmed) SprintService.remove(sprint.id);
 }
+
+// watchers
+// Select the first project, and recover if the current one disappears.
+watch(
+  projects,
+  (newProjects) => {
+    if (!newProjects.some((project) => project.id === projectFilter.value)) {
+      projectFilter.value = newProjects[0]?.id ?? 0;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Sprint management"
       subtitle="Review the progress, velocity and remaining days of each sprint (Sprint entity)."
       admin-only
@@ -106,18 +116,18 @@ function handleDelete(sprint: SprintRow): void {
           + New sprint
         </RouterLink>
       </template>
-    </PageHeader>
+    </PageHeaderComponent>
 
-    <PanelCard v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         Sprints belong to a project. Create a project first, then plan its sprints.
       </p>
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-else :title="`Sprints for ${selectedProjectName}`">
+    <PanelCardComponent v-else :title="`Sprints for ${selectedProjectName}`">
       <template #actions>
         <div class="flex flex-wrap items-end gap-3">
-          <SelectField
+          <SelectFieldComponent
             id="sprint-project-filter"
             v-model="projectFilter"
             label="Project"
@@ -125,7 +135,7 @@ function handleDelete(sprint: SprintRow): void {
             :options="projectOptions"
             class="w-52"
           />
-          <SelectField
+          <SelectFieldComponent
             id="sprint-status-filter"
             v-model="statusFilter"
             label="Status"
@@ -136,14 +146,14 @@ function handleDelete(sprint: SprintRow): void {
         </div>
       </template>
 
-      <DataTable
+      <DataTableComponent
         :columns="columns"
         :rows="sprints"
         empty-message="This project has no sprints matching the filter."
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChip>{{ shortId('SPR', row.id) }}</IdChip>
+            <IdChipComponent>{{ shortId('SPR', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">
@@ -156,9 +166,9 @@ function handleDelete(sprint: SprintRow): void {
             {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
           </td>
           <td class="px-4 py-3">
-            <StatusBadge :tone="SPRINT_STATUS[row.status].tone">
+            <StatusBadgeComponent :tone="SPRINT_STATUS[row.status].tone">
               {{ SPRINT_STATUS[row.status].text }}
-            </StatusBadge>
+            </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
             <RouterLink
@@ -176,7 +186,7 @@ function handleDelete(sprint: SprintRow): void {
             </button>
           </td>
         </template>
-      </DataTable>
-    </PanelCard>
+      </DataTableComponent>
+    </PanelCardComponent>
   </div>
 </template>

@@ -1,14 +1,19 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import TaskForm, { type TaskFormValues } from '@/components/tasks/TaskForm.vue';
-import type { SelectOption } from '@/components/ui/SelectField.vue';
+// internal imports
+import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
+import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 
@@ -16,8 +21,10 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const taskId = Number(route.params.id);
 
+// reactive variables
 const error = ref('');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
@@ -53,6 +60,7 @@ const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   ),
 );
 
+// functions
 /**
  * Saves the changes and returns to the list. `sprintId` is absent from the
  * form values, and UpdateTaskDTO is partial, so the stored sprint is left
@@ -71,9 +79,9 @@ function handleSubmit(values: TaskFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader title="Edit task" subtitle="Update the task's details, status or assignee." />
+    <PageHeaderComponent title="Edit task" subtitle="Update the task's details, status or assignee." />
 
-    <PanelCard v-if="task" title="Task details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="task" title="Task details" padded class="max-w-2xl">
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -81,7 +89,7 @@ function handleSubmit(values: TaskFormValues): void {
         {{ error }}
       </p>
 
-      <TaskForm
+      <TaskFormComponent
         :initial-values="{
           title: task.title,
           description: task.description,
@@ -98,9 +106,9 @@ function handleSubmit(values: TaskFormValues): void {
         submit-label="Save changes"
         @submit="handleSubmit"
       />
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-else title="Task not found" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="Task not found" padded class="max-w-2xl">
       <p class="text-sm text-ink-soft">
         The task you are trying to edit does not exist, or it belongs to a project you are not a
         member of.
@@ -111,6 +119,6 @@ function handleSubmit(values: TaskFormValues): void {
       >
         Back to tasks
       </RouterLink>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

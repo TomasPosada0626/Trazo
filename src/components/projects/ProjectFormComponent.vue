@@ -1,33 +1,43 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import TextField from '@/components/ui/TextField.vue';
+// internal imports
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
+// variables
 export interface ProjectFormValues {
   name: string;
   description: string;
   status: ProjectStatus;
 }
 
+// props
 const { initialValues, submitLabel } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: ProjectFormValues;
   submitLabel: string;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
 
+// reactive variables
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain string: SelectField's v-model is string-typed, so the union is
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'active');
 
+// selectors
 const statusOptions = toSelectOptions(PROJECT_STATUS);
 
+// functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),
@@ -39,20 +49,20 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="project-name"
       v-model="name"
       label="Name"
       placeholder="e.g. Customer Portal"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="project-description"
       v-model="description"
       label="Description"
       placeholder="Project goal"
     />
-    <SelectField
+    <SelectFieldComponent
       id="project-status"
       v-model="status"
       label="Project status"

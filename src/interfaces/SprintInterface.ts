@@ -1,3 +1,5 @@
+// Author: Mateo Garcia Carreno
+
 export type SprintStatus = 'planned' | 'active' | 'completed';
 
 export interface SprintInterface {

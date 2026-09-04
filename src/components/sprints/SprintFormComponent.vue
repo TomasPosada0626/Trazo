@@ -1,15 +1,20 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import SelectField from '@/components/ui/SelectField.vue';
-import StatusBadge from '@/components/ui/StatusBadge.vue';
-import TextField from '@/components/ui/TextField.vue';
+// internal imports
+import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { shortId } from '@/utils/id';
-import { TASK_STATUS, SPRINT_STATUS, toSelectOptions } from '@/utils/labels';
+import { SPRINT_STATUS, TASK_STATUS, toSelectOptions } from '@/utils/labels';
 
+// variables
 export interface SprintFormValues {
   name: string;
   goal: string;
@@ -21,6 +26,7 @@ export interface SprintFormValues {
   taskIds: number[];
 }
 
+// props
 const { initialValues, submitLabel, projectOptions, currentSprintId } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: SprintFormValues;
@@ -30,19 +36,22 @@ const { initialValues, submitLabel, projectOptions, currentSprintId } = definePr
   currentSprintId?: number;
 }>();
 
+// emits
 const emit = defineEmits<{ submit: [values: SprintFormValues] }>();
 
+// reactive variables
 const name = ref(initialValues?.name ?? '');
 const goal = ref(initialValues?.goal ?? '');
 const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
-// Plain string: SelectField's v-model is string-typed, so the union is
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
 // re-applied on submit.
 const status = ref<string>(initialValues?.status ?? 'planned');
 const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
 const error = ref('');
 
+// selectors
 const statusOptions = toSelectOptions(SPRINT_STATUS);
 
 /**
@@ -56,6 +65,14 @@ const projectTasks = computed(() =>
   projectId.value ? TaskService.getByProject(projectId.value) : [],
 );
 
+/** The sprint's commitment, derived from the selection rather than typed. */
+const selectedPoints = computed(() =>
+  projectTasks.value
+    .filter((task) => selectedTaskIds.value.includes(task.id))
+    .reduce((total, task) => total + task.storyPoints, 0),
+);
+
+// functions
 /** Where a task currently sits, for the "already in SPR-02" hint. */
 function otherSprintLabel(taskId: number): string | null {
   const task = projectTasks.value.find((candidate) => candidate.id === taskId);
@@ -64,20 +81,6 @@ function otherSprintLabel(taskId: number): string | null {
   const sprint = SprintService.getById(task.sprintId);
   return sprint ? shortId('SPR', sprint.id) : null;
 }
-
-// A task list from the previous project is meaningless, so drop the selection
-// whenever the project changes. Editing keeps the project fixed, so this only
-// ever fires while creating.
-watch(projectId, () => {
-  selectedTaskIds.value = [];
-});
-
-/** The sprint's commitment, derived from the selection rather than typed. */
-const selectedPoints = computed(() =>
-  projectTasks.value
-    .filter((task) => selectedTaskIds.value.includes(task.id))
-    .reduce((total, task) => total + task.storyPoints, 0),
-);
 
 function handleSubmit(): void {
   error.value = '';
@@ -97,24 +100,33 @@ function handleSubmit(): void {
     taskIds: [...selectedTaskIds.value],
   });
 }
+
+// watchers
+// A task list from the previous project is meaningless, so drop the selection
+// whenever the project changes. Editing keeps the project fixed, so this only
+// ever fires while creating. The project id itself is the only thing this
+// needs, so there's no old/new value worth naming in the callback.
+watch(projectId, () => {
+  selectedTaskIds.value = [];
+});
 </script>
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextField
+    <TextFieldComponent
       id="sprint-name"
       v-model="name"
       label="Name"
       placeholder="e.g. Onboarding v2"
       required
     />
-    <TextField
+    <TextFieldComponent
       id="sprint-goal"
       v-model="goal"
       label="Goal"
       placeholder="What the sprint aims to achieve"
     />
-    <SelectField
+    <SelectFieldComponent
       id="sprint-project"
       v-model="projectId"
       label="Project"
@@ -124,11 +136,11 @@ function handleSubmit(): void {
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <TextField id="sprint-start" v-model="startDate" label="Start date" type="date" required />
-      <TextField id="sprint-end" v-model="endDate" label="End date" type="date" required />
+      <TextFieldComponent id="sprint-start" v-model="startDate" label="Start date" type="date" required />
+      <TextFieldComponent id="sprint-end" v-model="endDate" label="End date" type="date" required />
     </div>
 
-    <SelectField id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
+    <SelectFieldComponent id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
 
     <fieldset>
       <legend class="text-sm font-medium">Tasks in this sprint</legend>
@@ -161,9 +173,9 @@ function handleSubmit(): void {
               </template>
             </span>
           </span>
-          <StatusBadge :tone="TASK_STATUS[task.status].tone" class="shrink-0">
+          <StatusBadgeComponent :tone="TASK_STATUS[task.status].tone" class="shrink-0">
             {{ TASK_STATUS[task.status].text }}
-          </StatusBadge>
+          </StatusBadgeComponent>
         </label>
       </div>
 

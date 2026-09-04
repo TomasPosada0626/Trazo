@@ -1,13 +1,18 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/components/ui/PageHeader.vue';
-import PanelCard from '@/components/ui/PanelCard.vue';
-import ProjectForm, { type ProjectFormValues } from '@/components/projects/ProjectForm.vue';
-import ProjectMembers from '@/components/projects/ProjectMembers.vue';
+// internal imports
+import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
+import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 
@@ -15,6 +20,7 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const projectId = Number(route.params.id);
 
+// selectors
 /**
  * Membership is the visibility rule, and the route guard only checks the admin
  * role. Without this an admin could open another admin's project by typing its
@@ -30,6 +36,8 @@ const project = computed(() => {
   return found;
 });
 
+// functions
+/** Saves the edited project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   ProjectService.update(projectId, values);
   router.push({ name: 'projects' });
@@ -38,14 +46,14 @@ function handleSubmit(values: ProjectFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeader
+    <PageHeaderComponent
       title="Edit project"
       subtitle="Update the project's name, description or status."
       admin-only
     />
 
-    <PanelCard v-if="project" title="Project details" padded class="max-w-2xl">
-      <ProjectForm
+    <PanelCardComponent v-if="project" title="Project details" padded class="max-w-2xl">
+      <ProjectFormComponent
         :initial-values="{
           name: project.name,
           description: project.description,
@@ -54,13 +62,13 @@ function handleSubmit(values: ProjectFormValues): void {
         submit-label="Save changes"
         @submit="handleSubmit"
       />
-    </PanelCard>
+    </PanelCardComponent>
 
-    <PanelCard v-if="project" title="Project members" padded class="max-w-2xl">
-      <ProjectMembers :project="project" />
-    </PanelCard>
+    <PanelCardComponent v-if="project" title="Project members" padded class="max-w-2xl">
+      <ProjectMembersComponent :project="project" />
+    </PanelCardComponent>
 
-    <PanelCard v-if="!project" title="Project not found" padded class="max-w-2xl">
+    <PanelCardComponent v-if="!project" title="Project not found" padded class="max-w-2xl">
       <p class="text-sm text-ink-soft">
         The project you are trying to edit does not exist, or you do not belong to it.
       </p>
@@ -70,6 +78,6 @@ function handleSubmit(values: ProjectFormValues): void {
       >
         Back to projects
       </RouterLink>
-    </PanelCard>
+    </PanelCardComponent>
   </div>
 </template>

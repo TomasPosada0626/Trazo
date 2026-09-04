@@ -1,9 +1,14 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// variables
 /** Visual tone of the badge, independent of which entity it describes. */
 export type BadgeTone = 'positive' | 'warning' | 'neutral' | 'danger';
 
+// props
 const { tone = 'neutral' } = defineProps<{ tone?: BadgeTone }>();
 
+// variables
 const toneClasses: Record<BadgeTone, string> = {
   positive: 'bg-emerald-50 text-emerald-700',
   warning: 'bg-amber-50 text-amber-700',
