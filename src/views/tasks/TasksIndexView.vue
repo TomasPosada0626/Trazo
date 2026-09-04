@@ -1,6 +1,11 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
+// internal imports
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
 import IdChipComponent from '@/components/ui/IdChipComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
@@ -13,15 +18,22 @@ import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS, toFilterOptions } from '@/utils/labels';
+import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toFilterOptions } from '@/utils/labels';
 
+// variables
 /** Copy for the banner shown after returning from the create or edit form. */
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
 };
 
-const route = useRoute();
+/** Slice colours per task type, one distinct hue per value for readability. */
+const TYPE_COLORS: Record<TaskInterface['type'], string> = {
+  feature: '#059669',
+  bug: '#ef4444',
+  chore: '#94a3b8',
+  research: '#f59e0b',
+};
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -34,6 +46,9 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
+const route = useRoute();
+
+// reactive variables
 const projectFilter = ref<number | 'all'>('all');
 const statusFilter = ref<TaskStatus | 'all'>('all');
 
@@ -41,6 +56,7 @@ const statusFilter = ref<TaskStatus | 'all'>('all');
 // come back when the user navigates around and returns to this URL.
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 /** The signed-in user's projects, which is also the scope of their tasks. */
@@ -62,6 +78,22 @@ const tasks = computed(() =>
     : [],
 );
 
+/** Breakdown of the filtered tasks by type, orthogonal to both filters above. */
+const typeChart = computed(() => {
+  const counts: Record<string, number> = { feature: 0, bug: 0, chore: 0, research: 0 };
+  for (const task of tasks.value) {
+    counts[task.type] = (counts[task.type] ?? 0) + 1;
+  }
+
+  const types = Object.keys(counts) as (keyof typeof TYPE_COLORS)[];
+  return {
+    labels: types.map((type) => TASK_TYPE[type].text),
+    values: types.map((type) => counts[type] ?? 0),
+    colors: types.map((type) => TYPE_COLORS[type]),
+  };
+});
+
+// functions
 /**
  * Project name for a row. Tasks are already scoped to the user's projects, so
  * a miss here would mean stored data pointing at a project that no longer
@@ -118,6 +150,10 @@ function handleDelete(task: TaskInterface): void {
         Dismiss
       </button>
     </p>
+
+    <PanelCardComponent v-if="projects.length" title="Tasks by type" padded class="max-w-md">
+      <PieChartComponent :labels="typeChart.labels" :values="typeChart.values" :colors="typeChart.colors" />
+    </PanelCardComponent>
 
     <PanelCardComponent v-if="projects.length" title="Tasks">
       <template #actions>

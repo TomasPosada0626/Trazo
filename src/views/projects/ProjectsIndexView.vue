@@ -1,6 +1,11 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
 import IdChipComponent from '@/components/ui/IdChipComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
@@ -14,6 +19,16 @@ import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
 import { PROJECT_STATUS, toFilterOptions } from '@/utils/labels';
 
+// variables
+/** Slice colours per project status, one distinct hue per value for readability. */
+const STATUS_COLORS: Record<ProjectStatus, string> = {
+  planning: '#94a3b8',
+  active: '#059669',
+  at_risk: '#f59e0b',
+  paused: '#8b5cf6',
+  completed: '#334155',
+};
+
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Name' },
@@ -23,8 +38,10 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
+// reactive variables
 const statusFilter = ref<ProjectStatus | 'all'>('all');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // Only the signed-in user's projects. Recomputes when the filter changes or
@@ -37,6 +54,34 @@ const projects = computed(() =>
 
 const statusOptions = toFilterOptions(PROJECT_STATUS);
 
+/**
+ * Breakdown of every one of the user's projects by status, independent of
+ * `statusFilter` so the overview stays meaningful even when the table below
+ * is narrowed down to a single status.
+ */
+const statusChart = computed(() => {
+  const allProjects = currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [];
+  const counts: Record<string, number> = {
+    planning: 0,
+    active: 0,
+    at_risk: 0,
+    paused: 0,
+    completed: 0,
+  };
+  for (const project of allProjects) {
+    counts[project.status] = (counts[project.status] ?? 0) + 1;
+  }
+
+  const statuses = Object.keys(counts) as ProjectStatus[];
+  return {
+    labels: statuses.map((status) => PROJECT_STATUS[status].text),
+    values: statuses.map((status) => counts[status] ?? 0),
+    colors: statuses.map((status) => STATUS_COLORS[status]),
+  };
+});
+
+// functions
+/** Confirms with the user, then deletes the project. */
 function handleDelete(project: ProjectInterface): void {
   const confirmed = window.confirm(
     `Delete the project "${project.name}"? This action cannot be undone.`,
@@ -63,6 +108,10 @@ function handleDelete(project: ProjectInterface): void {
         </RouterLink>
       </template>
     </PageHeaderComponent>
+
+    <PanelCardComponent title="Projects by status" padded class="max-w-md">
+      <PieChartComponent :labels="statusChart.labels" :values="statusChart.values" :colors="statusChart.colors" />
+    </PanelCardComponent>
 
     <PanelCardComponent title="Projects">
       <template #actions>
