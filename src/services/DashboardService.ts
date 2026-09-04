@@ -35,17 +35,24 @@ export interface VelocitySeries extends ChartSeries {
  */
 export class DashboardService {
   /**
-   * The tasks a metric should consider, honouring the range selection.
+   * The tasks a metric should consider, honouring the range and status filters.
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns The matching tasks.
    */
-  private static scopedTasks(projectId: number, sprintId: number | null): TaskInterface[] {
-    const tasks = TaskService.getByProject(projectId);
-    if (!sprintId) return tasks;
+  private static scopedTasks(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): TaskInterface[] {
+    const tasks = TaskService.getByProject(projectId).filter(
+      (task) => !sprintId || task.sprintId === sprintId,
+    );
+    if (status === 'all') return tasks;
 
-    return tasks.filter((task) => task.sprintId === sprintId);
+    return tasks.filter((task) => task.status === status);
   }
 
   /**
@@ -53,10 +60,11 @@ export class DashboardService {
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Completion percentage, 0 to 100.
    */
-  static getProgress(projectId: number, sprintId: number | null): number {
-    const tasks = DashboardService.scopedTasks(projectId, sprintId);
+  static getProgress(projectId: number, sprintId: number | null, status: TaskStatus | 'all' = 'all'): number {
+    const tasks = DashboardService.scopedTasks(projectId, sprintId, status);
     if (!tasks.length) return 0;
 
     const done = tasks.filter((task) => task.status === 'done').length;
@@ -69,10 +77,15 @@ export class DashboardService {
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Number of completed tasks.
    */
-  static getCompletedTaskCount(projectId: number, sprintId: number | null): number {
-    return DashboardService.scopedTasks(projectId, sprintId).filter(
+  static getCompletedTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return DashboardService.scopedTasks(projectId, sprintId, status).filter(
       (task) => task.status === 'done',
     ).length;
   }
@@ -82,10 +95,15 @@ export class DashboardService {
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Total number of tasks in scope.
    */
-  static getTotalTaskCount(projectId: number, sprintId: number | null): number {
-    return DashboardService.scopedTasks(projectId, sprintId).length;
+  static getTotalTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return DashboardService.scopedTasks(projectId, sprintId, status).length;
   }
 
   /**
@@ -106,10 +124,15 @@ export class DashboardService {
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Number of overdue tasks.
    */
-  static getOverdueTaskCount(projectId: number, sprintId: number | null): number {
-    return DashboardService.scopedTasks(projectId, sprintId).filter(
+  static getOverdueTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return DashboardService.scopedTasks(projectId, sprintId, status).filter(
       (task) => task.status !== 'done' && task.dueDate !== null && isPastDate(task.dueDate),
     ).length;
   }
@@ -161,12 +184,18 @@ export class DashboardService {
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or null for the whole project.
    * @param userId The signed-in user.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Their tasks, ordered by urgency.
    */
-  static getUserTasks(projectId: number, sprintId: number | null, userId: number): TaskInterface[] {
+  static getUserTasks(
+    projectId: number,
+    sprintId: number | null,
+    userId: number,
+    status: TaskStatus | 'all' = 'all',
+  ): TaskInterface[] {
     const farFuture = '9999-12-31';
 
-    return DashboardService.scopedTasks(projectId, sprintId)
+    return DashboardService.scopedTasks(projectId, sprintId, status)
       .filter((task) => task.assigneeId === userId)
       .slice()
       .sort((a, b) => {
@@ -187,14 +216,19 @@ export class DashboardService {
    *
    * @param projectId Project the dashboard is scoped to.
    * @param sprintId Sprint to narrow to, or `null` for the whole project.
+   * @param status Status to narrow to, or `'all'` for every status.
    * @returns Labels and open-task counts, one entry per member (plus
    * "Unassigned" when applicable).
    */
-  static getWorkloadByAssignee(projectId: number, sprintId: number | null): ChartSeries {
+  static getWorkloadByAssignee(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): ChartSeries {
     const project = ProjectService.getById(projectId);
     if (!project) return { labels: [], values: [] };
 
-    const open = DashboardService.scopedTasks(projectId, sprintId).filter(
+    const open = DashboardService.scopedTasks(projectId, sprintId, status).filter(
       (task) => task.status !== 'done',
     );
 
@@ -211,5 +245,21 @@ export class DashboardService {
     rows.sort((a, b) => b.value - a.value);
 
     return { labels: rows.map((r) => r.label), values: rows.map((r) => r.value) };
+  }
+
+  /**
+   * Task totals across every one of the user's projects, so the distribution
+   * can be compared side by side instead of one project at a time.
+   *
+   * @param userId The signed-in user.
+   * @returns Labels (project names) and total task counts, one entry per project.
+   */
+  static getTasksByProject(userId: number): ChartSeries {
+    const projects = ProjectService.getAllUserProjects(userId);
+
+    return {
+      labels: projects.map((project) => project.name),
+      values: projects.map((project) => TaskService.getByProject(project.id).length),
+    };
   }
 }

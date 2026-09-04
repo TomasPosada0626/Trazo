@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
 import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
@@ -19,6 +19,9 @@ const router = useRouter();
 // A non-numeric URL yields NaN, which no record matches, so the view
 // falls through to its "not found" panel.
 const sprintId = Number(route.params.id);
+
+// reactive variables
+const error = ref('');
 
 // selectors
 /**
@@ -59,12 +62,17 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
 // functions
 /** Saves the edited sprint and its task schedule, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
+  error.value = '';
   const { taskIds, ...sprintData } = values;
 
-  SprintService.update(sprintId, sprintData);
-  SprintService.setTasks(sprintId, taskIds);
+  try {
+    SprintService.update(sprintId, sprintData);
+    SprintService.setTasks(sprintId, taskIds);
 
-  router.push({ name: 'sprints' });
+    router.push({ name: 'sprints' });
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'The sprint could not be updated.';
+  }
 }
 </script>
 
@@ -77,6 +85,13 @@ function handleSubmit(values: SprintFormValues): void {
     />
 
     <PanelCardComponent v-if="initialValues" title="Sprint details" padded class="max-w-2xl">
+      <p
+        v-if="error"
+        class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
+      >
+        {{ error }}
+      </p>
+
       <SprintFormComponent
         :initial-values="initialValues"
         :project-options="projectOptions"

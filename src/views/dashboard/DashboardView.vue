@@ -20,7 +20,7 @@ import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS } from '@/utils/labels';
+import { TASK_PRIORITY, TASK_STATUS, toFilterOptions } from '@/utils/labels';
 
 // variables
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
@@ -54,6 +54,7 @@ const myTaskColumns: DataTableColumn[] = [
 // reactive variables
 const projectId = ref<number>(0);
 const range = ref<number | 'all'>(ALL_TIME);
+const statusFilter = ref<TaskStatus | 'all'>('all');
 
 // selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -86,16 +87,20 @@ const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
 /** null means "the whole project" for every DashboardService call. */
 const sprintId = computed(() => (range.value === ALL_TIME ? null : range.value));
 
-const progress = computed(() => DashboardService.getProgress(projectId.value, sprintId.value));
+const statusOptions = toFilterOptions(TASK_STATUS);
+
+const progress = computed(() =>
+  DashboardService.getProgress(projectId.value, sprintId.value, statusFilter.value),
+);
 const activeSprints = computed(() => DashboardService.getActiveSprintCount(projectId.value));
 const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(projectId.value, sprintId.value),
+  DashboardService.getCompletedTaskCount(projectId.value, sprintId.value, statusFilter.value),
 );
 const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(projectId.value, sprintId.value),
+  DashboardService.getTotalTaskCount(projectId.value, sprintId.value, statusFilter.value),
 );
 const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(projectId.value, sprintId.value),
+  DashboardService.getOverdueTaskCount(projectId.value, sprintId.value, statusFilter.value),
 );
 
 const statusSeries = computed(() =>
@@ -125,16 +130,31 @@ const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
   currentUserId.value
-    ? DashboardService.getUserTasks(projectId.value, sprintId.value, currentUserId.value)
+    ? DashboardService.getUserTasks(
+        projectId.value,
+        sprintId.value,
+        currentUserId.value,
+        statusFilter.value,
+      )
     : [],
 );
 
 const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value),
+  DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value, statusFilter.value),
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
   series: [{ label: 'Open tasks', values: workload.value.values, color: COLORS.ink }],
+}));
+
+/** Task totals across every one of the user's projects, independent of the
+ * single project selected above, so the distribution can be compared. */
+const projectDistribution = computed(() =>
+  currentUserId.value ? DashboardService.getTasksByProject(currentUserId.value) : { labels: [], values: [] },
+);
+const projectDistributionChart = computed(() => ({
+  labels: projectDistribution.value.labels,
+  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: COLORS.ink }],
 }));
 
 // watchers
@@ -187,6 +207,14 @@ watch(
           :title="hasSprints ? undefined : 'This project has no sprints yet'"
           class="w-56"
         />
+        <SelectFieldComponent
+          id="dashboard-status"
+          v-model="statusFilter"
+          label="Status"
+          compact
+          :options="statusOptions"
+          class="w-44"
+        />
       </template>
     </PageHeaderComponent>
 
@@ -203,6 +231,14 @@ watch(
         <StatCardComponent label="Completed tasks" :value="completedTasks" :total="totalTasks" />
         <StatCardComponent label="Overdue tasks" :value="overdueTasks" />
       </div>
+
+      <PanelCardComponent
+        v-if="projectDistributionChart.labels.length > 1"
+        title="Tasks across your projects"
+        padded
+      >
+        <BarChartComponent :labels="projectDistributionChart.labels" :series="projectDistributionChart.series" />
+      </PanelCardComponent>
 
       <div class="grid gap-4 xl:grid-cols-2">
         <PanelCardComponent title="Tasks by status" padded>
