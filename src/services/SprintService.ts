@@ -5,6 +5,7 @@ import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { useSprintStore } from '@/stores/sprintstore';
 import { daysBetween, startOfToday } from '@/utils/date';
@@ -46,8 +47,12 @@ export class SprintService {
    *
    * @param data Sprint fields supplied by the form.
    * @returns The stored sprint.
+   * @throws {Error} When the project does not exist or another sprint of the
+   * same project already uses the name.
    */
   static create(data: CreateSprintDTO): SprintInterface {
+    SprintService.assertValid(data.name, data.projectId);
+
     const sprint: SprintInterface = { id: nextId(useSprintStore().sprints), ...data };
 
     // Mutating in place keeps PiniaConfig's deep watcher cheap.
@@ -60,12 +65,42 @@ export class SprintService {
    *
    * @param id Id of the sprint to update.
    * @param changes Fields to overwrite; omitted fields keep their value.
+   * @throws {Error} When the name changes to one already used by another
+   * sprint of the same project.
    */
   static update(id: number, changes: UpdateSprintDTO): void {
     const sprint = SprintService.getById(id);
     if (!sprint) return;
 
+    if (changes.name !== undefined) {
+      SprintService.assertValid(changes.name, changes.projectId ?? sprint.projectId, id);
+    }
+
     Object.assign(sprint, changes);
+  }
+
+  /**
+   * Guards the invariants every stored sprint has to satisfy. Kept in one
+   * place so create() and update() cannot drift apart.
+   *
+   * @param name Name the sprint will carry.
+   * @param projectId Id of the project the sprint will belong to.
+   * @param excludeId Id of the sprint being edited, left out of the duplicate check.
+   * @throws {Error} When the project does not exist or another sprint of the
+   * same project already uses the name.
+   */
+  private static assertValid(name: string, projectId: number, excludeId?: number): void {
+    if (!ProjectService.getById(projectId)) {
+      throw new Error('The selected project does not exist.');
+    }
+
+    const normalized = name.trim().toLowerCase();
+    const duplicate = SprintService.getByProject(projectId).some(
+      (sprint) => sprint.id !== excludeId && sprint.name.trim().toLowerCase() === normalized,
+    );
+    if (duplicate) {
+      throw new Error('A sprint with this name already exists in the project.');
+    }
   }
 
   /**

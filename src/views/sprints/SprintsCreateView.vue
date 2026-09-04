@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 // internal imports
 import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
@@ -14,6 +14,9 @@ import { SprintService } from '@/services/SprintService';
 
 // variables
 const router = useRouter();
+
+// reactive variables
+const error = ref('');
 
 // selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -29,13 +32,18 @@ const projectOptions = computed(() =>
 // functions
 /** Creates the sprint, schedules its tasks, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
+  error.value = '';
   const { taskIds, ...sprintData } = values;
 
-  // The sprint has to exist before tasks can point at it.
-  const sprint = SprintService.create(sprintData);
-  SprintService.setTasks(sprint.id, taskIds);
+  try {
+    // The sprint has to exist before tasks can point at it.
+    const sprint = SprintService.create(sprintData);
+    SprintService.setTasks(sprint.id, taskIds);
 
-  router.push({ name: 'sprints' });
+    router.push({ name: 'sprints' });
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'The sprint could not be created.';
+  }
 }
 </script>
 
@@ -60,6 +68,13 @@ function handleSubmit(values: SprintFormValues): void {
     </PanelCardComponent>
 
     <PanelCardComponent v-else title="Sprint details" padded class="max-w-2xl">
+      <p
+        v-if="error"
+        class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
+      >
+        {{ error }}
+      </p>
+
       <SprintFormComponent
         :project-options="projectOptions"
         submit-label="Save sprint"
