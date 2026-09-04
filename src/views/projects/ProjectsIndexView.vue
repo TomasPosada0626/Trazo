@@ -17,18 +17,9 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { PROJECT_STATUS, toFilterOptions } from '@/utils/labels';
+import { PROJECT_STATUS, PROJECT_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
 
 // variables
-/** Slice colours per project status, one distinct hue per value for readability. */
-const STATUS_COLORS: Record<ProjectStatus, string> = {
-  planning: '#94a3b8',
-  active: '#059669',
-  at_risk: '#f59e0b',
-  paused: '#8b5cf6',
-  completed: '#334155',
-};
-
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Name' },
@@ -76,7 +67,7 @@ const statusChart = computed(() => {
   return {
     labels: statuses.map((status) => PROJECT_STATUS[status].text),
     values: statuses.map((status) => counts[status] ?? 0),
-    colors: statuses.map((status) => STATUS_COLORS[status]),
+    colors: statuses.map((status) => PROJECT_STATUS_COLORS[status]),
   };
 });
 

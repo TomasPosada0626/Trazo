@@ -58,6 +58,42 @@ export const USER_ROLE: Record<UserRole, LabelDescriptor> = {
 };
 
 /**
+ * Chart.js slice colours, one hex per enum value. Kept alongside the badge
+ * tones above rather than redefined per chart, so a status or type reads the
+ * same colour everywhere — the dashboard's pie, a listing page's own chart,
+ * and the badges all draw from the same map.
+ */
+export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
+  todo: '#94a3b8',
+  in_progress: '#f59e0b',
+  done: '#059669',
+};
+
+export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
+  planning: '#94a3b8',
+  active: '#059669',
+  at_risk: '#f59e0b',
+  paused: '#8b5cf6',
+  completed: '#334155',
+};
+
+export const TASK_TYPE_COLORS: Record<TaskType, string> = {
+  feature: '#059669',
+  bug: '#ef4444',
+  chore: '#94a3b8',
+  research: '#f59e0b',
+};
+
+/** General-purpose palette for charts with no matching enum (e.g. velocity's
+ * committed-vs-completed bars), drawn from the Tailwind theme tokens in
+ * input.css. */
+export const CHART_COLORS = {
+  ink: '#0d3355',
+  done: '#059669',
+  muted: '#a9bacd',
+};
+
+/**
  * Turns a label map into <SelectFieldComponent> options, in declaration order.
  *
  * Every dropdown over an enum derives its options from the same map the badges

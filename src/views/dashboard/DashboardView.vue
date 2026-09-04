@@ -20,28 +20,11 @@ import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS, toFilterOptions } from '@/utils/labels';
+import { CHART_COLORS, TASK_PRIORITY, TASK_STATUS, TASK_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
 
 // variables
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
-
-/** Palette drawn from the Tailwind theme tokens in input.css. */
-const COLORS = {
-  ink: '#0d3355',
-  done: '#059669',
-  muted: '#a9bacd',
-};
-
-/**
- * Slice colours per task status, matching the tones StatusBadgeComponent already uses
- * on the board and the tables, so a status reads the same colour everywhere.
- */
-const STATUS_COLORS: Record<TaskStatus, string> = {
-  todo: '#94a3b8',
-  in_progress: '#f59e0b',
-  done: '#059669',
-};
 
 const myTaskColumns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -109,15 +92,15 @@ const statusSeries = computed(() =>
 const statusChart = computed(() => ({
   labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
   values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => STATUS_COLORS[status]),
+  colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
 }));
 
 const velocity = computed(() => DashboardService.getVelocitySeries(projectId.value));
 const velocityChart = computed(() => ({
   labels: velocity.value.labels,
   series: [
-    { label: 'Committed', values: velocity.value.committed, color: COLORS.muted },
-    { label: 'Completed', values: velocity.value.values, color: COLORS.done },
+    { label: 'Committed', values: velocity.value.committed, color: CHART_COLORS.muted },
+    { label: 'Completed', values: velocity.value.values, color: CHART_COLORS.done },
   ],
 }));
 
@@ -144,7 +127,7 @@ const workload = computed(() =>
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: COLORS.ink }],
+  series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
 }));
 
 /** Task totals across every one of the user's projects, independent of the
@@ -154,7 +137,7 @@ const projectDistribution = computed(() =>
 );
 const projectDistributionChart = computed(() => ({
   labels: projectDistribution.value.labels,
-  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: COLORS.ink }],
+  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: CHART_COLORS.ink }],
 }));
 
 // watchers

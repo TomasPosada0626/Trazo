@@ -18,21 +18,13 @@ import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toFilterOptions } from '@/utils/labels';
+import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, TASK_TYPE_COLORS, toFilterOptions } from '@/utils/labels';
 
 // variables
 /** Copy for the banner shown after returning from the create or edit form. */
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
-};
-
-/** Slice colours per task type, one distinct hue per value for readability. */
-const TYPE_COLORS: Record<TaskInterface['type'], string> = {
-  feature: '#059669',
-  bug: '#ef4444',
-  chore: '#94a3b8',
-  research: '#f59e0b',
 };
 
 const columns: DataTableColumn[] = [
@@ -85,11 +77,11 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof TYPE_COLORS)[];
+  const types = Object.keys(counts) as (keyof typeof TASK_TYPE_COLORS)[];
   return {
     labels: types.map((type) => TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => TYPE_COLORS[type]),
+    colors: types.map((type) => TASK_TYPE_COLORS[type]),
   };
 });
 
