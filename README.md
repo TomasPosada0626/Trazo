@@ -2,52 +2,129 @@
 
 **Plan. Organize. Deliver.**
 
-Trazo is a project and task management web application, built with **Vue 3** as an MVP for the Software Engineering for Web Applications course. Data persistence is handled via **LocalStorage** in the browser, with no backend required for this first delivery.
+Project and task management platform built with Vue 3, TypeScript, and Pinia. Organize projects, plan sprints, assign tasks and track progress from a role-aware dashboard — entirely client-side, no backend required for this delivery.
 
-More project context (verbal model, class diagram, architecture diagram, programming rules) is documented in the [repository Wiki](https://github.com/TomasPosada0626/Trazo/wiki).
+---
 
-## Technologies used
+## Features
 
-- [Vue 3](https://vuejs.org/) (Composition API, `<script setup>`)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vite.dev/)
-- [Vue Router](https://router.vuejs.org/)
-- [Pinia](https://pinia.vuejs.org/)
-- [Tailwind CSS v4](https://tailwindcss.com/) (theme tokens declared in `src/assets/css/input.css`)
-- [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)
-- [Chart.js](https://www.chartjs.org/) — dashboard charts
-- [CountUp.js](https://inorganik.github.io/countUp.js/) — animated dashboard counters
+- **Project management** — Full CRUD, with membership-based visibility: a project is visible only to the users listed in its members
+- **Sprint planning** — Schedule tasks into sprints; committed points, completed points and days remaining are all derived, never stored
+- **Task tracking** — Full CRUD, scoped to a project, with type, priority, status and assignee
+- **Role-based access control**
+  - **Administrator**: Full access + Projects, Sprints and Users management panels
+  - **Member**: Dashboard and their own assigned tasks
+- **Persistent client-side state** — All data persisted in `localStorage`, with mock data seeded automatically on first load
+- **Interactive data visualizations** — Powered by Chart.js and CountUp.js
 
-## Prerequisites
+---
+
+## Tech Stack
+
+| Layer                | Technology                                  |
+| --------------------- | -------------------------------------------- |
+| Framework             | Vue 3 (Composition API, `<script setup>`)    |
+| Language              | TypeScript                                   |
+| Build tool            | Vite                                         |
+| State management      | Pinia                                        |
+| Routing               | Vue Router                                   |
+| Styling               | Tailwind CSS v4                              |
+| Charts                | Chart.js, countup.js                         |
+| Linting / Formatting  | ESLint, Oxlint, Prettier                     |
+
+---
+
+## Architecture
+
+Trazo follows a layered architecture with a clear separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Presentation Layer                 │
+│  Views (pages) · Components · App.vue                │
+├─────────────────────────────────────────────────────┤
+│                    Routing Layer                     │
+│  Vue Router · beforeEach guard · route meta           │
+├─────────────────────────────────────────────────────┤
+│                     State Layer                       │
+│  Pinia Stores (Auth, Project, Sprint, Task, User)     │
+├─────────────────────────────────────────────────────┤
+│                   Services Layer                      │
+│  AuthService · ProjectService · SprintService · ...   │
+├─────────────────────────────────────────────────────┤
+│                    Models Layer                       │
+│  Interfaces · DTOs · Seeders (mock data)              │
+├─────────────────────────────────────────────────────┤
+│                  Persistence Layer                    │
+│  LocalStorage (via PiniaConfig deep watch)            │
+└─────────────────────────────────────────────────────┘
+```
+
+### Key patterns
+
+- **Navigation & access control** live exclusively in the router guard (`src/router/index.ts`, `beforeEach`) driven by route `meta` fields — never in views.
+- **Business logic** is encapsulated in services (PascalCase classes, static methods), keeping stores and components thin.
+- **DTOs** describe data going into a service's `create`/`update`/`login` calls, separate from the entity's own interface.
+- **State hydration & persistence** is centralized in `PiniaConfig.init()`: it loads from `localStorage` or seeds fresh data, then deep-watches the store state and writes every change back.
+
+The full class diagram and architecture diagram are documented in the [Wiki](https://github.com/TomasPosada0626/Trazo/wiki/Deliverable).
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/         # Domain-agnostic primitives: DataTableComponent, TextFieldComponent, ...
+│   ├── dashboard/  # BarChartComponent, PieChartComponent, StatCardComponent
+│   ├── layout/     # AppLayoutComponent, AppSidebarComponent
+│   ├── projects/   # ProjectFormComponent, ProjectMembersComponent
+│   ├── sprints/    # SprintFormComponent
+│   ├── tasks/      # TaskFormComponent
+│   └── users/      # UserFormComponent
+├── views/          # Route components, one folder per page
+├── router/         # Route table + beforeEach guard
+├── services/       # Static classes; all business logic lives here
+├── stores/         # Pinia state only — one ref<T[]> per entity, no logic
+├── seeders/        # Mock data loaded into LocalStorage on first run
+├── interfaces/     # Data-only TS interfaces, one per entity
+├── dtos/           # Create / update / login input shapes (Omit / Partial / Pick)
+├── utils/          # Pure helpers: date formatting, enum labels, id display
+└── assets/         # Tailwind theme tokens and static assets
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
 
 - [Node.js](https://nodejs.org/) version 22.18 or higher (or 24.12+)
 - npm
 
-## Installation
+### 1. Clone the repository
+
+```sh
+git clone https://github.com/TomasPosada0626/Trazo.git
+cd Trazo
+```
+
+### 2. Install dependencies
 
 ```sh
 npm install
 ```
 
-## Running in development mode
+### 3. Run the dev server
 
 ```sh
 npm run dev
 ```
 
-This starts the development server (by default at `http://localhost:5173`). The public routes are `/` (**Home**) and `/login`; everything else lives under `/app` and requires an active session.
+The app is served at the URL printed by Vite (typically `http://localhost:5173`). `/` redirects straight to `/login`, the main route to invoke.
 
-State is seeded into LocalStorage on first load under the `piniaState` key. The preloaded accounts are:
-
-| Email             | Password    | Role          |
-| ----------------- | ----------- | ------------- |
-| `admin@trazo.com` | `admin123`  | Administrator |
-| `juan@trazo.com`  | `admin123`  | Administrator |
-| `maria@trazo.com` | `member123` | Member        |
-
-To reset the data, clear the `piniaState` key from LocalStorage and reload.
-
-## Building for production
+### 4. Build for production
 
 ```sh
 npm run build
@@ -55,103 +132,69 @@ npm run build
 
 The generated files are placed in the `dist/` folder.
 
-## Previewing the production build
+### 5. Preview the production build locally
 
 ```sh
 npm run preview
 ```
 
-## Linting and formatting
+---
 
-```sh
-npm run lint
-npm run format
-```
+## Demo Accounts
 
-Before every `push`, `npm run lint` and `npm run format` must run without errors (see the [Programming Style Guide](https://github.com/TomasPosada0626/Trazo/wiki/Programming-Style-Guide) in the Wiki).
+Seed data is loaded automatically on first launch. Use these credentials to log in:
 
-## Project structure
+| Email             | Password    | Role          |
+| ----------------- | ----------- | ------------- |
+| admin@trazo.com   | admin123    | Administrator |
+| juan@trazo.com    | admin123    | Administrator |
+| maria@trazo.com   | member123   | Member        |
 
-```
-src/
-├── components/
-│   ├── layout/     # Route-level shells: AppLayout, AppSidebar
-│   ├── ui/         # Domain-agnostic primitives: DataTable, TextField, StatusBadge...
-│   ├── projects/   # Project-specific: ProjectForm, ProjectMembers
-│   ├── tasks/      # Task-specific: TaskForm
-│   └── users/      # User-specific: UserForm
-├── views/          # Route components, one folder per page
-│   ├── home/       login/      dashboard/
-│   ├── projects/   sprints/
-│   └── tasks/      users/
-├── router/         # Route table + auth guards
-├── services/       # Static classes; all business logic lives here
-├── stores/         # Pinia state only — one `ref<T[]>` per entity, no logic
-├── seeders/        # Fixture data loaded into LocalStorage on first run
-├── interfaces/     # Data-only TS interfaces, one per entity
-├── dtos/           # Create/update input shapes, derived with Omit / Partial
-├── utils/          # Pure helpers: date formatting, enum labels, id display
-└── assets/         # Tailwind theme tokens and static assets
-```
+> Resetting demo data: delete the `piniaState` entry from your browser's LocalStorage and reload.
 
-Two rules explain the layout:
+---
 
-- **Components group by feature, not by UI kind.** `ui/` holds pieces that know
-  nothing about the domain; everything else sits in a folder named after the
-  entity it serves, so files that change together stay together.
-- **Views mirror the route table**, one folder per page, keeping the full view
-  name on the file (`projects/ProjectsIndexView.vue`).
+## Routes & Access Control
 
-Data flows one way: `views → services → stores → LocalStorage`. Views never
-import a store directly, and stores hold no logic — persistence is handled once
-in `src/PiniaConfig.ts`, which watches the whole Pinia state and mirrors it to
-LocalStorage.
+There is no separate landing page: the Dashboard is the app's home screen once signed in, and `/login` is the only route outside the authenticated area. Every route declares its access rules via `meta` fields, enforced by the global `beforeEach` guard in `src/router/index.ts`.
 
-Code organization rules are detailed in [Programming Rules](https://github.com/TomasPosada0626/Trazo/wiki/Programming-Rules).
+| Path            | Name      | Requires auth | Requires admin | Purpose                                  |
+| --------------- | --------- | :-----------: | :-------------: | ----------------------------------------- |
+| /login          | login     |      ❌       |       ❌        | Guest-only; redirects signed-in users     |
+| /app/dashboard  | dashboard |      ✅       |       ❌        | Role-aware home: indicators + charts      |
+| /app/tasks      | tasks     |      ✅       |       ❌        | Task CRUD, scoped to the user's projects  |
+| /app/projects   | projects  |      ✅       |       ✅        | Admin: Project CRUD + membership          |
+| /app/sprints    | sprints   |      ✅       |       ✅        | Admin: Sprint CRUD + task scheduling      |
+| /app/users      | users     |      ✅       |       ✅        | Admin: User CRUD + roles                  |
 
-## Main system modules
+---
 
-- **Authentication** — login, session held in LocalStorage, and a `beforeEach`
-  route guard driven by `requiresAuth` / `requiresAdmin` / `guestOnly` meta. _Done._
-- **Projects** — full CRUD plus member management. A project is visible only to
-  the users listed in its `memberIds`, which is also the pool a task can be
-  assigned to. _Done._
-- **Tasks** — task CRUD, associated with a project. _Done._
-- **Users** — account CRUD and role assignment. _Done._
-- **Sprints** — full CRUD. The create and edit forms schedule tasks into the
-  sprint, and leaving that selection empty is valid. Committed points,
-  completed points and days remaining are all derived, never stored. _Done._
-- **Dashboard** — four indicators and three Chart.js charts (tasks by status as
-  a pie, sprint velocity and open tasks by assignee as bars), scoped by a
-  project and range selector. _Done._
-- **Reusable components** — table, fields, badges and cards in `components/ui/`,
-  shared by every module above.
+## Scripts Reference
 
-Projects, Sprints and Users are administrator-only. Members reach the Dashboard
-and Tasks, and the sidebar hides the entries they cannot open.
+| Script          | Description                                     |
+| --------------- | ------------------------------------------------ |
+| npm run dev     | Start the Vite dev server with HMR                |
+| npm run build   | Type-check, then build for production             |
+| npm run preview | Serve the production build locally                |
+| npm run lint    | Run Oxlint + ESLint (both with `--fix`)           |
+| npm run format  | Format `src/` with Prettier                       |
 
-## Navigation flow between views
+Before every push, `npm run lint` and `npm run format` must run without errors (see the [Programming Style Guide](https://github.com/TomasPosada0626/Trazo/wiki/Programming-Style-Guide) in the Wiki).
 
-`/` and `/login` sit outside the authenticated area and keep the marketing
-header. Everything under `/app` mounts `AppLayout`, which owns the sidebar and
-the breadcrumb topbar.
+---
 
-```mermaid
-flowchart TD
-    Home["/ (Home)"] --> Login["/login"]
-    Login -->|authenticated| Dashboard["/app/dashboard"]
-    Dashboard --> Tasks["/app/tasks"]
-    Dashboard -->|admin only| Projects["/app/projects"]
-    Dashboard -->|admin only| Sprints["/app/sprints"]
-    Dashboard -->|admin only| Users["/app/users"]
-    Projects --> ProjectForm["projects/new · projects/:id/edit"]
-    Sprints --> SprintForm["sprints/new"]
-    Tasks --> TaskForm["tasks/new · tasks/:id/edit"]
-    Users --> UserForm["users/new · users/:id/edit"]
-```
+## Recommended Tooling
+
+**Editor**
+- [VS Code](https://code.visualstudio.com/) + [Vue - Official (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (disable Vetur if installed)
+
+**Browser**
+- [Vue.js devtools](https://devtools.vuejs.org/) for Chrome / Firefox
+
+---
 
 ## Team
 
-- Mateo
-- Hever
-- Tomás Posada (Architect)
+- Mateo Garcia Carreño
+- Hever Andre Alfonso Jimenez
+- Tomás Posada Suárez (Architect)
