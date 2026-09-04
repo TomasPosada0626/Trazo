@@ -1,6 +1,7 @@
 // Author: Tomás Posada
 
 // internal imports
+import type { LoginDTO } from '@/dtos/LoginDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { UserService } from '@/services/UserService';
 import { useAuthStore } from '@/stores/authstore';
@@ -9,14 +10,14 @@ export class AuthService {
   /**
    * Validates credentials and starts a session.
    *
-   * @param email Email of the user trying to log in.
-   * @param password Plain-text password to check against the stored one.
+   * @param credentials Email and password submitted from the login form.
    * @returns The authenticated user.
    * @throws {Error} When no user matches the given email and password.
    */
-  static login(email: string, password: string): UserInterface {
+  static login(credentials: LoginDTO): UserInterface {
     const user = UserService.getAll().find(
-      (candidate) => candidate.email === email && candidate.password === password,
+      (candidate) =>
+        candidate.email === credentials.email && candidate.password === credentials.password,
     );
     if (!user) {
       throw new Error('Incorrect email or password.');
