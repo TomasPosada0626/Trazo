@@ -1,12 +1,19 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { useRouter } from 'vue-router';
+// internal imports
+import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
 import { ProjectService } from '@/services/ProjectService';
 
+// variables
 const router = useRouter();
 
+// functions
+/** Creates the project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   // The service adds the creator as the first member.
   ProjectService.create(values);

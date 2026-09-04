@@ -1,6 +1,10 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
 import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
 import IdChipComponent from '@/components/ui/IdChipComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
@@ -12,21 +16,12 @@ import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
 import { USER_ROLE, toFilterOptions } from '@/utils/labels';
 
+// variables
 /**
  * The password never reaches the table, and the active-project count comes
  * from UserService.getActiveProjects(user) rather than from state.
  */
 type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
-
-const users = computed<UserRow[]>(() =>
-  UserService.getAll().map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    activeProjects: UserService.getActiveProjects(user),
-  })),
-);
 
 const columns: DataTableColumn[] = [
   { key: 'id', label: 'ID' },
@@ -37,7 +32,19 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
+// reactive variables
 const roleFilter = ref('all');
+
+// selectors
+const users = computed<UserRow[]>(() =>
+  UserService.getAll().map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    activeProjects: UserService.getActiveProjects(user),
+  })),
+);
 
 const roleOptions = toFilterOptions(USER_ROLE);
 
@@ -49,6 +56,7 @@ const filteredUsers = computed(() =>
 
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
+// functions
 /** Confirms and removes a user, while preserving the active account. */
 function handleDelete(user: UserRow): void {
   if (user.id === currentUserId.value) return;

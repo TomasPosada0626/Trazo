@@ -1,19 +1,27 @@
 <script setup lang="ts">
+// Author: Tomás Posada
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
+// internal imports
+import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
 import { UserService } from '@/services/UserService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 // A non-numeric URL yields NaN, which no record matches, so the view
 // falls through to its "not found" panel.
 const userId = Number(route.params.id);
+
+// selectors
 const user = computed(() => UserService.getById(userId));
 
+// functions
 /** Updates the account and returns to the user list. */
 function handleSubmit(values: UserFormValues): void {
   const { password, ...accountChanges } = values;

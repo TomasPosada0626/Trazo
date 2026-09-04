@@ -1,6 +1,10 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+// internal imports
 import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
 import IdChipComponent from '@/components/ui/IdChipComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
@@ -15,10 +19,11 @@ import { formatDateRange } from '@/utils/date';
 import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, toFilterOptions } from '@/utils/labels';
 
+// variables
 /**
  * Committed and completed points are both summed from the sprint's tasks by
- * SprintService rather than stored — see the decision in CLAUDE.md. The table
- * joins them on, along with the days left, which is likewise derived.
+ * SprintService rather than stored, so the table joins them on along with the
+ * days left, which is likewise derived.
  */
 type SprintRow = SprintInterface & {
   committedPoints: number;
@@ -27,30 +32,33 @@ type SprintRow = SprintInterface & {
   taskCount: number;
 };
 
+const columns: DataTableColumn[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'name', label: 'Sprint' },
+  { key: 'dates', label: 'Dates' },
+  { key: 'committed', label: 'Committed pts.' },
+  { key: 'completed', label: 'Completed pts.' },
+  { key: 'tasks', label: 'Tasks' },
+  { key: 'remaining', label: 'Days left' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', class: 'text-right' },
+];
+
+// reactive variables
+const projectFilter = ref<number>(0);
+const statusFilter = ref<SprintStatus | 'all'>('all');
+
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectFilter = ref<number>(0);
-
-// Select the first project, and recover if the current one disappears.
-watch(
-  projects,
-  (list) => {
-    if (!list.some((project) => project.id === projectFilter.value)) {
-      projectFilter.value = list[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
-
 const projectOptions = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const statusFilter = ref<SprintStatus | 'all'>('all');
 const statusOptions = toFilterOptions(SPRINT_STATUS);
 
 const sprints = computed<SprintRow[]>(() => {
@@ -71,24 +79,26 @@ const selectedProjectName = computed(
   () => projects.value.find((project) => project.id === projectFilter.value)?.name ?? '',
 );
 
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Sprint' },
-  { key: 'dates', label: 'Dates' },
-  { key: 'committed', label: 'Committed pts.' },
-  { key: 'completed', label: 'Completed pts.' },
-  { key: 'tasks', label: 'Tasks' },
-  { key: 'remaining', label: 'Days left' },
-  { key: 'status', label: 'Status' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
-
+// functions
+/** Confirms with the user, then deletes the sprint. */
 function handleDelete(sprint: SprintRow): void {
   const confirmed = window.confirm(
     `Delete the sprint "${sprint.name}"? Its tasks return to the backlog.`,
   );
   if (confirmed) SprintService.remove(sprint.id);
 }
+
+// watchers
+// Select the first project, and recover if the current one disappears.
+watch(
+  projects,
+  (newProjects) => {
+    if (!newProjects.some((project) => project.id === projectFilter.value)) {
+      projectFilter.value = newProjects[0]?.id ?? 0;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

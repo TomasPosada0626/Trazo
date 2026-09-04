@@ -1,13 +1,18 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+// internal imports
 import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
 import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 
@@ -15,6 +20,7 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const projectId = Number(route.params.id);
 
+// selectors
 /**
  * Membership is the visibility rule, and the route guard only checks the admin
  * role. Without this an admin could open another admin's project by typing its
@@ -30,6 +36,8 @@ const project = computed(() => {
   return found;
 });
 
+// functions
+/** Saves the edited project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   ProjectService.update(projectId, values);
   router.push({ name: 'projects' });

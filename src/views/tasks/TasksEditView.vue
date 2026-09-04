@@ -1,14 +1,19 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+// internal imports
 import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
 import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 
@@ -16,8 +21,10 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const taskId = Number(route.params.id);
 
+// reactive variables
 const error = ref('');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
@@ -53,6 +60,7 @@ const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   ),
 );
 
+// functions
 /**
  * Saves the changes and returns to the list. `sprintId` is absent from the
  * form values, and UpdateTaskDTO is partial, so the stored sprint is left

@@ -1,18 +1,25 @@
 <script setup lang="ts">
+// Author: Hever-Alfonso
+
+// external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+// internal imports
 import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
 import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
+import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 
+// variables
 const router = useRouter();
 
+// reactive variables
 const error = ref('');
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 /** A task can only be filed under a project the user belongs to. */
@@ -36,6 +43,7 @@ const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   ),
 );
 
+// functions
 /**
  * Creates the task and returns to the list. The service validates the title,
  * the project and the assignee, so a rejected save is reported in place

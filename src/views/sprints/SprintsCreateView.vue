@@ -1,6 +1,10 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+// internal imports
 import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
@@ -8,8 +12,10 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 
+// variables
 const router = useRouter();
 
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
@@ -20,6 +26,8 @@ const projectOptions = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
+// functions
+/** Creates the sprint, schedules its tasks, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
   const { taskIds, ...sprintData } = values;
 

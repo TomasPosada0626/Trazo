@@ -1,5 +1,9 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed, ref, watch } from 'vue';
+// internal imports
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
@@ -18,6 +22,7 @@ import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
 import { TASK_PRIORITY, TASK_STATUS } from '@/utils/labels';
 
+// variables
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
 
@@ -38,25 +43,25 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   done: '#059669',
 };
 
+const myTaskColumns: DataTableColumn[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'title', label: 'Title' },
+  { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'dueDate', label: 'Due date' },
+];
+
+// reactive variables
+const projectId = ref<number>(0);
+const range = ref<number | 'all'>(ALL_TIME);
+
+// selectors
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // Membership decides visibility here exactly as it does on the projects
 // screen, so a member sees only the projects they belong to.
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const projectId = ref<number>(0);
-
-// Pick the first project once, and recover if the selected one is deleted.
-watch(
-  projects,
-  (list) => {
-    if (!list.some((project) => project.id === projectId.value)) {
-      projectId.value = list[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
 );
 
 const projectOptions = computed(() =>
@@ -69,20 +74,6 @@ const sprints = computed(() =>
 
 /** The range selector is only meaningful once the project has a sprint. */
 const hasSprints = computed(() => sprints.value.length > 0);
-
-const range = ref<number | 'all'>(ALL_TIME);
-
-// Reset to "All time" whenever the chosen sprint stops belonging to the
-// selected project, which happens on every project change.
-watch(
-  sprints,
-  (list) => {
-    if (!list.some((sprint) => sprint.id === range.value)) {
-      range.value = ALL_TIME;
-    }
-  },
-  { immediate: true },
-);
 
 const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
@@ -138,14 +129,6 @@ const userTasks = computed(() =>
     : [],
 );
 
-const myTaskColumns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'dueDate', label: 'Due date' },
-];
-
 const workload = computed(() =>
   DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value),
 );
@@ -153,6 +136,30 @@ const workloadChart = computed(() => ({
   labels: workload.value.labels,
   series: [{ label: 'Open tasks', values: workload.value.values, color: COLORS.ink }],
 }));
+
+// watchers
+// Pick the first project once, and recover if the selected one is deleted.
+watch(
+  projects,
+  (newProjects) => {
+    if (!newProjects.some((project) => project.id === projectId.value)) {
+      projectId.value = newProjects[0]?.id ?? 0;
+    }
+  },
+  { immediate: true },
+);
+
+// Reset to "All time" whenever the chosen sprint stops belonging to the
+// selected project, which happens on every project change.
+watch(
+  sprints,
+  (newSprints) => {
+    if (!newSprints.some((sprint) => sprint.id === range.value)) {
+      range.value = ALL_TIME;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

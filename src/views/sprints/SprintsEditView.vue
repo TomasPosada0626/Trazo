@@ -1,6 +1,10 @@
 <script setup lang="ts">
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
+// internal imports
 import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
@@ -8,6 +12,7 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 
+// variables
 const route = useRoute();
 const router = useRouter();
 
@@ -15,6 +20,7 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const sprintId = Number(route.params.id);
 
+// selectors
 /**
  * Membership is the visibility rule, and the route guard only checks the admin
  * role. Without this an admin could open a sprint of another admin's project
@@ -50,6 +56,8 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
   };
 });
 
+// functions
+/** Saves the edited sprint and its task schedule, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
   const { taskIds, ...sprintData } = values;
 
