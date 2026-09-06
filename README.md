@@ -62,7 +62,7 @@ Trazo follows a layered architecture with a clear separation of concerns:
 
 ### Key patterns
 
-- **Navigation & access control** live exclusively in the router guard (`src/router/index.ts`, `beforeEach`) driven by route `meta` fields — never in views.
+- **Navigation & access control** live exclusively in the router guard (`frontend/src/router/index.ts`, `beforeEach`) driven by route `meta` fields — never in views.
 - **Business logic** is encapsulated in services (PascalCase classes, static methods), keeping stores and components thin.
 - **DTOs** describe data going into a service's `create`/`update`/`login` calls, separate from the entity's own interface.
 - **State hydration & persistence** is centralized in `PiniaConfig.init()`: it loads from `localStorage` or seeds fresh data, then deep-watches the store state and writes every change back.
@@ -74,24 +74,30 @@ The full class diagram and architecture diagram are documented in the [Wiki](htt
 ## Project Structure
 
 ```
-src/
-├── components/
-│   ├── ui/         # Domain-agnostic primitives: DataTableComponent, TextFieldComponent, ...
-│   ├── dashboard/  # BarChartComponent, PieChartComponent, StatCardComponent
-│   ├── layout/     # AppLayoutComponent, AppSidebarComponent
-│   ├── projects/   # ProjectFormComponent, ProjectMembersComponent
-│   ├── sprints/    # SprintFormComponent
-│   ├── tasks/      # TaskFormComponent
-│   └── users/      # UserFormComponent
-├── views/          # Route components, one folder per page
-├── router/         # Route table + beforeEach guard
-├── services/       # Static classes; all business logic lives here
-├── stores/         # Pinia state only — one ref<T[]> per entity, no logic
-├── seeders/        # Mock data loaded into LocalStorage on first run
-├── interfaces/     # Data-only TS interfaces, one per entity
-├── dtos/           # Create / update / login input shapes (Omit / Partial / Pick)
-├── utils/          # Pure helpers: date formatting, enum labels, id display
-└── assets/         # Tailwind theme tokens and static assets
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── ui/         # Domain-agnostic primitives: DataTableComponent, TextFieldComponent, ...
+│   │   ├── dashboard/  # BarChartComponent, PieChartComponent, StatCardComponent
+│   │   ├── layout/     # AppSidebarComponent
+│   │   ├── projects/   # ProjectFormComponent, ProjectMembersComponent
+│   │   ├── sprints/    # SprintFormComponent
+│   │   ├── tasks/      # TaskFormComponent
+│   │   └── users/      # UserFormComponent
+│   ├── layouts/         # AppLayout — the route-level shell; resolves the session
+│   ├── views/           # Route components, one folder per page
+│   ├── router/          # Route table + beforeEach guard
+│   ├── services/        # Static classes; all business logic lives here
+│   ├── stores/          # Pinia state only — one ref<T[]> per entity, no logic
+│   ├── seeders/         # Mock data loaded into LocalStorage on first run
+│   ├── interfaces/      # Data-only TS interfaces, one per entity
+│   ├── dtos/            # Create / update / login input shapes (Omit / Partial / Pick)
+│   ├── utils/           # Pure helpers: date formatting, enum labels, id display
+│   └── assets/          # Tailwind theme tokens and static assets
+├── public/              # Static files copied as-is
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
 
 ---
@@ -107,8 +113,10 @@ src/
 
 ```sh
 git clone https://github.com/TomasPosada0626/Trazo.git
-cd Trazo
+cd Trazo/frontend
 ```
+
+> The app lives entirely under `frontend/` — every command below runs from inside that folder.
 
 ### 2. Install dependencies
 
@@ -156,7 +164,7 @@ Seed data is loaded automatically on first launch. Use these credentials to log 
 
 ## Routes & Access Control
 
-There is no separate landing page: the Dashboard is the app's home screen once signed in, and `/login` is the only route outside the authenticated area. Every route declares its access rules via `meta` fields, enforced by the global `beforeEach` guard in `src/router/index.ts`.
+There is no separate landing page: the Dashboard is the app's home screen once signed in, and `/login` is the only route outside the authenticated area. Every route declares its access rules via `meta` fields, enforced by the global `beforeEach` guard in `frontend/src/router/index.ts`.
 
 | Path            | Name      | Requires auth | Requires admin | Purpose                                  |
 | --------------- | --------- | :-----------: | :-------------: | ----------------------------------------- |
