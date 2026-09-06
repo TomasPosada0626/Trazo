@@ -3,10 +3,10 @@
 
 // external imports
 import { computed } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 // internal imports
 import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
-import { AuthService } from '@/services/AuthService';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { USER_ROLE } from '@/utils/labels';
 
 // variables
@@ -68,8 +68,16 @@ const groups: NavGroup[] = [
   },
 ];
 
-// reactive variables
-const isAdmin = computed(() => AuthService.isAdmin());
+// props
+const { currentUser, isAdmin } = defineProps<{
+  /** The signed-in user, resolved by AppLayout. Null when there is no session. */
+  currentUser: UserInterface | null;
+  /** Whether that user is an administrator, so admin-only entries can show. */
+  isAdmin: boolean;
+}>();
+
+// emits
+const emit = defineEmits<{ logout: [] }>();
 
 /**
  * Admin-only entries are hidden from members rather than shown locked: the
@@ -80,33 +88,28 @@ const visibleGroups = computed(() =>
   groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => isAdmin.value || !item.adminOnly),
+      items: group.items.filter((item) => isAdmin || !item.adminOnly),
     }))
     .filter((group) => group.items.length > 0),
 );
 
-const router = useRouter();
-
-const currentUser = computed(() => {
-  const user = AuthService.getCurrentUser();
-  if (!user) return null;
+/**
+ * Display shape for the footer. Formatting the name stays here because it is
+ * presentation, not domain logic — only the lookup moved to the layout.
+ */
+const userDisplay = computed(() => {
+  if (!currentUser) return null;
 
   return {
-    name: user.name,
-    roleLabel: USER_ROLE[user.role].text,
-    initials: user.name
+    name: currentUser.name,
+    roleLabel: USER_ROLE[currentUser.role].text,
+    initials: currentUser.name
       .split(' ')
       .slice(0, 2)
       .map((part) => part.charAt(0).toUpperCase())
       .join(''),
   };
 });
-
-// functions
-function handleLogout(): void {
-  AuthService.logout();
-  router.push({ name: 'login' });
-}
 </script>
 
 <template>
@@ -166,20 +169,20 @@ function handleLogout(): void {
 
     <div class="mx-5 border-t border-white/10"></div>
 
-    <div v-if="currentUser" class="flex items-center gap-3 px-5 py-4">
+    <div v-if="userDisplay" class="flex items-center gap-3 px-5 py-4">
       <span
         class="grid size-8 shrink-0 place-items-center rounded-full bg-white/15 text-xs font-semibold"
       >
-        {{ currentUser.initials }}
+        {{ userDisplay.initials }}
       </span>
       <span class="min-w-0 flex-1 leading-tight">
-        <span class="block truncate text-sm font-medium">{{ currentUser.name }}</span>
-        <span class="block text-[11px] text-white/50">{{ currentUser.roleLabel }}</span>
+        <span class="block truncate text-sm font-medium">{{ userDisplay.name }}</span>
+        <span class="block text-[11px] text-white/50">{{ userDisplay.roleLabel }}</span>
       </span>
       <button
         type="button"
         class="shrink-0 text-[11px] font-medium text-white/50 transition-colors hover:text-white"
-        @click="handleLogout"
+        @click="emit('logout')"
       >
         Sign out
       </button>
