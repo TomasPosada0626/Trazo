@@ -20,7 +20,13 @@ import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { CHART_COLORS, TASK_PRIORITY, TASK_STATUS, TASK_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
+import {
+  CHART_COLORS,
+  TASK_PRIORITY,
+  TASK_STATUS,
+  TASK_STATUS_COLORS,
+  toFilterOptions,
+} from '@/utils/labels';
 
 // variables
 /** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
@@ -133,7 +139,9 @@ const workloadChart = computed(() => ({
 /** Task totals across every one of the user's projects, independent of the
  * single project selected above, so the distribution can be compared. */
 const projectDistribution = computed(() =>
-  currentUserId.value ? DashboardService.getTasksByProject(currentUserId.value) : { labels: [], values: [] },
+  currentUserId.value
+    ? DashboardService.getTasksByProject(currentUserId.value)
+    : { labels: [], values: [] },
 );
 const projectDistributionChart = computed(() => ({
   labels: projectDistribution.value.labels,
@@ -220,7 +228,10 @@ watch(
         title="Tasks across your projects"
         padded
       >
-        <BarChartComponent :labels="projectDistributionChart.labels" :series="projectDistributionChart.series" />
+        <BarChartComponent
+          :labels="projectDistributionChart.labels"
+          :series="projectDistributionChart.series"
+        />
       </PanelCardComponent>
 
       <div class="grid gap-4 xl:grid-cols-2">

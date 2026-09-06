@@ -105,7 +105,12 @@ watch(assigneeOptions, (newOptions) => {
       placeholder="What the task involves"
     />
 
-    <SelectFieldComponent id="task-project" v-model="projectId" label="Project" :options="projectOptions" />
+    <SelectFieldComponent
+      id="task-project"
+      v-model="projectId"
+      label="Project"
+      :options="projectOptions"
+    />
     <SelectFieldComponent
       id="task-assignee"
       v-model="assigneeId"
@@ -124,7 +129,12 @@ watch(assigneeOptions, (newOptions) => {
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectFieldComponent id="task-status" v-model="status" label="Status" :options="statusOptions" />
+      <SelectFieldComponent
+        id="task-status"
+        v-model="status"
+        label="Status"
+        :options="statusOptions"
+      />
       <TextFieldComponent
         id="task-points"
         v-model="storyPoints"

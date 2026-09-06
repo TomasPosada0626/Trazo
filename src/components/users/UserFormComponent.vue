@@ -55,7 +55,13 @@ function handleSubmit(): void {
 
 <template>
   <form class="space-y-5" @submit.prevent="handleSubmit">
-    <TextFieldComponent id="user-name" v-model="name" label="Name" placeholder="e.g. Julia Lopez" required />
+    <TextFieldComponent
+      id="user-name"
+      v-model="name"
+      label="Name"
+      placeholder="e.g. Julia Lopez"
+      required
+    />
     <TextFieldComponent
       id="user-email"
       v-model="email"

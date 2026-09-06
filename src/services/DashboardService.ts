@@ -63,7 +63,11 @@ export class DashboardService {
    * @param status Status to narrow to, or `'all'` for every status.
    * @returns Completion percentage, 0 to 100.
    */
-  static getProgress(projectId: number, sprintId: number | null, status: TaskStatus | 'all' = 'all'): number {
+  static getProgress(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
     const tasks = DashboardService.scopedTasks(projectId, sprintId, status);
     if (!tasks.length) return 0;
 

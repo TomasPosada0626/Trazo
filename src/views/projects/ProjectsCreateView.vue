@@ -4,7 +4,9 @@
 // external imports
 import { useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent, {
+  type ProjectFormValues,
+} from '@/components/projects/ProjectFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { ProjectService } from '@/services/ProjectService';
