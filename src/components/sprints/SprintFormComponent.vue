@@ -9,12 +9,24 @@ import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
-import { SprintService } from '@/services/SprintService';
-import { TaskService } from '@/services/TaskService';
-import { shortId } from '@/utils/id';
+import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { SPRINT_STATUS, TASK_STATUS, toSelectOptions } from '@/utils/labels';
 
 // variables
+/**
+ * A task as this form needs to render it. The owning view resolves these,
+ * including which sprint each task already sits in, so the form itself never
+ * has to reach for a service.
+ */
+export interface SchedulableTask {
+  id: number;
+  title: string;
+  storyPoints: number;
+  status: TaskStatus;
+  /** Short code of the sprint holding it, or null when it is unscheduled. */
+  currentSprintLabel: string | null;
+}
+
 export interface SprintFormValues {
   name: string;
   goal: string;
@@ -27,13 +39,13 @@ export interface SprintFormValues {
 }
 
 // props
-const { initialValues, submitLabel, projectOptions, currentSprintId } = defineProps<{
+const { initialValues, submitLabel, projectOptions, tasksByProject } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: SprintFormValues;
   submitLabel: string;
   projectOptions: { value: number; label: string }[];
-  /** The sprint being edited, so its own tasks are excluded from "in another sprint". */
-  currentSprintId?: number;
+  /** Schedulable tasks per project id, resolved by the view. */
+  tasksByProject: Record<number, SchedulableTask[]>;
 }>();
 
 // emits
@@ -61,9 +73,7 @@ const statusOptions = toSelectOptions(SPRINT_STATUS);
 const isEditing = computed(() => initialValues !== undefined);
 
 /** Every task of the project, since this form is the only way to schedule one. */
-const projectTasks = computed(() =>
-  projectId.value ? TaskService.getByProject(projectId.value) : [],
-);
+const projectTasks = computed(() => tasksByProject[projectId.value] ?? []);
 
 /** The sprint's commitment, derived from the selection rather than typed. */
 const selectedPoints = computed(() =>
@@ -73,15 +83,6 @@ const selectedPoints = computed(() =>
 );
 
 // functions
-/** Where a task currently sits, for the "already in SPR-02" hint. */
-function otherSprintLabel(taskId: number): string | null {
-  const task = projectTasks.value.find((candidate) => candidate.id === taskId);
-  if (!task?.sprintId || task.sprintId === currentSprintId) return null;
-
-  const sprint = SprintService.getById(task.sprintId);
-  return sprint ? shortId('SPR', sprint.id) : null;
-}
-
 function handleSubmit(): void {
   error.value = '';
 
@@ -136,11 +137,22 @@ watch(projectId, () => {
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <TextFieldComponent id="sprint-start" v-model="startDate" label="Start date" type="date" required />
+      <TextFieldComponent
+        id="sprint-start"
+        v-model="startDate"
+        label="Start date"
+        type="date"
+        required
+      />
       <TextFieldComponent id="sprint-end" v-model="endDate" label="End date" type="date" required />
     </div>
 
-    <SelectFieldComponent id="sprint-status" v-model="status" label="Status" :options="statusOptions" />
+    <SelectFieldComponent
+      id="sprint-status"
+      v-model="status"
+      label="Status"
+      :options="statusOptions"
+    />
 
     <fieldset>
       <legend class="text-sm font-medium">Tasks in this sprint</legend>
@@ -168,8 +180,8 @@ watch(projectId, () => {
             <span class="block truncate text-sm">{{ task.title }}</span>
             <span class="block text-xs text-ink-soft">
               {{ task.storyPoints }} pts
-              <template v-if="otherSprintLabel(task.id)">
-                · currently in {{ otherSprintLabel(task.id) }}
+              <template v-if="task.currentSprintLabel">
+                · currently in {{ task.currentSprintLabel }}
               </template>
             </span>
           </span>
