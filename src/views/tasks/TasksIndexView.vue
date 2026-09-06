@@ -18,7 +18,13 @@ import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { formatDate } from '@/utils/date';
 import { shortId } from '@/utils/id';
-import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, TASK_TYPE_COLORS, toFilterOptions } from '@/utils/labels';
+import {
+  TASK_PRIORITY,
+  TASK_STATUS,
+  TASK_TYPE,
+  TASK_TYPE_COLORS,
+  toFilterOptions,
+} from '@/utils/labels';
 
 // variables
 /** Copy for the banner shown after returning from the create or edit form. */
@@ -144,7 +150,11 @@ function handleDelete(task: TaskInterface): void {
     </p>
 
     <PanelCardComponent v-if="projects.length" title="Tasks by type" padded class="max-w-md">
-      <PieChartComponent :labels="typeChart.labels" :values="typeChart.values" :colors="typeChart.colors" />
+      <PieChartComponent
+        :labels="typeChart.labels"
+        :values="typeChart.values"
+        :colors="typeChart.colors"
+      />
     </PanelCardComponent>
 
     <PanelCardComponent v-if="projects.length" title="Tasks">

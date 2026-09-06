@@ -79,7 +79,10 @@ function handleSubmit(values: TaskFormValues): void {
 
 <template>
   <div class="space-y-8">
-    <PageHeaderComponent title="Edit task" subtitle="Update the task's details, status or assignee." />
+    <PageHeaderComponent
+      title="Edit task"
+      subtitle="Update the task's details, status or assignee."
+    />
 
     <PanelCardComponent v-if="task" title="Task details" padded class="max-w-2xl">
       <p

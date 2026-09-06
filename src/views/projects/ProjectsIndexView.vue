@@ -51,7 +51,9 @@ const statusOptions = toFilterOptions(PROJECT_STATUS);
  * is narrowed down to a single status.
  */
 const statusChart = computed(() => {
-  const allProjects = currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [];
+  const allProjects = currentUserId.value
+    ? ProjectService.getAllUserProjects(currentUserId.value)
+    : [];
   const counts: Record<string, number> = {
     planning: 0,
     active: 0,
@@ -101,7 +103,11 @@ function handleDelete(project: ProjectInterface): void {
     </PageHeaderComponent>
 
     <PanelCardComponent title="Projects by status" padded class="max-w-md">
-      <PieChartComponent :labels="statusChart.labels" :values="statusChart.values" :colors="statusChart.colors" />
+      <PieChartComponent
+        :labels="statusChart.labels"
+        :values="statusChart.values"
+        :colors="statusChart.colors"
+      />
     </PanelCardComponent>
 
     <PanelCardComponent title="Projects">
