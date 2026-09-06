@@ -6,6 +6,14 @@ Project and task management platform built with Vue 3, TypeScript, and Pinia. Or
 
 ---
 
+## Live Demo
+
+Deployed on Google Cloud Platform: **[http://34.29.156.222/](http://34.29.156.222/)**
+
+See [Demo Accounts](#demo-accounts) below for login credentials.
+
+---
+
 ## Features
 
 - **Project management** — Full CRUD, with membership-based visibility: a project is visible only to the users listed in its members
