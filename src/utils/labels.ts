@@ -69,6 +69,12 @@ export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   done: '#059669',
 };
 
+export const SPRINT_STATUS_COLORS: Record<SprintStatus, string> = {
+  planned: '#94a3b8',
+  active: '#f59e0b',
+  completed: '#059669',
+};
+
 export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
   planning: '#94a3b8',
   active: '#059669',
