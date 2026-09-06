@@ -5,12 +5,17 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 // internal imports
-import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
+import SprintFormComponent, {
+  type SchedulableTask,
+  type SprintFormValues,
+} from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { TaskService } from '@/services/TaskService';
+import { shortId } from '@/utils/id';
 
 // variables
 const router = useRouter();
@@ -27,6 +32,26 @@ const projects = computed(() =>
 
 const projectOptions = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+/**
+ * Schedulable tasks per project, resolved here so SprintFormComponent stays
+ * free of service calls. The sprint label tells the user a task is already
+ * committed elsewhere.
+ */
+const tasksByProject = computed<Record<number, SchedulableTask[]>>(() =>
+  Object.fromEntries(
+    projects.value.map((project) => [
+      project.id,
+      TaskService.getByProject(project.id).map((task) => ({
+        id: task.id,
+        title: task.title,
+        storyPoints: task.storyPoints,
+        status: task.status,
+        currentSprintLabel: task.sprintId ? shortId('SPR', task.sprintId) : null,
+      })),
+    ]),
+  ),
 );
 
 // functions
@@ -77,6 +102,7 @@ function handleSubmit(values: SprintFormValues): void {
 
       <SprintFormComponent
         :project-options="projectOptions"
+        :tasks-by-project="tasksByProject"
         submit-label="Save sprint"
         @submit="handleSubmit"
       />

@@ -5,12 +5,17 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import SprintFormComponent, { type SprintFormValues } from '@/components/sprints/SprintFormComponent.vue';
+import SprintFormComponent, {
+  type SchedulableTask,
+  type SprintFormValues,
+} from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { TaskService } from '@/services/TaskService';
+import { shortId } from '@/utils/id';
 
 // variables
 const route = useRoute();
@@ -59,6 +64,27 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
   };
 });
 
+/**
+ * Schedulable tasks per project, resolved here so SprintFormComponent stays
+ * free of service calls. The sprint label tells the user a task is already
+ * committed elsewhere, and the sprint being edited is left out of that hint.
+ */
+const tasksByProject = computed<Record<number, SchedulableTask[]>>(() => {
+  const projectId = sprint.value?.projectId;
+  if (!projectId) return {};
+
+  return {
+    [projectId]: TaskService.getByProject(projectId).map((task) => ({
+      id: task.id,
+      title: task.title,
+      storyPoints: task.storyPoints,
+      status: task.status,
+      currentSprintLabel:
+        task.sprintId && task.sprintId !== sprintId ? shortId('SPR', task.sprintId) : null,
+    })),
+  };
+});
+
 // functions
 /** Saves the edited sprint and its task schedule, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
@@ -95,7 +121,7 @@ function handleSubmit(values: SprintFormValues): void {
       <SprintFormComponent
         :initial-values="initialValues"
         :project-options="projectOptions"
-        :current-sprint-id="sprintId"
+        :tasks-by-project="tasksByProject"
         submit-label="Save changes"
         @submit="handleSubmit"
       />
