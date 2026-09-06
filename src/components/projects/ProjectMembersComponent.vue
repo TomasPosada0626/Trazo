@@ -6,28 +6,32 @@ import { computed, ref, watch } from 'vue';
 // internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { USER_ROLE } from '@/utils/labels';
 
 // props
-const { project } = defineProps<{ project: ProjectInterface }>();
+const { members, nonMembers, currentUserId } = defineProps<{
+  /** The project's members, already resolved by the view. */
+  members: UserInterface[];
+  /** Users who do not belong to the project yet: the "add member" options. */
+  nonMembers: UserInterface[];
+  /** Id of the signed-in user, or null when there is no session. */
+  currentUserId: number | null;
+}>();
 
-// reactive variables
-const members = computed(() => ProjectService.getMembers(project));
-const nonMembers = computed(() => ProjectService.getNonMembers(project));
+// emits
+const emit = defineEmits<{ add: [userId: number]; remove: [userId: number] }>();
 
+// variables
 const NONE = 0;
 
+// reactive variables
 const selectedUserId = ref<number>(NONE);
 
 // selectors
 const userOptions = computed(() =>
-  nonMembers.value.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
+  nonMembers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
 );
-
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // functions
 /**
@@ -36,22 +40,19 @@ const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
  * admins reach this screen and only for projects they belong to.
  */
 function canRemove(userId: number): boolean {
-  return userId !== currentUserId.value;
+  return userId !== currentUserId;
 }
 
+/** Asks the view to add the picked user; the view owns the service call. */
 function handleAdd(): void {
   if (!selectedUserId.value) return;
-  ProjectService.addMember(project.id, selectedUserId.value);
-}
-
-function handleRemove(userId: number): void {
-  ProjectService.removeMember(project.id, userId);
+  emit('add', selectedUserId.value);
 }
 
 // watchers
 // Keep the picker pointing at a user who is still addable.
 watch(
-  nonMembers,
+  () => nonMembers,
   (newOptions) => {
     if (!newOptions.some((user) => user.id === selectedUserId.value)) {
       selectedUserId.value = newOptions[0]?.id ?? NONE;
@@ -96,7 +97,7 @@ watch(
               ? 'Remove from project'
               : 'You cannot remove yourself: delete the project to leave it'
           "
-          @click="handleRemove(member.id)"
+          @click="emit('remove', member.id)"
         >
           Remove
         </button>

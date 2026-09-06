@@ -5,7 +5,9 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, { type ProjectFormValues } from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent, {
+  type ProjectFormValues,
+} from '@/components/projects/ProjectFormComponent.vue';
 import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
@@ -26,17 +28,39 @@ const projectId = Number(route.params.id);
  * role. Without this an admin could open another admin's project by typing its
  * URL, and remove members from a project they do not belong to.
  */
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
+
 const project = computed(() => {
   const found = ProjectService.getById(projectId);
-  const currentUserId = AuthService.getCurrentUser()?.id;
-  if (!found || !currentUserId || !ProjectService.isMember(found, currentUserId)) {
+  if (!found || !currentUserId.value || !ProjectService.isMember(found, currentUserId.value)) {
     return undefined;
   }
 
   return found;
 });
 
+/**
+ * The roster is resolved here rather than inside ProjectMembersComponent: a
+ * reusable component takes its data from props and reports back with emits,
+ * so every service call for this screen lives in this view.
+ */
+const members = computed(() => (project.value ? ProjectService.getMembers(project.value) : []));
+
+const nonMembers = computed(() =>
+  project.value ? ProjectService.getNonMembers(project.value) : [],
+);
+
 // functions
+/** Adds the user the members panel picked. */
+function handleAddMember(userId: number): void {
+  ProjectService.addMember(projectId, userId);
+}
+
+/** Removes the user the members panel picked. */
+function handleRemoveMember(userId: number): void {
+  ProjectService.removeMember(projectId, userId);
+}
+
 /** Saves the edited project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   ProjectService.update(projectId, values);
@@ -65,7 +89,13 @@ function handleSubmit(values: ProjectFormValues): void {
     </PanelCardComponent>
 
     <PanelCardComponent v-if="project" title="Project members" padded class="max-w-2xl">
-      <ProjectMembersComponent :project="project" />
+      <ProjectMembersComponent
+        :members="members"
+        :non-members="nonMembers"
+        :current-user-id="currentUserId"
+        @add="handleAddMember"
+        @remove="handleRemoveMember"
+      />
     </PanelCardComponent>
 
     <PanelCardComponent v-if="!project" title="Project not found" padded class="max-w-2xl">
