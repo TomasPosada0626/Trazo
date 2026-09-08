@@ -13,9 +13,7 @@ const {
 } = defineProps<{
   label: string;
   value: number;
-  /** Rendered after the number, e.g. '%' or 'pts'. */
   suffix?: string;
-  /** Renders the value as "value / total", for completed-of-total counts. */
   total?: number;
 }>();
 
@@ -29,7 +27,6 @@ onMounted(() => {
 
   counter = new CountUp(valueEl.value, value, {
     duration: 1,
-    // The metrics are whole numbers; a decimal would only flicker.
     decimalPlaces: 0,
     suffix,
   });
@@ -37,7 +34,6 @@ onMounted(() => {
 });
 
 // watchers
-// Re-run the animation when the project or range filter changes.
 watch(
   () => value,
   (newValue) => counter?.update(newValue),

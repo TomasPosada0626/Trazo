@@ -27,7 +27,6 @@ import {
 } from '@/utils/labels';
 
 // variables
-/** Copy for the banner shown after returning from the create or edit form. */
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
@@ -47,36 +46,37 @@ const columns: DataTableColumn[] = [
 const route = useRoute();
 
 // reactive variables
-const projectFilter = ref<number | 'all'>('all');
-const statusFilter = ref<TaskStatus | 'all'>('all');
-
-// Read once at setup: the banner reports what just happened, so it should not
-// come back when the user navigates around and returns to this URL.
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
 
 // selectors
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+const selectedProjectId = ref<number | 'all'>('all');
 
-/** The signed-in user's projects, which is also the scope of their tasks. */
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const projectOptions = computed<SelectOption<number | 'all'>[]>(() => [
+const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
   { value: 'all', label: 'All projects' },
   ...projects.value.map((project) => ({ value: project.id, label: project.name })),
 ]);
 
-const statusOptions = toFilterOptions(TASK_STATUS);
+const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-// Recomputes when a filter changes or the store is mutated.
+const selectorStatuses = toFilterOptions(TASK_STATUS);
+
+// computed variables
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+const projects = computed(() =>
+  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
+);
+
 const tasks = computed(() =>
   currentUserId.value
-    ? TaskService.getUserTasksFiltered(currentUserId.value, projectFilter.value, statusFilter.value)
+    ? TaskService.getUserTasksFiltered(
+        currentUserId.value,
+        selectedProjectId.value,
+        selectedStatus.value,
+      )
     : [],
 );
 
-/** Breakdown of the filtered tasks by type, orthogonal to both filters above. */
 const typeChart = computed(() => {
   const counts: Record<string, number> = { feature: 0, bug: 0, chore: 0, research: 0 };
   for (const task of tasks.value) {
@@ -92,21 +92,14 @@ const typeChart = computed(() => {
 });
 
 // functions
-/**
- * Project name for a row. Tasks are already scoped to the user's projects, so
- * a miss here would mean stored data pointing at a project that no longer
- * exists — which the delete cascade is there to prevent.
- */
 function projectName(task: TaskInterface): string {
   return ProjectService.getById(task.projectId)?.name ?? 'Unknown project';
 }
 
-/** Assignee name for a row, or a dash while nobody has picked the task up. */
 function assigneeName(task: TaskInterface): string {
   return TaskService.getAssignee(task)?.name ?? '—';
 }
 
-/** Asks for confirmation, then deletes the task and reports the outcome. */
 function handleDelete(task: TaskInterface): void {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,
@@ -162,18 +155,18 @@ function handleDelete(task: TaskInterface): void {
         <div class="flex flex-wrap items-end gap-3">
           <SelectFieldComponent
             id="task-project-filter"
-            v-model="projectFilter"
+            v-model="selectedProjectId"
             label="Project"
             compact
-            :options="projectOptions"
+            :options="selectorProjects"
             class="w-52"
           />
           <SelectFieldComponent
             id="task-status-filter"
-            v-model="statusFilter"
+            v-model="selectedStatus"
             label="Status"
             compact
-            :options="statusOptions"
+            :options="selectorStatuses"
             class="w-44"
           />
         </div>

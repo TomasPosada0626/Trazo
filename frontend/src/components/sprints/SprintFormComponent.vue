@@ -8,74 +8,45 @@ import { RouterLink } from 'vue-router';
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, TASK_STATUS, toSelectOptions } from '@/utils/labels';
 
-// variables
-/**
- * A task as this form needs to render it. The owning view resolves these,
- * including which sprint each task already sits in, so the form itself never
- * has to reach for a service.
- */
-export interface SchedulableTask {
-  id: number;
-  title: string;
-  storyPoints: number;
-  status: TaskStatus;
-  /** Short code of the sprint holding it, or null when it is unscheduled. */
-  currentSprintLabel: string | null;
-}
-
-export interface SprintFormValues {
-  name: string;
-  goal: string;
-  projectId: number;
-  startDate: string;
-  endDate: string;
-  status: SprintStatus;
-  /** Tasks scheduled into the sprint. Empty is valid. */
-  taskIds: number[];
-}
-
 // props
-const { initialValues, submitLabel, projectOptions, tasksByProject } = defineProps<{
-  /** Prefills the fields when editing. Omit for a blank create form. */
-  initialValues?: SprintFormValues;
-  submitLabel: string;
-  projectOptions: { value: number; label: string }[];
-  /** Schedulable tasks per project id, resolved by the view. */
-  tasksByProject: Record<number, SchedulableTask[]>;
-}>();
+const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSprintId } =
+  defineProps<{
+    initialValues?: CreateSprintDTO;
+    submitLabel: string;
+    selectorProjects: { value: number; label: string }[];
+    tasksByProject: Record<number, TaskInterface[]>;
+    currentSprintId?: number;
+  }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: SprintFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateSprintDTO] }>();
 
 // reactive variables
 const name = ref(initialValues?.name ?? '');
 const goal = ref(initialValues?.goal ?? '');
-const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
-// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
-// re-applied on submit.
-const status = ref<string>(initialValues?.status ?? 'planned');
 const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
 const error = ref('');
 
 // selectors
-const statusOptions = toSelectOptions(SPRINT_STATUS);
+const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
-/**
- * Editing cannot move a sprint to another project: its tasks belong to the
- * original project, so they would all have to be unscheduled to follow it.
- */
+const selectedStatus = ref<string>(initialValues?.status ?? 'planned');
+
+const selectorStatuses = toSelectOptions(SPRINT_STATUS);
+
+// computed variables
 const isEditing = computed(() => initialValues !== undefined);
 
-/** Every task of the project, since this form is the only way to schedule one. */
-const projectTasks = computed(() => tasksByProject[projectId.value] ?? []);
+const projectTasks = computed(() => tasksByProject[selectedProjectId.value] ?? []);
 
-/** The sprint's commitment, derived from the selection rather than typed. */
 const selectedPoints = computed(() =>
   projectTasks.value
     .filter((task) => selectedTaskIds.value.includes(task.id))
@@ -83,6 +54,10 @@ const selectedPoints = computed(() =>
 );
 
 // functions
+function sprintLabelFor(task: TaskInterface): string | null {
+  return task.sprintId && task.sprintId !== currentSprintId ? shortId('SPR', task.sprintId) : null;
+}
+
 function handleSubmit(): void {
   error.value = '';
 
@@ -94,10 +69,10 @@ function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),
     goal: goal.value.trim(),
-    projectId: projectId.value,
+    projectId: selectedProjectId.value,
     startDate: startDate.value,
     endDate: endDate.value,
-    status: status.value as SprintStatus,
+    status: selectedStatus.value as SprintStatus,
     taskIds: [...selectedTaskIds.value],
   });
 }
@@ -105,9 +80,8 @@ function handleSubmit(): void {
 // watchers
 // A task list from the previous project is meaningless, so drop the selection
 // whenever the project changes. Editing keeps the project fixed, so this only
-// ever fires while creating. The project id itself is the only thing this
-// needs, so there's no old/new value worth naming in the callback.
-watch(projectId, () => {
+// ever fires while creating.
+watch(selectedProjectId, () => {
   selectedTaskIds.value = [];
 });
 </script>
@@ -129,9 +103,9 @@ watch(projectId, () => {
     />
     <SelectFieldComponent
       id="sprint-project"
-      v-model="projectId"
+      v-model="selectedProjectId"
       label="Project"
-      :options="projectOptions"
+      :options="selectorProjects"
       :disabled="isEditing"
       :title="isEditing ? 'A sprint cannot change project once its tasks are scheduled' : undefined"
     />
@@ -149,9 +123,9 @@ watch(projectId, () => {
 
     <SelectFieldComponent
       id="sprint-status"
-      v-model="status"
+      v-model="selectedStatus"
       label="Status"
-      :options="statusOptions"
+      :options="selectorStatuses"
     />
 
     <fieldset>
@@ -180,8 +154,8 @@ watch(projectId, () => {
             <span class="block truncate text-sm">{{ task.title }}</span>
             <span class="block text-xs text-ink-soft">
               {{ task.storyPoints }} pts
-              <template v-if="task.currentSprintLabel">
-                · currently in {{ task.currentSprintLabel }}
+              <template v-if="sprintLabelFor(task)">
+                · currently in {{ sprintLabelFor(task) }}
               </template>
             </span>
           </span>

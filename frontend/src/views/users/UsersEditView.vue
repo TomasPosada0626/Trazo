@@ -5,7 +5,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
+import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
@@ -14,16 +14,13 @@ import { UserService } from '@/services/UserService';
 // variables
 const route = useRoute();
 const router = useRouter();
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const userId = Number(route.params.id);
 
-// selectors
+// computed variables
 const user = computed(() => UserService.getById(userId));
 
 // functions
-/** Updates the account and returns to the user list. */
-function handleSubmit(values: UserFormValues): void {
+function handleSubmit(values: UpdateUserDTO): void {
   const { password, ...accountChanges } = values;
   const changes: UpdateUserDTO = password ? values : accountChanges;
   UserService.update(userId, changes);
@@ -32,14 +29,14 @@ function handleSubmit(values: UserFormValues): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Edit user"
       subtitle="Update the account's basic information, password or role."
       admin-only
     />
 
-    <PanelCardComponent v-if="user" title="User details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="user" title="User details" padded>
       <UserFormComponent
         :initial-values="{ name: user.name, email: user.email, role: user.role }"
         submit-label="Save changes"
@@ -48,7 +45,7 @@ function handleSubmit(values: UserFormValues): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="User not found" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="User not found" padded>
       <p class="text-sm text-ink-soft">The user you are trying to edit does not exist.</p>
       <RouterLink
         to="/app/users"

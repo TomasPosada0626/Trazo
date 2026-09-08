@@ -7,42 +7,34 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
-// variables
-export interface ProjectFormValues {
-  name: string;
-  description: string;
-  status: ProjectStatus;
-}
-
 // props
 const { initialValues, submitLabel } = defineProps<{
-  /** Prefills the fields when editing. Omit for a blank create form. */
-  initialValues?: ProjectFormValues;
+  initialValues?: CreateProjectDTO;
   submitLabel: string;
 }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateProjectDTO] }>();
 
 // reactive variables
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
-// re-applied on submit.
-const status = ref<string>(initialValues?.status ?? 'active');
 
 // selectors
-const statusOptions = toSelectOptions(PROJECT_STATUS);
+const selectedStatus = ref<string>(initialValues?.status ?? 'active');
+
+const selectorStatuses = toSelectOptions(PROJECT_STATUS);
 
 // functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),
     description: description.value.trim(),
-    status: status.value as ProjectStatus,
+    status: selectedStatus.value as ProjectStatus,
   });
 }
 </script>
@@ -64,9 +56,9 @@ function handleSubmit(): void {
     />
     <SelectFieldComponent
       id="project-status"
-      v-model="status"
+      v-model="selectedStatus"
       label="Project status"
-      :options="statusOptions"
+      :options="selectorStatuses"
     />
 
     <div class="flex items-center gap-3 pt-2">

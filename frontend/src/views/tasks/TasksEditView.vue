@@ -5,10 +5,11 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
+import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
 import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
@@ -17,38 +18,17 @@ import { TaskService } from '@/services/TaskService';
 const route = useRoute();
 const router = useRouter();
 
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const taskId = Number(route.params.id);
 
 // reactive variables
 const error = ref('');
 
 // selectors
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-/**
- * The tasks route is open to members, so there is no admin guard to lean on.
- * Membership in the task's project is the visibility rule, and checking it
- * here is what stops someone from opening another team's task by typing its
- * URL straight into the address bar.
- */
-const task = computed(() => {
-  const found = TaskService.getById(taskId);
-  if (!found) return undefined;
-
-  return projects.value.some((project) => project.id === found.projectId) ? found : undefined;
-});
-
-const projectOptions = computed<SelectOption<number>[]>(() =>
+const selectorProjects = computed<SelectOption<number>[]>(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
+const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[]>>(() =>
   Object.fromEntries(
     projects.value.map((project) => [
       project.id,
@@ -60,13 +40,22 @@ const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
   ),
 );
 
+// computed variables
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+const projects = computed(() =>
+  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
+);
+
+const task = computed(() => {
+  const found = TaskService.getById(taskId);
+  if (!found) return undefined;
+
+  return projects.value.some((project) => project.id === found.projectId) ? found : undefined;
+});
+
 // functions
-/**
- * Saves the changes and returns to the list. `sprintId` is absent from the
- * form values, and UpdateTaskDTO is partial, so the stored sprint is left
- * exactly as it was.
- */
-function handleSubmit(values: TaskFormValues): void {
+function handleSubmit(values: UpdateTaskDTO): void {
   error.value = '';
   try {
     TaskService.update(taskId, values);
@@ -78,13 +67,13 @@ function handleSubmit(values: TaskFormValues): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Edit task"
       subtitle="Update the task's details, status or assignee."
     />
 
-    <PanelCardComponent v-if="task" title="Task details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="task" title="Task details" padded>
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -104,14 +93,14 @@ function handleSubmit(values: TaskFormValues): void {
           projectId: task.projectId,
           assigneeId: task.assigneeId,
         }"
-        :project-options="projectOptions"
-        :assignable-users="assignableUsers"
+        :selector-projects="selectorProjects"
+        :selector-assignees-by-project="selectorAssigneesByProject"
         submit-label="Save changes"
         @submit="handleSubmit"
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="Task not found" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="Task not found" padded>
       <p class="text-sm text-ink-soft">
         The task you are trying to edit does not exist, or it belongs to a project you are not a
         member of.

@@ -34,9 +34,7 @@ const {
 } = defineProps<{
   labels: string[];
   series: BarSeries[];
-  /** Renders the bars left-to-right, for ranking charts like workload. */
   horizontal?: boolean;
-  /** Forces whole-number ticks on count axes. */
   stepSize?: number;
 }>();
 
@@ -51,7 +49,6 @@ function datasets(): ChartDataset<'bar'>[] {
     data: entry.values,
     backgroundColor: entry.color,
     borderRadius: 2,
-    // A single series does not need a wide bar; two need room side by side.
     barPercentage: 0.7,
     categoryPercentage: 0.7,
   }));
@@ -92,8 +89,7 @@ onMounted(render);
 
 // watchers
 // Rebuilding the data in place keeps Chart.js's own transition, which a
-// destroy-and-recreate would lose. Every field is read straight from the
-// props inside the callback, so there is no old/new value to name here.
+// destroy-and-recreate would lose.
 watch(
   () => [labels, series],
   () => {

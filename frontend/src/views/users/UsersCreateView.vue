@@ -4,31 +4,31 @@
 // external imports
 import { useRouter } from 'vue-router';
 // internal imports
-import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
+import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import { UserService } from '@/services/UserService';
 
 // variables
 const router = useRouter();
 
 // functions
-/** Creates the account and returns to the user list. */
-function handleSubmit(values: UserFormValues): void {
+function handleSubmit(values: CreateUserDTO): void {
   UserService.create(values);
   router.push({ name: 'users' });
 }
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Add user"
       subtitle="Register an account and assign it a role within the system."
       admin-only
     />
 
-    <PanelCardComponent title="User details" padded class="max-w-2xl">
+    <PanelCardComponent title="User details" padded>
       <UserFormComponent submit-label="Save user" @submit="handleSubmit" />
     </PanelCardComponent>
   </div>

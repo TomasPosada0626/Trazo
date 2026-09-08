@@ -12,19 +12,12 @@ import { AuthService } from '@/services/AuthService';
 const route = useRoute();
 const router = useRouter();
 
-// selectors
-/**
- * The session is resolved here and handed down, so the sidebar stays a plain
- * presentational component: this layout is mounted by the router and is the
- * only ancestor the sidebar has, which makes it the one place that can supply
- * the data without a component reaching for a service itself.
- */
+// computed variables
 const currentUser = computed(() => AuthService.getCurrentUser() ?? null);
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
 // functions
-/** Ends the session and returns to the login screen. */
 function handleLogout(): void {
   AuthService.logout();
   router.push({ name: 'login' });

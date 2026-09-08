@@ -16,6 +16,20 @@
 @custom-variant nav-current (&.router-link-exact-active);
 @custom-variant nav-section (&.router-link-active);
 
+/* Status chip painted from one exact colour rather than a tone, so a badge
+   and the chart slice for the same status come out identical. The hex arrives
+   inline as --badge-color; everything derived from it stays here in the
+   stylesheet instead of being computed in a template. The dot inherits the
+   same custom property from the pill. */
+@utility badge-tinted {
+  background-color: color-mix(in srgb, var(--badge-color) 12%, var(--color-paper));
+  color: var(--color-ink);
+}
+
+@utility badge-dot {
+  background-color: var(--badge-color);
+}
+
 /* Blueprint-style grid background. */
 @utility grid-paper {
   background-image:

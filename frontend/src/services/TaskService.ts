@@ -81,6 +81,7 @@ export class TaskService {
     const task: TaskInterface = {
       id: nextId(useTaskStore().tasks),
       createdAt: new Date().toISOString(),
+      sprintId: null,
       ...data,
       title: data.title.trim(),
     };
