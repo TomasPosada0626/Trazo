@@ -7,16 +7,9 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import type { UserRole } from '@/interfaces/UserInterface';
 import { toSelectOptions, USER_ROLE } from '@/utils/labels';
-
-// variables
-export interface UserFormValues {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-}
 
 // props
 const {
@@ -24,13 +17,13 @@ const {
   submitLabel,
   passwordRequired = true,
 } = defineProps<{
-  initialValues?: Partial<UserFormValues>;
+  initialValues?: Partial<CreateUserDTO>;
   submitLabel: string;
   passwordRequired?: boolean;
 }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: UserFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateUserDTO] }>();
 
 // reactive variables
 const name = ref(initialValues?.name ?? '');

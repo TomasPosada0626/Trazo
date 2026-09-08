@@ -4,18 +4,17 @@
 // external imports
 import { useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, {
-  type ProjectFormValues,
-} from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
 
 // variables
 const router = useRouter();
 
 // functions
-function handleSubmit(values: ProjectFormValues): void {
+function handleSubmit(values: CreateProjectDTO): void {
   // The service adds the creator as the first member.
   ProjectService.create(values);
   router.push({ name: 'projects' });

@@ -11,19 +11,16 @@ import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
-// variables
-export type TaskFormValues = Omit<CreateTaskDTO, 'sprintId'>;
-
 // props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
-  initialValues?: TaskFormValues;
+  initialValues?: CreateTaskDTO;
   submitLabel: string;
   selectorProjects: SelectOption<number>[];
   selectorAssigneesByProject: Record<number, SelectOption<number>[]>;
 }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateTaskDTO] }>();
 
 // reactive variables
 const UNASSIGNED = 0;

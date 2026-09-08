@@ -5,17 +5,16 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import SprintFormComponent, {
-  type SchedulableTask,
-  type SprintFormValues,
-} from '@/components/sprints/SprintFormComponent.vue';
+import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
+import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
-import { shortId } from '@/utils/id';
 
 // variables
 const route = useRoute();
@@ -43,7 +42,7 @@ const sprint = computed(() => {
   return found;
 });
 
-const initialValues = computed<SprintFormValues | undefined>(() => {
+const initialValues = computed<CreateSprintDTO | undefined>(() => {
   if (!sprint.value) return undefined;
 
   return {
@@ -57,31 +56,19 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
   };
 });
 
-const tasksByProject = computed<Record<number, SchedulableTask[]>>(() => {
+const tasksByProject = computed<Record<number, TaskInterface[]>>(() => {
   const projectId = sprint.value?.projectId;
   if (!projectId) return {};
 
-  return {
-    [projectId]: TaskService.getByProject(projectId).map((task) => ({
-      id: task.id,
-      title: task.title,
-      storyPoints: task.storyPoints,
-      status: task.status,
-      currentSprintLabel:
-        task.sprintId && task.sprintId !== sprintId ? shortId('SPR', task.sprintId) : null,
-    })),
-  };
+  return { [projectId]: TaskService.getByProject(projectId) };
 });
 
 // functions
-function handleSubmit(values: SprintFormValues): void {
+function handleSubmit(values: UpdateSprintDTO): void {
   error.value = '';
-  const { taskIds, ...sprintData } = values;
 
   try {
-    SprintService.update(sprintId, sprintData);
-    SprintService.setTasks(sprintId, taskIds);
-
+    SprintService.update(sprintId, values);
     router.push({ name: 'sprints' });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'The sprint could not be updated.';
@@ -109,6 +96,7 @@ function handleSubmit(values: SprintFormValues): void {
         :initial-values="initialValues"
         :selector-projects="selectorProjects"
         :tasks-by-project="tasksByProject"
+        :current-sprint-id="sprintId"
         submit-label="Save changes"
         @submit="handleSubmit"
       />

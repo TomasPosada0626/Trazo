@@ -4,16 +4,17 @@
 // external imports
 import { useRouter } from 'vue-router';
 // internal imports
-import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
+import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import { UserService } from '@/services/UserService';
 
 // variables
 const router = useRouter();
 
 // functions
-function handleSubmit(values: UserFormValues): void {
+function handleSubmit(values: CreateUserDTO): void {
   UserService.create(values);
   router.push({ name: 'users' });
 }

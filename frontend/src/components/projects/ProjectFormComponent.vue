@@ -7,24 +7,18 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
-// variables
-export interface ProjectFormValues {
-  name: string;
-  description: string;
-  status: ProjectStatus;
-}
-
 // props
 const { initialValues, submitLabel } = defineProps<{
-  initialValues?: ProjectFormValues;
+  initialValues?: CreateProjectDTO;
   submitLabel: string;
 }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateProjectDTO] }>();
 
 // reactive variables
 const name = ref(initialValues?.name ?? '');

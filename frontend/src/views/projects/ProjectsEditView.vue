@@ -5,12 +5,11 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, {
-  type ProjectFormValues,
-} from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 
@@ -47,7 +46,7 @@ function handleRemoveMember(userId: number): void {
   ProjectService.removeMember(projectId, userId);
 }
 
-function handleSubmit(values: ProjectFormValues): void {
+function handleSubmit(values: UpdateProjectDTO): void {
   ProjectService.update(projectId, values);
   router.push({ name: 'projects' });
 }

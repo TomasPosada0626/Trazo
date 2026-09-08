@@ -5,7 +5,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import UserFormComponent, { type UserFormValues } from '@/components/users/UserFormComponent.vue';
+import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
@@ -20,7 +20,7 @@ const userId = Number(route.params.id);
 const user = computed(() => UserService.getById(userId));
 
 // functions
-function handleSubmit(values: UserFormValues): void {
+function handleSubmit(values: UpdateUserDTO): void {
   const { password, ...accountChanges } = values;
   const changes: UpdateUserDTO = password ? values : accountChanges;
   UserService.update(userId, changes);

@@ -5,10 +5,11 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 // internal imports
-import TaskFormComponent, { type TaskFormValues } from '@/components/tasks/TaskFormComponent.vue';
+import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
 import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
@@ -44,11 +45,10 @@ const projects = computed(() =>
 );
 
 // functions
-function handleSubmit(values: TaskFormValues): void {
+function handleSubmit(values: CreateTaskDTO): void {
   error.value = '';
   try {
-    // Scheduling happens in SprintForm, so a new task starts in the backlog.
-    TaskService.create({ ...values, sprintId: null });
+    TaskService.create(values);
     router.push({ name: 'tasks', query: { saved: 'created' } });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'The task could not be created.';

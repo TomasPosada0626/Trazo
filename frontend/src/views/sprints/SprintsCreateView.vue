@@ -5,17 +5,15 @@
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 // internal imports
-import SprintFormComponent, {
-  type SchedulableTask,
-  type SprintFormValues,
-} from '@/components/sprints/SprintFormComponent.vue';
+import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
-import { shortId } from '@/utils/id';
 
 // variables
 const router = useRouter();
@@ -35,31 +33,18 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const tasksByProject = computed<Record<number, SchedulableTask[]>>(() =>
+const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
   Object.fromEntries(
-    projects.value.map((project) => [
-      project.id,
-      TaskService.getByProject(project.id).map((task) => ({
-        id: task.id,
-        title: task.title,
-        storyPoints: task.storyPoints,
-        status: task.status,
-        currentSprintLabel: task.sprintId ? shortId('SPR', task.sprintId) : null,
-      })),
-    ]),
+    projects.value.map((project) => [project.id, TaskService.getByProject(project.id)]),
   ),
 );
 
 // functions
-function handleSubmit(values: SprintFormValues): void {
+function handleSubmit(values: CreateSprintDTO): void {
   error.value = '';
-  const { taskIds, ...sprintData } = values;
 
   try {
-    // The sprint has to exist before tasks can point at it.
-    const sprint = SprintService.create(sprintData);
-    SprintService.setTasks(sprint.id, taskIds);
-
+    SprintService.create(values);
     router.push({ name: 'sprints' });
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'The sprint could not be created.';

@@ -8,39 +8,24 @@ import { RouterLink } from 'vue-router';
 import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, TASK_STATUS, toSelectOptions } from '@/utils/labels';
 
-// variables
-export interface SchedulableTask {
-  id: number;
-  title: string;
-  storyPoints: number;
-  status: TaskStatus;
-  currentSprintLabel: string | null;
-}
-
-export interface SprintFormValues {
-  name: string;
-  goal: string;
-  projectId: number;
-  startDate: string;
-  endDate: string;
-  status: SprintStatus;
-  taskIds: number[];
-}
-
 // props
-const { initialValues, submitLabel, selectorProjects, tasksByProject } = defineProps<{
-  initialValues?: SprintFormValues;
-  submitLabel: string;
-  selectorProjects: { value: number; label: string }[];
-  tasksByProject: Record<number, SchedulableTask[]>;
-}>();
+const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSprintId } =
+  defineProps<{
+    initialValues?: CreateSprintDTO;
+    submitLabel: string;
+    selectorProjects: { value: number; label: string }[];
+    tasksByProject: Record<number, TaskInterface[]>;
+    currentSprintId?: number;
+  }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: SprintFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateSprintDTO] }>();
 
 // reactive variables
 const name = ref(initialValues?.name ?? '');
@@ -69,6 +54,10 @@ const selectedPoints = computed(() =>
 );
 
 // functions
+function sprintLabelFor(task: TaskInterface): string | null {
+  return task.sprintId && task.sprintId !== currentSprintId ? shortId('SPR', task.sprintId) : null;
+}
+
 function handleSubmit(): void {
   error.value = '';
 
@@ -165,8 +154,8 @@ watch(selectedProjectId, () => {
             <span class="block truncate text-sm">{{ task.title }}</span>
             <span class="block text-xs text-ink-soft">
               {{ task.storyPoints }} pts
-              <template v-if="task.currentSprintLabel">
-                · currently in {{ task.currentSprintLabel }}
+              <template v-if="sprintLabelFor(task)">
+                · currently in {{ sprintLabelFor(task) }}
               </template>
             </span>
           </span>
