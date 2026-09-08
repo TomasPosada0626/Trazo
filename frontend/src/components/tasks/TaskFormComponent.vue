@@ -12,22 +12,13 @@ import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterf
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
 // variables
-/**
- * What this form can produce. `sprintId` is left out on purpose: sprints have
- * no store yet, so there is nothing to pick from. Create sends null and edit
- * leaves the stored value untouched, so the sprint slice only has to add the
- * field here rather than rework the views.
- */
 export type TaskFormValues = Omit<CreateTaskDTO, 'sprintId'>;
 
 // props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
-  /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: TaskFormValues;
   submitLabel: string;
-  /** Projects the signed-in user may file a task under. */
   selectorProjects: SelectOption<number>[];
-  /** Member pool per project id, so the assignee list follows the project. */
   selectorAssigneesByProject: Record<number, SelectOption<number>[]>;
 }>();
 
@@ -35,31 +26,23 @@ const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject
 const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
 
 // reactive variables
-/** 0 stands for "nobody": nextId never issues it. */
 const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain string: TextFieldComponent is string-typed, so the number is re-applied
-// on submit.
 const storyPoints = ref(String(initialValues?.storyPoints ?? 0));
 const dueDate = ref(initialValues?.dueDate ?? '');
 
 // selectors
-// The options come from the `selectorProjects` prop, which the owning view
-// resolves, so this form makes no service call of its own.
 const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
 const selectedAssigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
 
-/** Members of the selected project, plus the "nobody yet" entry. */
 const selectorAssignees = computed<SelectOption<number>[]>(() => [
   { value: UNASSIGNED, label: 'Unassigned' },
   ...(selectorAssigneesByProject[selectedProjectId.value] ?? []),
 ]);
 
-// Plain strings: SelectFieldComponent's v-model is string-typed, so the unions
-// are re-applied on submit.
 const selectedType = ref<string>(initialValues?.type ?? 'feature');
 
 const selectorTypes = toSelectOptions(TASK_TYPE);
@@ -73,7 +56,6 @@ const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 const selectorStatuses = toSelectOptions(TASK_STATUS);
 
 // functions
-/** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
     title: title.value.trim(),

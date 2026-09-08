@@ -37,19 +37,12 @@ const selectorStatuses = toFilterOptions(PROJECT_STATUS);
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
-// Only the signed-in user's projects. Recomputes when the filter changes or
-// the store is mutated.
 const projects = computed(() =>
   currentUserId.value
     ? ProjectService.getUserProjectsByStatus(currentUserId.value, selectedStatus.value)
     : [],
 );
 
-/**
- * Breakdown of every one of the user's projects by status, independent of
- * `selectedStatus` so the overview stays meaningful even when the table below
- * is narrowed down to a single status.
- */
 const statusChart = computed(() => {
   const allProjects = currentUserId.value
     ? ProjectService.getAllUserProjects(currentUserId.value)
@@ -74,7 +67,6 @@ const statusChart = computed(() => {
 });
 
 // functions
-/** Confirms with the user, then deletes the project. */
 function handleDelete(project: ProjectInterface): void {
   const confirmed = window.confirm(
     `Delete the project "${project.name}"? This action cannot be undone.`,

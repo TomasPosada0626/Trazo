@@ -20,9 +20,6 @@ import { shortId } from '@/utils/id';
 // variables
 const route = useRoute();
 const router = useRouter();
-
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const sprintId = Number(route.params.id);
 
 // reactive variables
@@ -35,11 +32,6 @@ const selectorProjects = computed(() => {
 });
 
 // computed variables
-/**
- * Membership is the visibility rule, and the route guard only checks the admin
- * role. Without this an admin could open a sprint of another admin's project
- * by typing its URL, and reschedule work they cannot otherwise see.
- */
 const sprint = computed(() => {
   const found = SprintService.getById(sprintId);
   const currentUserId = AuthService.getCurrentUser()?.id;
@@ -65,11 +57,6 @@ const initialValues = computed<SprintFormValues | undefined>(() => {
   };
 });
 
-/**
- * Schedulable tasks per project, resolved here so SprintFormComponent stays
- * free of service calls. The sprint label tells the user a task is already
- * committed elsewhere, and the sprint being edited is left out of that hint.
- */
 const tasksByProject = computed<Record<number, SchedulableTask[]>>(() => {
   const projectId = sprint.value?.projectId;
   if (!projectId) return {};
@@ -87,7 +74,6 @@ const tasksByProject = computed<Record<number, SchedulableTask[]>>(() => {
 });
 
 // functions
-/** Saves the edited sprint and its task schedule, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
   error.value = '';
   const { taskIds, ...sprintData } = values;

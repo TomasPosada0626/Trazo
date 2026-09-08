@@ -13,7 +13,6 @@ import { UserService } from '@/services/UserService';
 const router = useRouter();
 
 // functions
-/** Creates the account and returns to the user list. */
 function handleSubmit(values: UserFormValues): void {
   UserService.create(values);
   router.push({ name: 'users' });

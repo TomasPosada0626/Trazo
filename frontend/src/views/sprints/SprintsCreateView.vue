@@ -35,11 +35,6 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-/**
- * Schedulable tasks per project, resolved here so SprintFormComponent stays
- * free of service calls. The sprint label tells the user a task is already
- * committed elsewhere.
- */
 const tasksByProject = computed<Record<number, SchedulableTask[]>>(() =>
   Object.fromEntries(
     projects.value.map((project) => [
@@ -56,7 +51,6 @@ const tasksByProject = computed<Record<number, SchedulableTask[]>>(() =>
 );
 
 // functions
-/** Creates the sprint, schedules its tasks, then returns to the listing. */
 function handleSubmit(values: SprintFormValues): void {
   error.value = '';
   const { taskIds, ...sprintData } = values;

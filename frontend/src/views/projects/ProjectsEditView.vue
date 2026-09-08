@@ -18,16 +18,9 @@ import { ProjectService } from '@/services/ProjectService';
 const route = useRoute();
 const router = useRouter();
 
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const projectId = Number(route.params.id);
 
 // computed variables
-/**
- * Membership is the visibility rule, and the route guard only checks the admin
- * role. Without this an admin could open another admin's project by typing its
- * URL, and remove members from a project they do not belong to.
- */
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
 
 const project = computed(() => {
@@ -39,11 +32,6 @@ const project = computed(() => {
   return found;
 });
 
-/**
- * The roster is resolved here rather than inside ProjectMembersComponent: a
- * reusable component takes its data from props and reports back with emits,
- * so every service call for this screen lives in this view.
- */
 const members = computed(() => (project.value ? ProjectService.getMembers(project.value) : []));
 
 const nonMembers = computed(() =>
@@ -51,17 +39,14 @@ const nonMembers = computed(() =>
 );
 
 // functions
-/** Adds the user the members panel picked. */
 function handleAddMember(userId: number): void {
   ProjectService.addMember(projectId, userId);
 }
 
-/** Removes the user the members panel picked. */
 function handleRemoveMember(userId: number): void {
   ProjectService.removeMember(projectId, userId);
 }
 
-/** Saves the edited project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   ProjectService.update(projectId, values);
   router.push({ name: 'projects' });

@@ -39,21 +39,15 @@ const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
-/** A task can only be filed under a project the user belongs to. */
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
 // functions
-/**
- * Creates the task and returns to the list. The service validates the title,
- * the project and the assignee, so a rejected save is reported in place
- * instead of losing what the user typed.
- */
 function handleSubmit(values: TaskFormValues): void {
   error.value = '';
   try {
-    // Sprints have no store yet, so a new task starts outside of any sprint.
+    // Scheduling happens in SprintForm, so a new task starts in the backlog.
     TaskService.create({ ...values, sprintId: null });
     router.push({ name: 'tasks', query: { saved: 'created' } });
   } catch (err) {

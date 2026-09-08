@@ -14,15 +14,12 @@ import { UserService } from '@/services/UserService';
 // variables
 const route = useRoute();
 const router = useRouter();
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const userId = Number(route.params.id);
 
 // computed variables
 const user = computed(() => UserService.getById(userId));
 
 // functions
-/** Updates the account and returns to the user list. */
 function handleSubmit(values: UserFormValues): void {
   const { password, ...accountChanges } = values;
   const changes: UpdateUserDTO = password ? values : accountChanges;

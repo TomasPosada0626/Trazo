@@ -17,10 +17,6 @@ import { UserService } from '@/services/UserService';
 import { USER_ROLE, toFilterOptions } from '@/utils/labels';
 
 // variables
-/**
- * The password never reaches the table, and the active-project count comes
- * from UserService.getActiveProjects(user) rather than from state.
- */
 type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
 
 const columns: DataTableColumn[] = [
@@ -57,7 +53,6 @@ const filteredUsers = computed(() =>
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // functions
-/** Confirms and removes a user, while preserving the active account. */
 function handleDelete(user: UserRow): void {
   if (user.id === currentUserId.value) return;
 

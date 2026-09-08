@@ -19,7 +19,6 @@ export interface ProjectFormValues {
 
 // props
 const { initialValues, submitLabel } = defineProps<{
-  /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: ProjectFormValues;
   submitLabel: string;
 }>();
@@ -32,8 +31,6 @@ const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
 
 // selectors
-// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
-// re-applied on submit.
 const selectedStatus = ref<string>(initialValues?.status ?? 'active');
 
 const selectorStatuses = toSelectOptions(PROJECT_STATUS);

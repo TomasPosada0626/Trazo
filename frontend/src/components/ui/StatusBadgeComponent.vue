@@ -2,7 +2,6 @@
 // Author: Mateo Garcia Carreno
 
 // variables
-/** Visual tone of the badge, independent of which entity it describes. */
 export type BadgeTone = 'positive' | 'warning' | 'neutral' | 'danger';
 
 const toneClasses: Record<BadgeTone, string> = {
@@ -22,11 +21,6 @@ const dotClasses: Record<BadgeTone, string> = {
 // props
 const { tone = 'neutral', color } = defineProps<{
   tone?: BadgeTone;
-  /**
-   * Exact colour to paint the chip with, overriding `tone`. Pass the entry a
-   * `*_STATUS_COLORS` map holds for the value, so the badge and the chart
-   * slice describing the same status read as one colour.
-   */
   color?: string;
 }>();
 </script>

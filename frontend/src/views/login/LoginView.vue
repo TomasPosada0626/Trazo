@@ -16,7 +16,6 @@ const error = ref('');
 const router = useRouter();
 
 // functions
-/** Handles the login form submission via AuthService. */
 function handleSubmit(): void {
   error.value = '';
   try {

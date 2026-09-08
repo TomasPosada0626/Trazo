@@ -17,8 +17,6 @@ import { TaskService } from '@/services/TaskService';
 const route = useRoute();
 const router = useRouter();
 
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const taskId = Number(route.params.id);
 
 // reactive variables
@@ -48,12 +46,6 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-/**
- * The tasks route is open to members, so there is no admin guard to lean on.
- * Membership in the task's project is the visibility rule, and checking it
- * here is what stops someone from opening another team's task by typing its
- * URL straight into the address bar.
- */
 const task = computed(() => {
   const found = TaskService.getById(taskId);
   if (!found) return undefined;
@@ -62,11 +54,6 @@ const task = computed(() => {
 });
 
 // functions
-/**
- * Saves the changes and returns to the list. `sprintId` is absent from the
- * form values, and UpdateTaskDTO is partial, so the stored sprint is left
- * exactly as it was.
- */
 function handleSubmit(values: TaskFormValues): void {
   error.value = '';
   try {

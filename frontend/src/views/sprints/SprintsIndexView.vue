@@ -20,11 +20,6 @@ import { shortId } from '@/utils/id';
 import { SPRINT_STATUS, SPRINT_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
 
 // variables
-/**
- * Committed and completed points are both summed from the sprint's tasks by
- * SprintService rather than stored, so the table joins them on along with the
- * days left, which is likewise derived.
- */
 type SprintRow = SprintInterface & {
   committedPoints: number;
   completedPoints: number;
@@ -81,7 +76,6 @@ const selectedProjectName = computed(
 );
 
 // functions
-/** Confirms with the user, then deletes the sprint. */
 function handleDelete(sprint: SprintRow): void {
   const confirmed = window.confirm(
     `Delete the sprint "${sprint.name}"? Its tasks return to the backlog.`,

@@ -27,7 +27,6 @@ import {
 } from '@/utils/labels';
 
 // variables
-/** Copy for the banner shown after returning from the create or edit form. */
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
@@ -47,8 +46,6 @@ const columns: DataTableColumn[] = [
 const route = useRoute();
 
 // reactive variables
-// Read once at setup: the banner reports what just happened, so it should not
-// come back when the user navigates around and returns to this URL.
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
 
 // selectors
@@ -66,12 +63,10 @@ const selectorStatuses = toFilterOptions(TASK_STATUS);
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
-/** The signed-in user's projects, which is also the scope of their tasks. */
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-// Recomputes when a filter changes or the store is mutated.
 const tasks = computed(() =>
   currentUserId.value
     ? TaskService.getUserTasksFiltered(
@@ -82,7 +77,6 @@ const tasks = computed(() =>
     : [],
 );
 
-/** Breakdown of the filtered tasks by type, orthogonal to both filters above. */
 const typeChart = computed(() => {
   const counts: Record<string, number> = { feature: 0, bug: 0, chore: 0, research: 0 };
   for (const task of tasks.value) {
@@ -98,21 +92,14 @@ const typeChart = computed(() => {
 });
 
 // functions
-/**
- * Project name for a row. Tasks are already scoped to the user's projects, so
- * a miss here would mean stored data pointing at a project that no longer
- * exists — which the delete cascade is there to prevent.
- */
 function projectName(task: TaskInterface): string {
   return ProjectService.getById(task.projectId)?.name ?? 'Unknown project';
 }
 
-/** Assignee name for a row, or a dash while nobody has picked the task up. */
 function assigneeName(task: TaskInterface): string {
   return TaskService.getAssignee(task)?.name ?? '—';
 }
 
-/** Asks for confirmation, then deletes the task and reports the outcome. */
 function handleDelete(task: TaskInterface): void {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,

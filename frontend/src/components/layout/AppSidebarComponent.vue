@@ -13,9 +13,7 @@ import { USER_ROLE } from '@/utils/labels';
 interface NavItem {
   label: string;
   to: string;
-  /** SVG path data for the 24x24 outline icon. */
   icon: string;
-  /** Renders the padlock badge. Matches the route's requiresAdmin guard. */
   adminOnly?: boolean;
 }
 
@@ -70,20 +68,13 @@ const groups: NavGroup[] = [
 
 // props
 const { currentUser, isAdmin } = defineProps<{
-  /** The signed-in user, resolved by AppLayout. Null when there is no session. */
   currentUser: UserInterface | null;
-  /** Whether that user is an administrator, so admin-only entries can show. */
   isAdmin: boolean;
 }>();
 
 // emits
 const emit = defineEmits<{ logout: [] }>();
 
-/**
- * Admin-only entries are hidden from members rather than shown locked: the
- * route guard would bounce them to the dashboard, so a padlocked link is a
- * dead end. Admins still see the padlock, which marks the entry as restricted.
- */
 const visibleGroups = computed(() =>
   groups
     .map((group) => ({
@@ -93,10 +84,6 @@ const visibleGroups = computed(() =>
     .filter((group) => group.items.length > 0),
 );
 
-/**
- * Display shape for the footer. Formatting the name stays here because it is
- * presentation, not domain logic — only the lookup moved to the layout.
- */
 const userDisplay = computed(() => {
   if (!currentUser) return null;
 

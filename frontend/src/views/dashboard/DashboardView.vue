@@ -29,7 +29,6 @@ import {
 } from '@/utils/labels';
 
 // variables
-/** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
 
 const myTaskColumns: DataTableColumn[] = [
@@ -64,8 +63,6 @@ const selectorStatuses = toFilterOptions(TASK_STATUS);
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
-// Membership decides visibility here exactly as it does on the projects
-// screen, so a member sees only the projects they belong to.
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
@@ -74,13 +71,8 @@ const sprints = computed(() =>
   selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
 );
 
-/**
- * Neither the range selector nor the velocity chart says anything until the
- * project has a sprint, so both are guarded by this.
- */
 const hasSprints = computed(() => sprints.value.length > 0);
 
-/** null means "the whole project" for every DashboardService call. */
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
 const progress = computed(() =>
@@ -116,20 +108,15 @@ const statusChart = computed(() => ({
   colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
 }));
 
-const velocity = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
-const velocityChart = computed(() => ({
-  labels: velocity.value.labels,
+const completion = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
+const completionChart = computed(() => ({
+  labels: completion.value.labels,
   series: [
-    { label: 'Committed', values: velocity.value.committed, color: CHART_COLORS.muted },
-    { label: 'Completed', values: velocity.value.values, color: CHART_COLORS.done },
+    { label: 'Committed', values: completion.value.committed, color: CHART_COLORS.muted },
+    { label: 'Completed', values: completion.value.values, color: CHART_COLORS.done },
   ],
 }));
 
-/**
- * Admins get the workload comparison across the team; members get their own
- * queue instead, since a chart ranking colleagues is neither useful nor
- * theirs to see.
- */
 const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
@@ -155,8 +142,6 @@ const workloadChart = computed(() => ({
   series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
 }));
 
-/** Task totals across every one of the user's projects, independent of the
- * single project selected above, so the distribution can be compared. */
 const projectDistribution = computed(() =>
   currentUserId.value
     ? DashboardService.getTasksByProject(currentUserId.value)
@@ -262,14 +247,14 @@ watch(
           />
         </PanelCardComponent>
 
-        <PanelCardComponent title="Sprint velocity" padded>
+        <PanelCardComponent title="Sprint completion" padded>
           <BarChartComponent
             v-if="hasSprints"
-            :labels="velocityChart.labels"
-            :series="velocityChart.series"
+            :labels="completionChart.labels"
+            :series="completionChart.series"
           />
           <p v-else class="py-16 text-center text-sm text-ink-soft">
-            This project has no sprints yet, so there is no velocity to compare.
+            This project has no sprints yet, so there is no completion data to compare.
           </p>
         </PanelCardComponent>
       </div>

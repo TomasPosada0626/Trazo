@@ -43,7 +43,6 @@ const selectedRole = ref<string>(initialValues?.role ?? 'member');
 const selectorRoles = toSelectOptions(USER_ROLE);
 
 // functions
-/** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),

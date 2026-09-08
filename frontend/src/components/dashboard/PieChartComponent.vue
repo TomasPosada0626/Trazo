@@ -12,7 +12,6 @@ Chart.register(PieController, ArcElement, Tooltip, Legend);
 const { labels, values, colors } = defineProps<{
   labels: string[];
   values: number[];
-  /** One colour per slice, in the same order as `labels`. */
   colors: string[];
 }>();
 
@@ -20,7 +19,6 @@ const { labels, values, colors } = defineProps<{
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 
-/** A pie of all zeros renders as an empty circle, so say so instead. */
 const isEmpty = ref(false);
 
 // functions
@@ -52,7 +50,6 @@ function render(): void {
         legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16 } },
         tooltip: {
           callbacks: {
-            // Chart.js shows the raw count; the share is what a pie is for.
             label: (context) => {
               const total = values.reduce((sum, value) => sum + value, 0);
               const share = total ? Math.round((context.parsed / total) * 100) : 0;
@@ -68,8 +65,6 @@ function render(): void {
 onMounted(render);
 
 // watchers
-// Every field is read straight from the props inside the callback, so there
-// is no old/new value to name here.
 watch(
   () => [labels, values, colors],
   () => {

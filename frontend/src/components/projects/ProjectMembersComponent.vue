@@ -11,11 +11,8 @@ import { USER_ROLE } from '@/utils/labels';
 
 // props
 const { members, nonMembers, currentUserId } = defineProps<{
-  /** The project's members, already resolved by the view. */
   members: UserInterface[];
-  /** Users who do not belong to the project yet: the "add member" options. */
   nonMembers: UserInterface[];
-  /** Id of the signed-in user, or null when there is no session. */
   currentUserId: number | null;
 }>();
 
@@ -33,16 +30,10 @@ const selectorUsers = computed(() =>
 );
 
 // functions
-/**
- * You cannot remove yourself: to leave a project you administer, delete it.
- * This is also what stops a project from becoming unreachable, since only
- * admins reach this screen and only for projects they belong to.
- */
 function canRemove(userId: number): boolean {
   return userId !== currentUserId;
 }
 
-/** Asks the view to add the picked user; the view owns the service call. */
 function handleAdd(): void {
   if (!selectedUserId.value) return;
   emit('add', selectedUserId.value);

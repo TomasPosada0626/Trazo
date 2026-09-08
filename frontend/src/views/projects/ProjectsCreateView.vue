@@ -15,7 +15,6 @@ import { ProjectService } from '@/services/ProjectService';
 const router = useRouter();
 
 // functions
-/** Creates the project and returns to the listing. */
 function handleSubmit(values: ProjectFormValues): void {
   // The service adds the creator as the first member.
   ProjectService.create(values);
