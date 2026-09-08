@@ -8,7 +8,7 @@ Project and task management platform built with Vue 3, TypeScript, and Pinia. Or
 
 ## Live Demo
 
-Deployed on Google Cloud Platform: **[http://34.29.156.222/](http://34.29.156.222/)**
+Deployed on Google Cloud Platform: **[http://35.194.49.181/](http://35.194.49.181/)**
 
 See [Demo Accounts](#demo-accounts) below for login credentials.
 
