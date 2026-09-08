@@ -5,7 +5,6 @@
 const { adminOnly = false } = defineProps<{
   title: string;
   subtitle: string;
-  /** Shows the "administrators only" tag from the mockups. */
   adminOnly?: boolean;
 }>();
 </script>

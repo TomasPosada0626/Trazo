@@ -11,70 +11,60 @@ import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
-// variables
-/**
- * What this form can produce. `sprintId` is left out on purpose: sprints have
- * no store yet, so there is nothing to pick from. Create sends null and edit
- * leaves the stored value untouched, so the sprint slice only has to add the
- * field here rather than rework the views.
- */
-export type TaskFormValues = Omit<CreateTaskDTO, 'sprintId'>;
-
 // props
-const { initialValues, submitLabel, projectOptions, assignableUsers } = defineProps<{
-  /** Prefills the fields when editing. Omit for a blank create form. */
-  initialValues?: TaskFormValues;
+const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
+  initialValues?: CreateTaskDTO;
   submitLabel: string;
-  /** Projects the signed-in user may file a task under. */
-  projectOptions: SelectOption<number>[];
-  /** Member pool per project id, so the assignee list follows the project. */
-  assignableUsers: Record<number, SelectOption<number>[]>;
+  selectorProjects: SelectOption<number>[];
+  selectorAssigneesByProject: Record<number, SelectOption<number>[]>;
 }>();
 
 // emits
-const emit = defineEmits<{ submit: [values: TaskFormValues] }>();
+const emit = defineEmits<{ submit: [values: CreateTaskDTO] }>();
 
 // reactive variables
-/** 0 stands for "nobody": nextId never issues it. */
 const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain strings: SelectFieldComponent and TextFieldComponent are string-typed, so the unions and
-// the number are re-applied on submit.
-const type = ref<string>(initialValues?.type ?? 'feature');
-const priority = ref<string>(initialValues?.priority ?? 'medium');
-const status = ref<string>(initialValues?.status ?? 'todo');
 const storyPoints = ref(String(initialValues?.storyPoints ?? 0));
 const dueDate = ref(initialValues?.dueDate ?? '');
-const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
-const assigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
 
 // selectors
-const typeOptions = toSelectOptions(TASK_TYPE);
-const priorityOptions = toSelectOptions(TASK_PRIORITY);
-const statusOptions = toSelectOptions(TASK_STATUS);
+const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
-/** Members of the selected project, plus the "nobody yet" entry. */
-const assigneeOptions = computed<SelectOption<number>[]>(() => [
+const selectedAssigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
+
+const selectorAssignees = computed<SelectOption<number>[]>(() => [
   { value: UNASSIGNED, label: 'Unassigned' },
-  ...(assignableUsers[projectId.value] ?? []),
+  ...(selectorAssigneesByProject[selectedProjectId.value] ?? []),
 ]);
 
+const selectedType = ref<string>(initialValues?.type ?? 'feature');
+
+const selectorTypes = toSelectOptions(TASK_TYPE);
+
+const selectedPriority = ref<string>(initialValues?.priority ?? 'medium');
+
+const selectorPriorities = toSelectOptions(TASK_PRIORITY);
+
+const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
+
+const selectorStatuses = toSelectOptions(TASK_STATUS);
+
 // functions
-/** Sends normalized form values to the owning view. */
 function handleSubmit(): void {
   emit('submit', {
     title: title.value.trim(),
     description: description.value.trim(),
-    type: type.value as TaskType,
+    type: selectedType.value as TaskType,
     storyPoints: Math.max(0, Number(storyPoints.value) || 0),
-    priority: priority.value as TaskPriority,
-    status: status.value as TaskStatus,
+    priority: selectedPriority.value as TaskPriority,
+    status: selectedStatus.value as TaskStatus,
     // An empty date input means "no deadline", which the interface stores as null.
     dueDate: dueDate.value || null,
-    projectId: projectId.value,
-    assigneeId: assigneeId.value || null,
+    projectId: selectedProjectId.value,
+    assigneeId: selectedAssigneeId.value || null,
   });
 }
 
@@ -82,9 +72,9 @@ function handleSubmit(): void {
 // Moving a task to another project can strand its assignee, who may not be a
 // member there. Clearing it keeps the form from submitting a pair the service
 // would reject.
-watch(assigneeOptions, (newOptions) => {
-  if (!newOptions.some((option) => option.value === assigneeId.value)) {
-    assigneeId.value = UNASSIGNED;
+watch(selectorAssignees, (newOptions) => {
+  if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {
+    selectedAssigneeId.value = UNASSIGNED;
   }
 });
 </script>
@@ -107,33 +97,38 @@ watch(assigneeOptions, (newOptions) => {
 
     <SelectFieldComponent
       id="task-project"
-      v-model="projectId"
+      v-model="selectedProjectId"
       label="Project"
-      :options="projectOptions"
+      :options="selectorProjects"
     />
     <SelectFieldComponent
       id="task-assignee"
-      v-model="assigneeId"
+      v-model="selectedAssigneeId"
       label="Assignee"
-      :options="assigneeOptions"
+      :options="selectorAssignees"
     />
 
     <div class="grid gap-5 sm:grid-cols-2">
-      <SelectFieldComponent id="task-type" v-model="type" label="Type" :options="typeOptions" />
+      <SelectFieldComponent
+        id="task-type"
+        v-model="selectedType"
+        label="Type"
+        :options="selectorTypes"
+      />
       <SelectFieldComponent
         id="task-priority"
-        v-model="priority"
+        v-model="selectedPriority"
         label="Priority"
-        :options="priorityOptions"
+        :options="selectorPriorities"
       />
     </div>
 
     <div class="grid gap-5 sm:grid-cols-2">
       <SelectFieldComponent
         id="task-status"
-        v-model="status"
+        v-model="selectedStatus"
         label="Status"
-        :options="statusOptions"
+        :options="selectorStatuses"
       />
       <TextFieldComponent
         id="task-points"

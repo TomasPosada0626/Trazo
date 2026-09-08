@@ -5,7 +5,6 @@
 export interface DataTableColumn {
   key: string;
   label: string;
-  /** Extra classes for this column's header cell, e.g. 'text-right'. */
   class?: string;
 }
 

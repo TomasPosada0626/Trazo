@@ -1,8 +1,5 @@
 <script setup lang="ts">
 // Author: Mateo Garcia Carreno
-
-// Short human-readable record code, e.g. PRJ-01, built from a plain integer
-// id by utils/id.ts's shortId().
 </script>
 
 <template>

@@ -43,32 +43,37 @@ export class SprintService {
   }
 
   /**
-   * Creates and stores a sprint with a generated id.
+   * Creates and stores a sprint with a generated id, then schedules the tasks
+   * it was planned with.
    *
-   * @param data Sprint fields supplied by the form.
+   * @param data Sprint fields supplied by the form, plus its task selection.
    * @returns The stored sprint.
    * @throws {Error} When the project does not exist or another sprint of the
    * same project already uses the name.
    */
-  static create(data: CreateSprintDTO): SprintInterface {
+  static create({ taskIds, ...data }: CreateSprintDTO): SprintInterface {
     SprintService.assertValid(data.name, data.projectId);
 
     const sprint: SprintInterface = { id: nextId(useSprintStore().sprints), ...data };
 
     // Mutating in place keeps PiniaConfig's deep watcher cheap.
     useSprintStore().sprints.push(sprint);
+
+    // The sprint has to exist before a task can point at it.
+    SprintService.setTasks(sprint.id, taskIds);
     return sprint;
   }
 
   /**
-   * Applies a partial update. No-op when the id does not exist.
+   * Applies a partial update, rescheduling its tasks when `taskIds` is given.
+   * No-op when the id does not exist.
    *
    * @param id Id of the sprint to update.
    * @param changes Fields to overwrite; omitted fields keep their value.
    * @throws {Error} When the name changes to one already used by another
    * sprint of the same project.
    */
-  static update(id: number, changes: UpdateSprintDTO): void {
+  static update(id: number, { taskIds, ...changes }: UpdateSprintDTO): void {
     const sprint = SprintService.getById(id);
     if (!sprint) return;
 
@@ -77,6 +82,9 @@ export class SprintService {
     }
 
     Object.assign(sprint, changes);
+
+    // An empty array is an instruction, not an absence: it clears the sprint.
+    if (taskIds !== undefined) SprintService.setTasks(id, taskIds);
   }
 
   /**

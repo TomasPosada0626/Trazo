@@ -29,7 +29,6 @@ import {
 } from '@/utils/labels';
 
 // variables
-/** Range sentinel. Ids start at 1, so 'all' can never collide with one. */
 const ALL_TIME = 'all';
 
 const myTaskColumns: DataTableColumn[] = [
@@ -40,32 +39,16 @@ const myTaskColumns: DataTableColumn[] = [
   { key: 'dueDate', label: 'Due date' },
 ];
 
-// reactive variables
-const projectId = ref<number>(0);
-const range = ref<number | 'all'>(ALL_TIME);
-const statusFilter = ref<TaskStatus | 'all'>('all');
-
 // selectors
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+const selectedProjectId = ref<number>(0);
 
-// Membership decides visibility here exactly as it does on the projects
-// screen, so a member sees only the projects they belong to.
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const projectOptions = computed(() =>
+const selectorProjects = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-const sprints = computed(() =>
-  projectId.value ? SprintService.getByProject(projectId.value) : [],
-);
+const selectedRange = ref<number | 'all'>(ALL_TIME);
 
-/** The range selector is only meaningful once the project has a sprint. */
-const hasSprints = computed(() => sprints.value.length > 0);
-
-const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
+const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
@@ -73,27 +56,51 @@ const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
   })),
 ]);
 
-/** null means "the whole project" for every DashboardService call. */
-const sprintId = computed(() => (range.value === ALL_TIME ? null : range.value));
+const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const statusOptions = toFilterOptions(TASK_STATUS);
+const selectorStatuses = toFilterOptions(TASK_STATUS);
+
+// computed variables
+const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+
+const projects = computed(() =>
+  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
+);
+
+const sprints = computed(() =>
+  selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
+);
+
+const hasSprints = computed(() => sprints.value.length > 0);
+
+const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
 const progress = computed(() =>
-  DashboardService.getProgress(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
-const activeSprints = computed(() => DashboardService.getActiveSprintCount(projectId.value));
+const activeSprints = computed(() =>
+  DashboardService.getActiveSprintCount(selectedProjectId.value),
+);
 const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getCompletedTaskCount(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getOverdueTaskCount(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 
 const statusSeries = computed(() =>
-  DashboardService.getTasksByStatus(projectId.value, sprintId.value),
+  DashboardService.getTasksByStatus(selectedProjectId.value, sprintId.value),
 );
 const statusChart = computed(() => ({
   labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
@@ -101,43 +108,40 @@ const statusChart = computed(() => ({
   colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
 }));
 
-const velocity = computed(() => DashboardService.getVelocitySeries(projectId.value));
-const velocityChart = computed(() => ({
-  labels: velocity.value.labels,
+const completion = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
+const completionChart = computed(() => ({
+  labels: completion.value.labels,
   series: [
-    { label: 'Committed', values: velocity.value.committed, color: CHART_COLORS.muted },
-    { label: 'Completed', values: velocity.value.values, color: CHART_COLORS.done },
+    { label: 'Committed', values: completion.value.committed, color: CHART_COLORS.muted },
+    { label: 'Completed', values: completion.value.values, color: CHART_COLORS.done },
   ],
 }));
 
-/**
- * Admins get the workload comparison across the team; members get their own
- * queue instead, since a chart ranking colleagues is neither useful nor
- * theirs to see.
- */
 const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
   currentUserId.value
     ? DashboardService.getUserTasks(
-        projectId.value,
+        selectedProjectId.value,
         sprintId.value,
         currentUserId.value,
-        statusFilter.value,
+        selectedStatus.value,
       )
     : [],
 );
 
 const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getWorkloadByAssignee(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
   series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
 }));
 
-/** Task totals across every one of the user's projects, independent of the
- * single project selected above, so the distribution can be compared. */
 const projectDistribution = computed(() =>
   currentUserId.value
     ? DashboardService.getTasksByProject(currentUserId.value)
@@ -153,8 +157,8 @@ const projectDistributionChart = computed(() => ({
 watch(
   projects,
   (newProjects) => {
-    if (!newProjects.some((project) => project.id === projectId.value)) {
-      projectId.value = newProjects[0]?.id ?? 0;
+    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
+      selectedProjectId.value = newProjects[0]?.id ?? 0;
     }
   },
   { immediate: true },
@@ -165,8 +169,8 @@ watch(
 watch(
   sprints,
   (newSprints) => {
-    if (!newSprints.some((sprint) => sprint.id === range.value)) {
-      range.value = ALL_TIME;
+    if (!newSprints.some((sprint) => sprint.id === selectedRange.value)) {
+      selectedRange.value = ALL_TIME;
     }
   },
   { immediate: true },
@@ -182,28 +186,28 @@ watch(
       <template v-if="projects.length" #actions>
         <SelectFieldComponent
           id="dashboard-project"
-          v-model="projectId"
+          v-model="selectedProjectId"
           label="Project"
           compact
-          :options="projectOptions"
+          :options="selectorProjects"
           class="w-56"
         />
         <SelectFieldComponent
           id="dashboard-range"
-          v-model="range"
+          v-model="selectedRange"
           label="Range"
           compact
-          :options="rangeOptions"
+          :options="selectorRanges"
           :disabled="!hasSprints"
           :title="hasSprints ? undefined : 'This project has no sprints yet'"
           class="w-56"
         />
         <SelectFieldComponent
           id="dashboard-status"
-          v-model="statusFilter"
+          v-model="selectedStatus"
           label="Status"
           compact
-          :options="statusOptions"
+          :options="selectorStatuses"
           class="w-44"
         />
       </template>
@@ -243,14 +247,14 @@ watch(
           />
         </PanelCardComponent>
 
-        <PanelCardComponent title="Sprint velocity" padded>
+        <PanelCardComponent title="Sprint completion" padded>
           <BarChartComponent
             v-if="hasSprints"
-            :labels="velocityChart.labels"
-            :series="velocityChart.series"
+            :labels="completionChart.labels"
+            :series="completionChart.series"
           />
           <p v-else class="py-16 text-center text-sm text-ink-soft">
-            This project has no sprints yet, so there is no velocity to compare.
+            This project has no sprints yet, so there is no completion data to compare.
           </p>
         </PanelCardComponent>
       </div>

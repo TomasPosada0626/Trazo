@@ -5,12 +5,11 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, {
-  type ProjectFormValues,
-} from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 
@@ -18,16 +17,9 @@ import { ProjectService } from '@/services/ProjectService';
 const route = useRoute();
 const router = useRouter();
 
-// A non-numeric URL yields NaN, which no record matches, so the view
-// falls through to its "not found" panel.
 const projectId = Number(route.params.id);
 
-// selectors
-/**
- * Membership is the visibility rule, and the route guard only checks the admin
- * role. Without this an admin could open another admin's project by typing its
- * URL, and remove members from a project they do not belong to.
- */
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
 
 const project = computed(() => {
@@ -39,11 +31,6 @@ const project = computed(() => {
   return found;
 });
 
-/**
- * The roster is resolved here rather than inside ProjectMembersComponent: a
- * reusable component takes its data from props and reports back with emits,
- * so every service call for this screen lives in this view.
- */
 const members = computed(() => (project.value ? ProjectService.getMembers(project.value) : []));
 
 const nonMembers = computed(() =>
@@ -51,32 +38,29 @@ const nonMembers = computed(() =>
 );
 
 // functions
-/** Adds the user the members panel picked. */
 function handleAddMember(userId: number): void {
   ProjectService.addMember(projectId, userId);
 }
 
-/** Removes the user the members panel picked. */
 function handleRemoveMember(userId: number): void {
   ProjectService.removeMember(projectId, userId);
 }
 
-/** Saves the edited project and returns to the listing. */
-function handleSubmit(values: ProjectFormValues): void {
+function handleSubmit(values: UpdateProjectDTO): void {
   ProjectService.update(projectId, values);
   router.push({ name: 'projects' });
 }
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Edit project"
       subtitle="Update the project's name, description or status."
       admin-only
     />
 
-    <PanelCardComponent v-if="project" title="Project details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="project" title="Project details" padded>
       <ProjectFormComponent
         :initial-values="{
           name: project.name,
@@ -88,7 +72,7 @@ function handleSubmit(values: ProjectFormValues): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="project" title="Project members" padded class="max-w-2xl">
+    <PanelCardComponent v-if="project" title="Project members" padded>
       <ProjectMembersComponent
         :members="members"
         :non-members="nonMembers"
@@ -98,7 +82,7 @@ function handleSubmit(values: ProjectFormValues): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!project" title="Project not found" padded class="max-w-2xl">
+    <PanelCardComponent v-if="!project" title="Project not found" padded>
       <p class="text-sm text-ink-soft">
         The project you are trying to edit does not exist, or you do not belong to it.
       </p>

@@ -4,19 +4,17 @@
 // external imports
 import { useRouter } from 'vue-router';
 // internal imports
-import ProjectFormComponent, {
-  type ProjectFormValues,
-} from '@/components/projects/ProjectFormComponent.vue';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
 
 // variables
 const router = useRouter();
 
 // functions
-/** Creates the project and returns to the listing. */
-function handleSubmit(values: ProjectFormValues): void {
+function handleSubmit(values: CreateProjectDTO): void {
   // The service adds the creator as the first member.
   ProjectService.create(values);
   router.push({ name: 'projects' });
@@ -24,14 +22,14 @@ function handleSubmit(values: ProjectFormValues): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="New project"
       subtitle="Define the scope and the initial status of the project."
       admin-only
     />
 
-    <PanelCardComponent title="Project details" padded class="max-w-2xl">
+    <PanelCardComponent title="Project details" padded>
       <ProjectFormComponent submit-label="Save project" @submit="handleSubmit" />
     </PanelCardComponent>
   </div>

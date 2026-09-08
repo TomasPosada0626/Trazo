@@ -23,7 +23,7 @@ See [Demo Accounts](#demo-accounts) below for login credentials.
   - **Administrator**: Full access + Projects, Sprints and Users management panels
   - **Member**: Dashboard and their own assigned tasks
 - **Persistent client-side state** — All data persisted in `localStorage`, with mock data seeded automatically on first load
-- **Interactive data visualizations** — Powered by Chart.js, CountUp.js and a vue-cal sprint timeline
+- **Interactive data visualizations** — Powered by Chart.js and CountUp.js
 
 ---
 
@@ -37,7 +37,7 @@ See [Demo Accounts](#demo-accounts) below for login credentials.
 | State management      | Pinia                                        |
 | Routing               | Vue Router                                   |
 | Styling               | Tailwind CSS v4                              |
-| Charts                | Chart.js, countup.js, vue-cal                |
+| Charts                | Chart.js, countup.js                         |
 | Linting / Formatting  | ESLint, Oxlint, Prettier                     |
 
 ---

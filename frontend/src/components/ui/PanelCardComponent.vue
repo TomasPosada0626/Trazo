@@ -4,7 +4,6 @@
 // props
 const { title = '', padded = false } = defineProps<{
   title?: string;
-  /** Adds padding to the body. Tables sit flush, forms do not. */
   padded?: boolean;
 }>();
 </script>
