@@ -57,18 +57,13 @@ function handleSubmit(values: CreateTaskDTO): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="New task"
       subtitle="Describe the work, file it under a project and hand it to a teammate."
     />
 
-    <PanelCardComponent
-      v-if="selectorProjects.length"
-      title="Task details"
-      padded
-      class="max-w-2xl"
-    >
+    <PanelCardComponent v-if="selectorProjects.length" title="Task details" padded>
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -84,7 +79,7 @@ function handleSubmit(values: CreateTaskDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="No projects available" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="No projects available" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.

@@ -67,13 +67,13 @@ function handleSubmit(values: UpdateTaskDTO): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Edit task"
       subtitle="Update the task's details, status or assignee."
     />
 
-    <PanelCardComponent v-if="task" title="Task details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="task" title="Task details" padded>
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -100,7 +100,7 @@ function handleSubmit(values: UpdateTaskDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="Task not found" padded class="max-w-2xl">
+    <PanelCardComponent v-else title="Task not found" padded>
       <p class="text-sm text-ink-soft">
         The task you are trying to edit does not exist, or it belongs to a project you are not a
         member of.

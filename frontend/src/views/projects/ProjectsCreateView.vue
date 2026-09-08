@@ -22,14 +22,14 @@ function handleSubmit(values: CreateProjectDTO): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="New project"
       subtitle="Define the scope and the initial status of the project."
       admin-only
     />
 
-    <PanelCardComponent title="Project details" padded class="max-w-2xl">
+    <PanelCardComponent title="Project details" padded>
       <ProjectFormComponent submit-label="Save project" @submit="handleSubmit" />
     </PanelCardComponent>
   </div>

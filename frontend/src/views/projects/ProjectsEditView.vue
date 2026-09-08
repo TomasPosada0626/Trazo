@@ -53,14 +53,14 @@ function handleSubmit(values: UpdateProjectDTO): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Edit project"
       subtitle="Update the project's name, description or status."
       admin-only
     />
 
-    <PanelCardComponent v-if="project" title="Project details" padded class="max-w-2xl">
+    <PanelCardComponent v-if="project" title="Project details" padded>
       <ProjectFormComponent
         :initial-values="{
           name: project.name,
@@ -72,7 +72,7 @@ function handleSubmit(values: UpdateProjectDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="project" title="Project members" padded class="max-w-2xl">
+    <PanelCardComponent v-if="project" title="Project members" padded>
       <ProjectMembersComponent
         :members="members"
         :non-members="nonMembers"
@@ -82,7 +82,7 @@ function handleSubmit(values: UpdateProjectDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!project" title="Project not found" padded class="max-w-2xl">
+    <PanelCardComponent v-if="!project" title="Project not found" padded>
       <p class="text-sm text-ink-soft">
         The project you are trying to edit does not exist, or you do not belong to it.
       </p>

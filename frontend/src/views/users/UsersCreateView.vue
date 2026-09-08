@@ -21,14 +21,14 @@ function handleSubmit(values: CreateUserDTO): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mx-auto max-w-3xl space-y-8">
     <PageHeaderComponent
       title="Add user"
       subtitle="Register an account and assign it a role within the system."
       admin-only
     />
 
-    <PanelCardComponent title="User details" padded class="max-w-2xl">
+    <PanelCardComponent title="User details" padded>
       <UserFormComponent submit-label="Save user" @submit="handleSubmit" />
     </PanelCardComponent>
   </div>
