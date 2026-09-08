@@ -22,7 +22,7 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const projectId = Number(route.params.id);
 
-// selectors
+// computed variables
 /**
  * Membership is the visibility rule, and the route guard only checks the admin
  * role. Without this an admin could open another admin's project by typing its

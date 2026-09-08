@@ -30,19 +30,20 @@ const emit = defineEmits<{ submit: [values: ProjectFormValues] }>();
 // reactive variables
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
-// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
-// re-applied on submit.
-const status = ref<string>(initialValues?.status ?? 'active');
 
 // selectors
-const statusOptions = toSelectOptions(PROJECT_STATUS);
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
+// re-applied on submit.
+const selectedStatus = ref<string>(initialValues?.status ?? 'active');
+
+const selectorStatuses = toSelectOptions(PROJECT_STATUS);
 
 // functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),
     description: description.value.trim(),
-    status: status.value as ProjectStatus,
+    status: selectedStatus.value as ProjectStatus,
   });
 }
 </script>
@@ -64,9 +65,9 @@ function handleSubmit(): void {
     />
     <SelectFieldComponent
       id="project-status"
-      v-model="status"
+      v-model="selectedStatus"
       label="Project status"
-      :options="statusOptions"
+      :options="selectorStatuses"
     />
 
     <div class="flex items-center gap-3 pt-2">

@@ -36,10 +36,11 @@ const emit = defineEmits<{ submit: [values: UserFormValues] }>();
 const name = ref(initialValues?.name ?? '');
 const email = ref(initialValues?.email ?? '');
 const password = ref('');
-const role = ref<string>(initialValues?.role ?? 'member');
 
 // selectors
-const roleOptions = toSelectOptions(USER_ROLE);
+const selectedRole = ref<string>(initialValues?.role ?? 'member');
+
+const selectorRoles = toSelectOptions(USER_ROLE);
 
 // functions
 /** Sends normalized form values to the owning view. */
@@ -48,7 +49,7 @@ function handleSubmit(): void {
     name: name.value.trim(),
     email: email.value.trim(),
     password: password.value,
-    role: role.value as UserRole,
+    role: selectedRole.value as UserRole,
   });
 }
 </script>
@@ -78,7 +79,12 @@ function handleSubmit(): void {
       :placeholder="passwordRequired ? '••••••••' : 'Leave blank to keep current password'"
       :required="passwordRequired"
     />
-    <SelectFieldComponent id="user-role" v-model="role" label="Role" :options="roleOptions" />
+    <SelectFieldComponent
+      id="user-role"
+      v-model="selectedRole"
+      label="Role"
+      :options="selectorRoles"
+    />
 
     <div class="flex items-center gap-3 pt-2">
       <button

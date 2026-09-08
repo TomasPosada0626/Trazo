@@ -29,25 +29,25 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// reactive variables
-const statusFilter = ref<ProjectStatus | 'all'>('all');
-
 // selectors
+const selectedStatus = ref<ProjectStatus | 'all'>('all');
+
+const selectorStatuses = toFilterOptions(PROJECT_STATUS);
+
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // Only the signed-in user's projects. Recomputes when the filter changes or
 // the store is mutated.
 const projects = computed(() =>
   currentUserId.value
-    ? ProjectService.getUserProjectsByStatus(currentUserId.value, statusFilter.value)
+    ? ProjectService.getUserProjectsByStatus(currentUserId.value, selectedStatus.value)
     : [],
 );
 
-const statusOptions = toFilterOptions(PROJECT_STATUS);
-
 /**
  * Breakdown of every one of the user's projects by status, independent of
- * `statusFilter` so the overview stays meaningful even when the table below
+ * `selectedStatus` so the overview stays meaningful even when the table below
  * is narrowed down to a single status.
  */
 const statusChart = computed(() => {
@@ -114,10 +114,10 @@ function handleDelete(project: ProjectInterface): void {
       <template #actions>
         <SelectFieldComponent
           id="project-status-filter"
-          v-model="statusFilter"
+          v-model="selectedStatus"
           label="Status"
           compact
-          :options="statusOptions"
+          :options="selectorStatuses"
           class="w-44"
         />
       </template>

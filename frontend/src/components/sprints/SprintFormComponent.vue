@@ -39,11 +39,11 @@ export interface SprintFormValues {
 }
 
 // props
-const { initialValues, submitLabel, projectOptions, tasksByProject } = defineProps<{
+const { initialValues, submitLabel, selectorProjects, tasksByProject } = defineProps<{
   /** Prefills the fields when editing. Omit for a blank create form. */
   initialValues?: SprintFormValues;
   submitLabel: string;
-  projectOptions: { value: number; label: string }[];
+  selectorProjects: { value: number; label: string }[];
   /** Schedulable tasks per project id, resolved by the view. */
   tasksByProject: Record<number, SchedulableTask[]>;
 }>();
@@ -54,18 +54,23 @@ const emit = defineEmits<{ submit: [values: SprintFormValues] }>();
 // reactive variables
 const name = ref(initialValues?.name ?? '');
 const goal = ref(initialValues?.goal ?? '');
-const projectId = ref<number>(initialValues?.projectId ?? projectOptions[0]?.value ?? 0);
 const startDate = ref(initialValues?.startDate ?? '');
 const endDate = ref(initialValues?.endDate ?? '');
-// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
-// re-applied on submit.
-const status = ref<string>(initialValues?.status ?? 'planned');
 const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
 const error = ref('');
 
 // selectors
-const statusOptions = toSelectOptions(SPRINT_STATUS);
+// The options come from the `selectorProjects` prop, which the owning view
+// resolves, so this form makes no service call of its own.
+const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
+// Plain string: SelectFieldComponent's v-model is string-typed, so the union is
+// re-applied on submit.
+const selectedStatus = ref<string>(initialValues?.status ?? 'planned');
+
+const selectorStatuses = toSelectOptions(SPRINT_STATUS);
+
+// computed variables
 /**
  * Editing cannot move a sprint to another project: its tasks belong to the
  * original project, so they would all have to be unscheduled to follow it.
@@ -73,7 +78,7 @@ const statusOptions = toSelectOptions(SPRINT_STATUS);
 const isEditing = computed(() => initialValues !== undefined);
 
 /** Every task of the project, since this form is the only way to schedule one. */
-const projectTasks = computed(() => tasksByProject[projectId.value] ?? []);
+const projectTasks = computed(() => tasksByProject[selectedProjectId.value] ?? []);
 
 /** The sprint's commitment, derived from the selection rather than typed. */
 const selectedPoints = computed(() =>
@@ -94,10 +99,10 @@ function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),
     goal: goal.value.trim(),
-    projectId: projectId.value,
+    projectId: selectedProjectId.value,
     startDate: startDate.value,
     endDate: endDate.value,
-    status: status.value as SprintStatus,
+    status: selectedStatus.value as SprintStatus,
     taskIds: [...selectedTaskIds.value],
   });
 }
@@ -107,7 +112,7 @@ function handleSubmit(): void {
 // whenever the project changes. Editing keeps the project fixed, so this only
 // ever fires while creating. The project id itself is the only thing this
 // needs, so there's no old/new value worth naming in the callback.
-watch(projectId, () => {
+watch(selectedProjectId, () => {
   selectedTaskIds.value = [];
 });
 </script>
@@ -129,9 +134,9 @@ watch(projectId, () => {
     />
     <SelectFieldComponent
       id="sprint-project"
-      v-model="projectId"
+      v-model="selectedProjectId"
       label="Project"
-      :options="projectOptions"
+      :options="selectorProjects"
       :disabled="isEditing"
       :title="isEditing ? 'A sprint cannot change project once its tasks are scheduled' : undefined"
     />
@@ -149,9 +154,9 @@ watch(projectId, () => {
 
     <SelectFieldComponent
       id="sprint-status"
-      v-model="status"
+      v-model="selectedStatus"
       label="Status"
-      :options="statusOptions"
+      :options="selectorStatuses"
     />
 
     <fieldset>

@@ -29,6 +29,12 @@ const sprintId = Number(route.params.id);
 const error = ref('');
 
 // selectors
+const selectorProjects = computed(() => {
+  const project = sprint.value ? ProjectService.getById(sprint.value.projectId) : undefined;
+  return project ? [{ value: project.id, label: project.name }] : [];
+});
+
+// computed variables
 /**
  * Membership is the visibility rule, and the route guard only checks the admin
  * role. Without this an admin could open a sprint of another admin's project
@@ -43,11 +49,6 @@ const sprint = computed(() => {
   if (!project || !ProjectService.isMember(project, currentUserId)) return undefined;
 
   return found;
-});
-
-const projectOptions = computed(() => {
-  const project = sprint.value ? ProjectService.getById(sprint.value.projectId) : undefined;
-  return project ? [{ value: project.id, label: project.name }] : [];
 });
 
 const initialValues = computed<SprintFormValues | undefined>(() => {
@@ -120,7 +121,7 @@ function handleSubmit(values: SprintFormValues): void {
 
       <SprintFormComponent
         :initial-values="initialValues"
-        :project-options="projectOptions"
+        :selector-projects="selectorProjects"
         :tasks-by-project="tasksByProject"
         submit-label="Save changes"
         @submit="handleSubmit"

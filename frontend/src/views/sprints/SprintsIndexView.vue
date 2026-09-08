@@ -46,28 +46,29 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// reactive variables
-const projectFilter = ref<number>(0);
-const statusFilter = ref<SprintStatus | 'all'>('all');
-
 // selectors
+const selectedProjectId = ref<number>(0);
+
+const selectorProjects = computed(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+const selectedStatus = ref<SprintStatus | 'all'>('all');
+
+const selectorStatuses = toFilterOptions(SPRINT_STATUS);
+
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectOptions = computed(() =>
-  projects.value.map((project) => ({ value: project.id, label: project.name })),
-);
-
-const statusOptions = toFilterOptions(SPRINT_STATUS);
-
 const sprints = computed<SprintRow[]>(() => {
-  if (!projectFilter.value) return [];
+  if (!selectedProjectId.value) return [];
 
-  return SprintService.getByProject(projectFilter.value)
-    .filter((sprint) => statusFilter.value === 'all' || sprint.status === statusFilter.value)
+  return SprintService.getByProject(selectedProjectId.value)
+    .filter((sprint) => selectedStatus.value === 'all' || sprint.status === selectedStatus.value)
     .map((sprint) => ({
       ...sprint,
       committedPoints: SprintService.getTotalCommittedPoints(sprint),
@@ -100,7 +101,7 @@ const timelineEvents = computed(() =>
 const timelineDate = computed(() => sprints.value[0]?.startDate ?? new Date());
 
 const selectedProjectName = computed(
-  () => projects.value.find((project) => project.id === projectFilter.value)?.name ?? '',
+  () => projects.value.find((project) => project.id === selectedProjectId.value)?.name ?? '',
 );
 
 // functions
@@ -126,8 +127,8 @@ function handleDelete(sprint: SprintRow): void {
 watch(
   projects,
   (newProjects) => {
-    if (!newProjects.some((project) => project.id === projectFilter.value)) {
-      projectFilter.value = newProjects[0]?.id ?? 0;
+    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
+      selectedProjectId.value = newProjects[0]?.id ?? 0;
     }
   },
   { immediate: true },
@@ -188,18 +189,18 @@ watch(
           <div class="flex flex-wrap items-end gap-3">
             <SelectFieldComponent
               id="sprint-project-filter"
-              v-model="projectFilter"
+              v-model="selectedProjectId"
               label="Project"
               compact
-              :options="projectOptions"
+              :options="selectorProjects"
               class="w-52"
             />
             <SelectFieldComponent
               id="sprint-status-filter"
-              v-model="statusFilter"
+              v-model="selectedStatus"
               label="Status"
               compact
-              :options="statusOptions"
+              :options="selectorStatuses"
               class="w-44"
             />
           </div>

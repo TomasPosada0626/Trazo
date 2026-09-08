@@ -40,12 +40,28 @@ const myTaskColumns: DataTableColumn[] = [
   { key: 'dueDate', label: 'Due date' },
 ];
 
-// reactive variables
-const projectId = ref<number>(0);
-const range = ref<number | 'all'>(ALL_TIME);
-const statusFilter = ref<TaskStatus | 'all'>('all');
-
 // selectors
+const selectedProjectId = ref<number>(0);
+
+const selectorProjects = computed(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+const selectedRange = ref<number | 'all'>(ALL_TIME);
+
+const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
+  { value: ALL_TIME, label: 'All time' },
+  ...sprints.value.map((sprint) => ({
+    value: sprint.id,
+    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
+  })),
+]);
+
+const selectedStatus = ref<TaskStatus | 'all'>('all');
+
+const selectorStatuses = toFilterOptions(TASK_STATUS);
+
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // Membership decides visibility here exactly as it does on the projects
@@ -54,46 +70,45 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const projectOptions = computed(() =>
-  projects.value.map((project) => ({ value: project.id, label: project.name })),
-);
-
 const sprints = computed(() =>
-  projectId.value ? SprintService.getByProject(projectId.value) : [],
+  selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
 );
 
-/** The range selector is only meaningful once the project has a sprint. */
+/**
+ * Neither the range selector nor the velocity chart says anything until the
+ * project has a sprint, so both are guarded by this.
+ */
 const hasSprints = computed(() => sprints.value.length > 0);
 
-const rangeOptions = computed<SelectOption<number | 'all'>[]>(() => [
-  { value: ALL_TIME, label: 'All time' },
-  ...sprints.value.map((sprint) => ({
-    value: sprint.id,
-    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
-  })),
-]);
-
 /** null means "the whole project" for every DashboardService call. */
-const sprintId = computed(() => (range.value === ALL_TIME ? null : range.value));
-
-const statusOptions = toFilterOptions(TASK_STATUS);
+const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
 const progress = computed(() =>
-  DashboardService.getProgress(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
-const activeSprints = computed(() => DashboardService.getActiveSprintCount(projectId.value));
+const activeSprints = computed(() =>
+  DashboardService.getActiveSprintCount(selectedProjectId.value),
+);
 const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getCompletedTaskCount(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getOverdueTaskCount(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 
 const statusSeries = computed(() =>
-  DashboardService.getTasksByStatus(projectId.value, sprintId.value),
+  DashboardService.getTasksByStatus(selectedProjectId.value, sprintId.value),
 );
 const statusChart = computed(() => ({
   labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
@@ -101,7 +116,7 @@ const statusChart = computed(() => ({
   colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
 }));
 
-const velocity = computed(() => DashboardService.getVelocitySeries(projectId.value));
+const velocity = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
 const velocityChart = computed(() => ({
   labels: velocity.value.labels,
   series: [
@@ -120,16 +135,20 @@ const isAdmin = computed(() => AuthService.isAdmin());
 const userTasks = computed(() =>
   currentUserId.value
     ? DashboardService.getUserTasks(
-        projectId.value,
+        selectedProjectId.value,
         sprintId.value,
         currentUserId.value,
-        statusFilter.value,
+        selectedStatus.value,
       )
     : [],
 );
 
 const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(projectId.value, sprintId.value, statusFilter.value),
+  DashboardService.getWorkloadByAssignee(
+    selectedProjectId.value,
+    sprintId.value,
+    selectedStatus.value,
+  ),
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
@@ -153,8 +172,8 @@ const projectDistributionChart = computed(() => ({
 watch(
   projects,
   (newProjects) => {
-    if (!newProjects.some((project) => project.id === projectId.value)) {
-      projectId.value = newProjects[0]?.id ?? 0;
+    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
+      selectedProjectId.value = newProjects[0]?.id ?? 0;
     }
   },
   { immediate: true },
@@ -165,8 +184,8 @@ watch(
 watch(
   sprints,
   (newSprints) => {
-    if (!newSprints.some((sprint) => sprint.id === range.value)) {
-      range.value = ALL_TIME;
+    if (!newSprints.some((sprint) => sprint.id === selectedRange.value)) {
+      selectedRange.value = ALL_TIME;
     }
   },
   { immediate: true },
@@ -182,28 +201,28 @@ watch(
       <template v-if="projects.length" #actions>
         <SelectFieldComponent
           id="dashboard-project"
-          v-model="projectId"
+          v-model="selectedProjectId"
           label="Project"
           compact
-          :options="projectOptions"
+          :options="selectorProjects"
           class="w-56"
         />
         <SelectFieldComponent
           id="dashboard-range"
-          v-model="range"
+          v-model="selectedRange"
           label="Range"
           compact
-          :options="rangeOptions"
+          :options="selectorRanges"
           :disabled="!hasSprints"
           :title="hasSprints ? undefined : 'This project has no sprints yet'"
           class="w-56"
         />
         <SelectFieldComponent
           id="dashboard-status"
-          v-model="statusFilter"
+          v-model="selectedStatus"
           label="Status"
           compact
-          :options="statusOptions"
+          :options="selectorStatuses"
           class="w-44"
         />
       </template>

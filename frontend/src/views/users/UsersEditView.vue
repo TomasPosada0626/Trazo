@@ -18,7 +18,7 @@ const router = useRouter();
 // falls through to its "not found" panel.
 const userId = Number(route.params.id);
 
-// selectors
+// computed variables
 const user = computed(() => UserService.getById(userId));
 
 // functions

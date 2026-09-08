@@ -24,14 +24,15 @@ const router = useRouter();
 const error = ref('');
 
 // selectors
+const selectorProjects = computed(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const projectOptions = computed(() =>
-  projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
 /**
@@ -101,7 +102,7 @@ function handleSubmit(values: SprintFormValues): void {
       </p>
 
       <SprintFormComponent
-        :project-options="projectOptions"
+        :selector-projects="selectorProjects"
         :tasks-by-project="tasksByProject"
         submit-label="Save sprint"
         @submit="handleSubmit"

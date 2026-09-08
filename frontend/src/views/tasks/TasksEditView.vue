@@ -25,6 +25,23 @@ const taskId = Number(route.params.id);
 const error = ref('');
 
 // selectors
+const selectorProjects = computed<SelectOption<number>[]>(() =>
+  projects.value.map((project) => ({ value: project.id, label: project.name })),
+);
+
+const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[]>>(() =>
+  Object.fromEntries(
+    projects.value.map((project) => [
+      project.id,
+      TaskService.getAssignableUsers(project.id).map((user) => ({
+        value: user.id,
+        label: `${user.name} · ${user.email}`,
+      })),
+    ]),
+  ),
+);
+
+// computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 const projects = computed(() =>
@@ -43,22 +60,6 @@ const task = computed(() => {
 
   return projects.value.some((project) => project.id === found.projectId) ? found : undefined;
 });
-
-const projectOptions = computed<SelectOption<number>[]>(() =>
-  projects.value.map((project) => ({ value: project.id, label: project.name })),
-);
-
-const assignableUsers = computed<Record<number, SelectOption<number>[]>>(() =>
-  Object.fromEntries(
-    projects.value.map((project) => [
-      project.id,
-      TaskService.getAssignableUsers(project.id).map((user) => ({
-        value: user.id,
-        label: `${user.name} · ${user.email}`,
-      })),
-    ]),
-  ),
-);
 
 // functions
 /**
@@ -104,8 +105,8 @@ function handleSubmit(values: TaskFormValues): void {
           projectId: task.projectId,
           assigneeId: task.assigneeId,
         }"
-        :project-options="projectOptions"
-        :assignable-users="assignableUsers"
+        :selector-projects="selectorProjects"
+        :selector-assignees-by-project="selectorAssigneesByProject"
         submit-label="Save changes"
         @submit="handleSubmit"
       />

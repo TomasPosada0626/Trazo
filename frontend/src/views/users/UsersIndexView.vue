@@ -32,10 +32,12 @@ const columns: DataTableColumn[] = [
   { key: 'actions', label: '', class: 'text-right' },
 ];
 
-// reactive variables
-const roleFilter = ref('all');
-
 // selectors
+const selectedRole = ref('all');
+
+const selectorRoles = toFilterOptions(USER_ROLE);
+
+// computed variables
 const users = computed<UserRow[]>(() =>
   UserService.getAll().map((user) => ({
     id: user.id,
@@ -46,12 +48,10 @@ const users = computed<UserRow[]>(() =>
   })),
 );
 
-const roleOptions = toFilterOptions(USER_ROLE);
-
 const filteredUsers = computed(() =>
-  roleFilter.value === 'all'
+  selectedRole.value === 'all'
     ? users.value
-    : users.value.filter((user) => user.role === roleFilter.value),
+    : users.value.filter((user) => user.role === selectedRole.value),
 );
 
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -87,10 +87,10 @@ function handleDelete(user: UserRow): void {
       <template #actions>
         <SelectFieldComponent
           id="user-role-filter"
-          v-model="roleFilter"
+          v-model="selectedRole"
           label="Role"
           compact
-          :options="roleOptions"
+          :options="selectorRoles"
           class="w-52"
         />
       </template>

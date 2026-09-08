@@ -25,11 +25,10 @@ const emit = defineEmits<{ add: [userId: number]; remove: [userId: number] }>();
 // variables
 const NONE = 0;
 
-// reactive variables
+// selectors
 const selectedUserId = ref<number>(NONE);
 
-// selectors
-const userOptions = computed(() =>
+const selectorUsers = computed(() =>
   nonMembers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
 );
 
@@ -104,12 +103,12 @@ watch(
       </li>
     </ul>
 
-    <div v-if="userOptions.length" class="flex items-end gap-3">
+    <div v-if="selectorUsers.length" class="flex items-end gap-3">
       <SelectFieldComponent
         id="project-add-member"
         v-model="selectedUserId"
         label="Add member"
-        :options="userOptions"
+        :options="selectorUsers"
         class="flex-1"
       />
       <button
