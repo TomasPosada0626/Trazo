@@ -134,11 +134,11 @@ function handleDelete(project: ProjectInterface): void {
               <div class="h-1.5 w-24 bg-line">
                 <div
                   class="h-full bg-emerald-600"
-                  :style="{ width: `${ProjectService.getOverallProgress(row)}%` }"
+                  :style="{ width: `${ProjectService.getProgress(row.id, null)}%` }"
                 ></div>
               </div>
               <span class="font-mono text-xs text-ink-soft">
-                {{ ProjectService.getOverallProgress(row) }}%
+                {{ ProjectService.getProgress(row.id, null) }}%
               </span>
             </div>
           </td>

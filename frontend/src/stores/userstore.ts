@@ -7,7 +7,6 @@ import { ref } from 'vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 
 export const useUserStore = defineStore('user', () => {
-  // reactive variables
   const users = ref<UserInterface[]>([]);
 
   return { users };

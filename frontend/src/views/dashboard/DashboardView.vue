@@ -15,7 +15,6 @@ import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectF
 import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
-import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { formatDate } from '@/utils/date';
@@ -76,31 +75,25 @@ const hasSprints = computed(() => sprints.value.length > 0);
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
 const progress = computed(() =>
-  DashboardService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
+  ProjectService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
-const activeSprints = computed(() =>
-  DashboardService.getActiveSprintCount(selectedProjectId.value),
-);
+const activeSprints = computed(() => ProjectService.getActiveSprintCount(selectedProjectId.value));
 const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(
+  ProjectService.getCompletedTaskCount(
     selectedProjectId.value,
     sprintId.value,
     selectedStatus.value,
   ),
 );
 const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
+  ProjectService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
+  ProjectService.getOverdueTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 
 const statusSeries = computed(() =>
-  DashboardService.getTasksByStatus(selectedProjectId.value, sprintId.value),
+  ProjectService.getTasksByStatus(selectedProjectId.value, sprintId.value),
 );
 const statusChart = computed(() => ({
   labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
@@ -108,7 +101,7 @@ const statusChart = computed(() => ({
   colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
 }));
 
-const completion = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
+const completion = computed(() => SprintService.getVelocitySeries(selectedProjectId.value));
 const completionChart = computed(() => ({
   labels: completion.value.labels,
   series: [
@@ -121,7 +114,7 @@ const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
   currentUserId.value
-    ? DashboardService.getUserTasks(
+    ? ProjectService.getMemberTasks(
         selectedProjectId.value,
         sprintId.value,
         currentUserId.value,
@@ -131,7 +124,7 @@ const userTasks = computed(() =>
 );
 
 const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(
+  ProjectService.getWorkloadByAssignee(
     selectedProjectId.value,
     sprintId.value,
     selectedStatus.value,
@@ -144,7 +137,7 @@ const workloadChart = computed(() => ({
 
 const projectDistribution = computed(() =>
   currentUserId.value
-    ? DashboardService.getTasksByProject(currentUserId.value)
+    ? ProjectService.getTasksByProject(currentUserId.value)
     : { labels: [], values: [] },
 );
 const projectDistributionChart = computed(() => ({

@@ -3,16 +3,6 @@
 // internal imports
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 
-/**
- * Mock projects preloaded on first load, per the MVP's LocalStorage-only scope.
- * `progress` is absent on purpose: it is derived by
- * ProjectService.getOverallProgress(project), never stored.
- *
- * Every project needs at least one *admin* member. Only admins can open the
- * projects screen, and only for projects they belong to, so a project whose
- * members are all plain members is unreachable by everyone. Members still
- * appear in memberIds: that roster is the pool a task can be assigned to.
- */
 export const projectSeeder: ProjectInterface[] = [
   {
     id: 1,

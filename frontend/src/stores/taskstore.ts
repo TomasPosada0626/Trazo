@@ -7,7 +7,6 @@ import { ref } from 'vue';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 
 export const useTaskStore = defineStore('task', () => {
-  // reactive variables
   const tasks = ref<TaskInterface[]>([]);
 
   return { tasks };

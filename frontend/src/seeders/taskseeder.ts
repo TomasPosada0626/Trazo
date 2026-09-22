@@ -3,18 +3,6 @@
 // internal imports
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 
-/**
- * Mock tasks preloaded on first load, per the MVP's LocalStorage-only scope.
- *
- * Every `projectId` points at a project in the project seeder, and every
- * `assigneeId` at a user who is a member of that same project: TaskService
- * only offers a project's members as assignees, so seeded data has to obey the
- * same rule the forms enforce.
- *
- * `sprintId` points at a sprint of the same project, or is null when the task
- * sits in the backlog. Project 4 has no sprints at all, so both of its tasks stay
- * unscheduled — that is the case the dashboard's range selector has to handle.
- */
 export const taskSeeder: TaskInterface[] = [
   // Project 1 — Mobile App Redesign. Members: 1, 2.
   {

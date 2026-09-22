@@ -7,7 +7,6 @@ import { ref } from 'vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 
 export const useProjectStore = defineStore('project', () => {
-  // reactive variables
   const projects = ref<ProjectInterface[]>([]);
 
   return { projects };

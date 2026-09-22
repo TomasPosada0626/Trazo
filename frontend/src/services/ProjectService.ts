@@ -4,33 +4,21 @@
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
+import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { UserService } from '@/services/UserService';
 import { useProjectStore } from '@/stores/projectstore';
+import { isPastDate } from '@/utils/date';
 import { nextId } from '@/utils/id';
 
 export class ProjectService {
-  /**
-   * Projects the given user belongs to. Membership is the visibility rule:
-   * a project the user is not a member of never reaches their screen.
-   *
-   * @param userId Id of the user whose projects are being listed.
-   * @returns The user's projects, empty when they belong to none.
-   */
   static getAllUserProjects(userId: number): ProjectInterface[] {
     return useProjectStore().projects.filter((project) => project.memberIds.includes(userId));
   }
 
-  /**
-   * The user's projects, narrowed by status.
-   *
-   * @param userId Id of the user whose projects are being listed.
-   * @param status Status to restrict to, or `'all'` to skip filtering.
-   * @returns The matching projects.
-   */
   static getUserProjectsByStatus(
     userId: number,
     status: ProjectStatus | 'all',
@@ -41,31 +29,17 @@ export class ProjectService {
     return projects.filter((project) => project.status === status);
   }
 
-  /**
-   * Finds a project by id.
-   *
-   * @param id Id of the project.
-   * @returns The project, or `undefined` when no project carries that id.
-   */
   static getById(id: number): ProjectInterface | undefined {
     return useProjectStore().projects.find((project) => project.id === id);
   }
 
-  /**
-   * Creates a project owned by the current session's user, who becomes its
-   * first member. Without that the creator could not see what they just made,
-   * since getAllUserProjects filters on membership.
-   *
-   * @param data Project fields supplied by the form.
-   * @returns The stored project.
-   */
-  static create(data: CreateProjectDTO): ProjectInterface {
+  static create(CreateProjectDTO: CreateProjectDTO): ProjectInterface {
     const creator = AuthService.getCurrentUser();
     const project: ProjectInterface = {
       id: nextId(useProjectStore().projects),
       createdAt: new Date().toISOString(),
       memberIds: creator ? [creator.id] : [],
-      ...data,
+      ...CreateProjectDTO,
     };
 
     // Mutating in place keeps PiniaConfig's deep watcher cheap.
@@ -73,12 +47,6 @@ export class ProjectService {
     return project;
   }
 
-  /**
-   * Applies a partial update. No-op when the id does not exist.
-   *
-   * @param id Id of the project to update.
-   * @param changes Fields to overwrite; omitted fields keep their value.
-   */
   static update(id: number, changes: UpdateProjectDTO): void {
     const project = ProjectService.getById(id);
     if (!project) return;
@@ -86,21 +54,9 @@ export class ProjectService {
     Object.assign(project, changes);
   }
 
-  /**
-   * Deletes a project, every task that belongs to it and every one of its
-   * sprints.
-   *
-   * The cascade is not optional: a project is the only way its tasks and
-   * sprints reach a screen, so anything left behind would be invisible forever
-   * while still taking up room in LocalStorage. Each entity is deleted by the
-   * service that owns its store.
-   *
-   * Tasks go first, so unscheduling them from their sprints is a no-op by the
-   * time the sprints are removed.
-   *
-   * @param id Id of the project to delete.
-   */
   static remove(id: number): void {
+    // Tasks go first, so unscheduling them is a no-op by the time the sprints
+    // are removed. Each entity is deleted by the service that owns its store.
     TaskService.removeByProject(id);
     SprintService.removeByProject(id);
 
@@ -111,34 +67,16 @@ export class ProjectService {
     }
   }
 
-  /**
-   * Resolves the project's members from the stored memberIds.
-   *
-   * @param project The project whose members are being resolved.
-   * @returns The project's members.
-   */
   static getMembers(project: ProjectInterface): UserInterface[] {
     return project.memberIds
       .map((memberId) => UserService.getById(memberId))
       .filter((user): user is UserInterface => user !== undefined);
   }
 
-  /**
-   * Users who are not members yet — the options for the "add member" picker.
-   *
-   * @param project The project to compare against.
-   * @returns Every registered user who isn't already a member.
-   */
   static getNonMembers(project: ProjectInterface): UserInterface[] {
     return UserService.getAll().filter((user) => !project.memberIds.includes(user.id));
   }
 
-  /**
-   * Adds a user to the project. Ignores unknown users and repeat additions.
-   *
-   * @param projectId Id of the project to add the user to.
-   * @param userId Id of the user to add.
-   */
   static addMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project || project.memberIds.includes(userId)) return;
@@ -148,16 +86,9 @@ export class ProjectService {
     project.memberIds.push(userId);
   }
 
-  /**
-   * Removes a user from every project they belong to.
-   *
-   * Called when a user is deleted, for the same reason as
-   * TaskService.unassignUser: a leftover id would make the next user created
-   * a member of projects they were never added to.
-   *
-   * @param userId Id of the user being removed.
-   */
   static removeMemberEverywhere(userId: number): void {
+    // Ids are reused once the highest is freed, so a leftover id would make
+    // the next user created a member of projects they were never added to.
     useProjectStore().projects.forEach((project) => {
       const index = project.memberIds.indexOf(userId);
       if (index !== -1) {
@@ -166,32 +97,16 @@ export class ProjectService {
     });
   }
 
-  /**
-   * Checks membership.
-   *
-   * @param project The project to check.
-   * @param userId Id of the user to check for.
-   * @returns `true` when the user belongs to the project.
-   */
   static isMember(project: ProjectInterface, userId: number): boolean {
     return project.memberIds.includes(userId);
   }
 
-  /**
-   * Removes a user from the project.
-   *
-   * You cannot remove yourself: leaving a project you administer is done by
-   * deleting it. That is also what keeps a project reachable — only admins can
-   * open this screen, and only over projects they belong to, so refusing
-   * self-removal guarantees at least one admin member always remains.
-   *
-   * @param projectId Id of the project to remove the member from.
-   * @param userId Id of the user to remove.
-   */
   static removeMember(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project) return;
 
+    // Refusing self-removal is what guarantees at least one admin member
+    // remains: to leave a project you administer, delete it.
     if (userId === AuthService.getCurrentUser()?.id) return;
 
     const index = project.memberIds.indexOf(userId);
@@ -200,22 +115,122 @@ export class ProjectService {
     }
   }
 
-  /**
-   * Percentage of the project's tasks that are done.
-   *
-   * A project with no tasks reports 0 rather than 100: nothing has been
-   * delivered yet, and dividing by zero would say otherwise. Rounded to a
-   * whole number, since that is the only precision the progress bar shows.
-   *
-   * @param project The project to measure.
-   * @returns Completion from 0 to 100.
-   */
-  static getOverallProgress(project: ProjectInterface): number {
-    const tasks = TaskService.getByProject(project.id);
+  static getProgress(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    const tasks = TaskService.getProjectTasksFiltered(projectId, sprintId, status);
     if (!tasks.length) return 0;
 
     const done = tasks.filter((task) => task.status === 'done').length;
 
     return Math.round((done / tasks.length) * 100);
+  }
+
+  static getCompletedTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return TaskService.getProjectTasksFiltered(projectId, sprintId, status).filter(
+      (task) => task.status === 'done',
+    ).length;
+  }
+
+  static getTotalTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return TaskService.getProjectTasksFiltered(projectId, sprintId, status).length;
+  }
+
+  static getActiveSprintCount(projectId: number): number {
+    return SprintService.getActiveSprints(projectId).length;
+  }
+
+  static getOverdueTaskCount(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): number {
+    return TaskService.getProjectTasksFiltered(projectId, sprintId, status).filter(
+      (task) => task.status !== 'done' && task.dueDate !== null && isPastDate(task.dueDate),
+    ).length;
+  }
+
+  static getTasksByStatus(
+    projectId: number,
+    sprintId: number | null,
+  ): { labels: TaskStatus[]; values: number[] } {
+    const tasks = TaskService.getProjectTasksFiltered(projectId, sprintId);
+    const order: TaskStatus[] = ['todo', 'in_progress', 'done'];
+
+    return {
+      labels: order,
+      values: order.map((status) => tasks.filter((task) => task.status === status).length),
+    };
+  }
+
+  static getTasksByProject(userId: number): { labels: string[]; values: number[] } {
+    const projects = ProjectService.getAllUserProjects(userId);
+
+    return {
+      labels: projects.map((project) => project.name),
+      values: projects.map((project) => TaskService.getByProject(project.id).length),
+    };
+  }
+
+  static getWorkloadByAssignee(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all' = 'all',
+  ): { labels: string[]; values: number[] } {
+    const project = ProjectService.getById(projectId);
+    if (!project) return { labels: [], values: [] };
+
+    const open = TaskService.getProjectTasksFiltered(projectId, sprintId, status).filter(
+      (task) => task.status !== 'done',
+    );
+
+    // Members with nothing open still get a row: an idle member is exactly
+    // what this chart should reveal.
+    const rows = ProjectService.getMembers(project).map((member) => ({
+      label: member.name,
+      value: open.filter((task) => task.assigneeId === member.id).length,
+    }));
+
+    const unassigned = open.filter((task) => task.assigneeId === null).length;
+    if (unassigned > 0) {
+      rows.push({ label: 'Unassigned', value: unassigned });
+    }
+
+    rows.sort((a, b) => b.value - a.value);
+
+    return { labels: rows.map((row) => row.label), values: rows.map((row) => row.value) };
+  }
+
+  static getMemberTasks(
+    projectId: number,
+    sprintId: number | null,
+    userId: number,
+    status: TaskStatus | 'all' = 'all',
+  ): TaskInterface[] {
+    const farFuture = '9999-12-31';
+
+    return (
+      TaskService.getProjectTasksFiltered(projectId, sprintId, status)
+        .filter((task) => task.assigneeId === userId)
+        // Unfinished first, nearest deadline first within that, so the top of
+        // the table is what to do next. Tasks with no due date sort last.
+        .sort((a, b) => {
+          const aDone = a.status === 'done' ? 1 : 0;
+          const bDone = b.status === 'done' ? 1 : 0;
+          if (aDone !== bDone) return aDone - bDone;
+
+          return (a.dueDate ?? farFuture).localeCompare(b.dueDate ?? farFuture);
+        })
+    );
   }
 }
