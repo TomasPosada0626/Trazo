@@ -14,7 +14,7 @@ import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
-import { USER_ROLE, toFilterOptions } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
@@ -31,7 +31,7 @@ const columns: DataTableColumn[] = [
 // selectors
 const selectedRole = ref('all');
 
-const selectorRoles = toFilterOptions(USER_ROLE);
+const selectorRoles = LabelUtils.toFilterOptions(LabelUtils.USER_ROLE);
 
 // computed variables
 const users = computed<UserRow[]>(() =>
@@ -98,8 +98,8 @@ function handleDelete(user: UserRow): void {
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
           <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="USER_ROLE[row.role].tone">
-              {{ USER_ROLE[row.role].text }}
+            <StatusBadgeComponent :tone="LabelUtils.USER_ROLE[row.role].tone">
+              {{ LabelUtils.USER_ROLE[row.role].text }}
             </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>

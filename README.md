@@ -100,7 +100,7 @@ frontend/
 │   ├── seeders/         # Mock data loaded into LocalStorage on first run
 │   ├── interfaces/      # Data-only TS interfaces, one per entity
 │   ├── dtos/            # Create / update / login input shapes (Omit / Partial / Pick)
-│   ├── utils/           # Pure helpers: date formatting, enum labels, id display
+│   ├── utils/           # Static helper classes: DateUtils, IdUtils, LabelUtils, ColorUtils
 │   └── assets/          # Tailwind theme tokens and static assets
 ├── public/              # Static files copied as-is
 ├── index.html

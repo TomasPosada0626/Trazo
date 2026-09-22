@@ -17,15 +17,10 @@ import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  CHART_COLORS,
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_STATUS_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const ALL_TIME = 'all';
@@ -51,13 +46,13 @@ const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
-    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
+    label: `${IdUtils.shortId('SPR', sprint.id)} · ${sprint.name}`,
   })),
 ]);
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -96,17 +91,17 @@ const statusSeries = computed(() =>
   ProjectService.getTasksByStatus(selectedProjectId.value, sprintId.value),
 );
 const statusChart = computed(() => ({
-  labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
+  labels: statusSeries.value.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
   values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
+  colors: statusSeries.value.labels.map((status) => ColorUtils.TASK_STATUS[status]),
 }));
 
 const completion = computed(() => SprintService.getVelocitySeries(selectedProjectId.value));
 const completionChart = computed(() => ({
   labels: completion.value.labels,
   series: [
-    { label: 'Committed', values: completion.value.committed, color: CHART_COLORS.muted },
-    { label: 'Completed', values: completion.value.values, color: CHART_COLORS.done },
+    { label: 'Committed', values: completion.value.committed, color: ColorUtils.CHART.muted },
+    { label: 'Completed', values: completion.value.values, color: ColorUtils.CHART.done },
   ],
 }));
 
@@ -132,7 +127,7 @@ const workload = computed(() =>
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
+  series: [{ label: 'Open tasks', values: workload.value.values, color: ColorUtils.CHART.ink }],
 }));
 
 const projectDistribution = computed(() =>
@@ -142,7 +137,9 @@ const projectDistribution = computed(() =>
 );
 const projectDistributionChart = computed(() => ({
   labels: projectDistribution.value.labels,
-  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: CHART_COLORS.ink }],
+  series: [
+    { label: 'Tasks', values: projectDistribution.value.values, color: ColorUtils.CHART.ink },
+  ],
 }));
 
 // watchers
@@ -269,21 +266,21 @@ watch(
         >
           <template #row="{ row }">
             <td class="px-4 py-3">
-              <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
+              <IdChipComponent>{{ IdUtils.shortId('TSK', row.id) }}</IdChipComponent>
             </td>
             <td class="px-4 py-3 font-medium">{{ row.title }}</td>
             <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-                {{ TASK_STATUS[row.status].text }}
+              <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[row.status].tone">
+                {{ LabelUtils.TASK_STATUS[row.status].text }}
               </StatusBadgeComponent>
             </td>
             <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-                {{ TASK_PRIORITY[row.priority].text }}
+              <StatusBadgeComponent :tone="LabelUtils.TASK_PRIORITY[row.priority].tone">
+                {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
               </StatusBadgeComponent>
             </td>
             <td class="px-4 py-3 text-ink-soft">
-              {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
+              {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
             </td>
           </template>
         </DataTableComponent>

@@ -8,7 +8,7 @@ import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { UserService } from '@/services/UserService';
 import { useTaskStore } from '@/stores/taskstore';
-import { nextId } from '@/utils/id';
+import { IdUtils } from '@/utils/IdUtils';
 
 export class TaskService {
   static getByProject(projectId: number): TaskInterface[] {
@@ -52,7 +52,7 @@ export class TaskService {
     TaskService.assertValid(data.title, data.projectId, data.assigneeId);
 
     const task: TaskInterface = {
-      id: nextId(useTaskStore().tasks),
+      id: IdUtils.nextId(useTaskStore().tasks),
       createdAt: new Date().toISOString(),
       sprintId: null,
       ...data,

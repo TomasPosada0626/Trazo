@@ -15,9 +15,10 @@ import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { formatDateRange } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import { SPRINT_STATUS, SPRINT_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 type SprintRow = SprintInterface & {
@@ -48,7 +49,7 @@ const selectorProjects = computed(() =>
 
 const selectedStatus = ref<SprintStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(SPRINT_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.SPRINT_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -148,11 +149,11 @@ watch(
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('SPR', row.id) }}</IdChipComponent>
+            <IdChipComponent>{{ IdUtils.shortId('SPR', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3 text-ink-soft">
-            {{ formatDateRange(row.startDate, row.endDate) }}
+            {{ DateUtils.formatDateRange(row.startDate, row.endDate) }}
           </td>
           <td class="px-4 py-3 font-mono">{{ row.committedPoints }}</td>
           <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
@@ -161,8 +162,8 @@ watch(
             {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
           </td>
           <td class="px-4 py-3">
-            <StatusBadgeComponent :color="SPRINT_STATUS_COLORS[row.status]">
-              {{ SPRINT_STATUS[row.status].text }}
+            <StatusBadgeComponent :color="ColorUtils.SPRINT_STATUS[row.status]">
+              {{ LabelUtils.SPRINT_STATUS[row.status].text }}
             </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-right whitespace-nowrap">

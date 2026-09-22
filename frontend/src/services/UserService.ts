@@ -9,7 +9,7 @@ import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { useUserStore } from '@/stores/userstore';
-import { nextId } from '@/utils/id';
+import { IdUtils } from '@/utils/IdUtils';
 
 export class UserService {
   static getAll(): UserInterface[] {
@@ -21,7 +21,7 @@ export class UserService {
   }
 
   static create(CreateUserDTO: CreateUserDTO): UserInterface {
-    const user: UserInterface = { id: nextId(useUserStore().users), ...CreateUserDTO };
+    const user: UserInterface = { id: IdUtils.nextId(useUserStore().users), ...CreateUserDTO };
     useUserStore().users.push(user);
     return user;
   }

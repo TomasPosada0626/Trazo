@@ -8,8 +8,8 @@ import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { useSprintStore } from '@/stores/sprintstore';
-import { daysBetween, startOfToday } from '@/utils/date';
-import { nextId, shortId } from '@/utils/id';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
 
 export class SprintService {
   static getByProject(projectId: number): SprintInterface[] {
@@ -27,7 +27,7 @@ export class SprintService {
   static create({ taskIds, ...data }: CreateSprintDTO): SprintInterface {
     SprintService.assertValid(data.name, data.projectId);
 
-    const sprint: SprintInterface = { id: nextId(useSprintStore().sprints), ...data };
+    const sprint: SprintInterface = { id: IdUtils.nextId(useSprintStore().sprints), ...data };
 
     // Mutating in place keeps PiniaConfig's deep watcher cheap.
     useSprintStore().sprints.push(sprint);
@@ -147,13 +147,13 @@ export class SprintService {
     const sprints = SprintService.getByProject(projectId);
 
     return {
-      labels: sprints.map((sprint) => shortId('SPR', sprint.id)),
+      labels: sprints.map((sprint) => IdUtils.shortId('SPR', sprint.id)),
       committed: sprints.map((sprint) => SprintService.getTotalCommittedPoints(sprint)),
       values: sprints.map((sprint) => SprintService.getTotalCompletedPoints(sprint)),
     };
   }
 
   static getRemainingDays(sprint: SprintInterface): number {
-    return Math.max(0, daysBetween(startOfToday(), sprint.endDate));
+    return Math.max(0, DateUtils.daysBetween(DateUtils.startOfToday(), sprint.endDate));
   }
 }

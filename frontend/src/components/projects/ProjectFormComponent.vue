@@ -9,7 +9,7 @@ import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
 const { initialValues, submitLabel } = defineProps<{
@@ -27,7 +27,7 @@ const description = ref(initialValues?.description ?? '');
 // selectors
 const selectedStatus = ref<string>(initialValues?.status ?? 'active');
 
-const selectorStatuses = toSelectOptions(PROJECT_STATUS);
+const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.PROJECT_STATUS);
 
 // functions
 function handleSubmit(): void {

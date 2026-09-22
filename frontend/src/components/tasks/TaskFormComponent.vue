@@ -9,7 +9,7 @@ import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectF
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
-import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
@@ -42,15 +42,15 @@ const selectorAssignees = computed<SelectOption<number>[]>(() => [
 
 const selectedType = ref<string>(initialValues?.type ?? 'feature');
 
-const selectorTypes = toSelectOptions(TASK_TYPE);
+const selectorTypes = LabelUtils.toSelectOptions(LabelUtils.TASK_TYPE);
 
 const selectedPriority = ref<string>(initialValues?.priority ?? 'medium');
 
-const selectorPriorities = toSelectOptions(TASK_PRIORITY);
+const selectorPriorities = LabelUtils.toSelectOptions(LabelUtils.TASK_PRIORITY);
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 
-const selectorStatuses = toSelectOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.TASK_STATUS);
 
 // functions
 function handleSubmit(): void {

@@ -9,7 +9,7 @@ import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import type { UserRole } from '@/interfaces/UserInterface';
-import { toSelectOptions, USER_ROLE } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
 const {
@@ -33,7 +33,7 @@ const password = ref('');
 // selectors
 const selectedRole = ref<string>(initialValues?.role ?? 'member');
 
-const selectorRoles = toSelectOptions(USER_ROLE);
+const selectorRoles = LabelUtils.toSelectOptions(LabelUtils.USER_ROLE);
 
 // functions
 function handleSubmit(): void {

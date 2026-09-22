@@ -11,8 +11,8 @@ import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
 import { UserService } from '@/services/UserService';
 import { useProjectStore } from '@/stores/projectstore';
-import { isPastDate } from '@/utils/date';
-import { nextId } from '@/utils/id';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
 
 export class ProjectService {
   static getAllUserProjects(userId: number): ProjectInterface[] {
@@ -36,7 +36,7 @@ export class ProjectService {
   static create(CreateProjectDTO: CreateProjectDTO): ProjectInterface {
     const user = AuthService.getCurrentUser();
     const project: ProjectInterface = {
-      id: nextId(useProjectStore().projects),
+      id: IdUtils.nextId(useProjectStore().projects),
       createdAt: new Date().toISOString(),
       userIds: user ? [user.id] : [],
       ...CreateProjectDTO,
@@ -156,7 +156,8 @@ export class ProjectService {
     status: TaskStatus | 'all' = 'all',
   ): number {
     return TaskService.getProjectTasksFiltered(projectId, sprintId, status).filter(
-      (task) => task.status !== 'done' && task.dueDate !== null && isPastDate(task.dueDate),
+      (task) =>
+        task.status !== 'done' && task.dueDate !== null && DateUtils.isPastDate(task.dueDate),
     ).length;
   }
 

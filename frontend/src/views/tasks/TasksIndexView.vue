@@ -16,15 +16,10 @@ import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_TYPE,
-  TASK_TYPE_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const SAVED_NOTICES: Record<string, string> = {
@@ -58,7 +53,7 @@ const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -83,11 +78,11 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof TASK_TYPE_COLORS)[];
+  const types = Object.keys(counts) as (keyof typeof ColorUtils.TASK_TYPE)[];
   return {
-    labels: types.map((type) => TASK_TYPE[type].text),
+    labels: types.map((type) => LabelUtils.TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => TASK_TYPE_COLORS[type]),
+    colors: types.map((type) => ColorUtils.TASK_TYPE[type]),
   };
 });
 
@@ -179,23 +174,23 @@ function handleDelete(task: TaskInterface): void {
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
+            <IdChipComponent>{{ IdUtils.shortId('TSK', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.title }}</td>
           <td class="px-4 py-3 text-ink-soft">{{ projectName(row) }}</td>
           <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-              {{ TASK_STATUS[row.status].text }}
+            <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[row.status].tone">
+              {{ LabelUtils.TASK_STATUS[row.status].text }}
             </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-              {{ TASK_PRIORITY[row.priority].text }}
+            <StatusBadgeComponent :tone="LabelUtils.TASK_PRIORITY[row.priority].tone">
+              {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
             </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3 text-ink-soft">{{ assigneeName(row) }}</td>
           <td class="px-4 py-3 text-ink-soft">
-            {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
+            {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
           </td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
             <RouterLink

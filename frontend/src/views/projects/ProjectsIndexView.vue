@@ -15,9 +15,10 @@ import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
 import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import { PROJECT_STATUS, PROJECT_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { DateUtils } from '@/utils/DateUtils';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const columns: DataTableColumn[] = [
@@ -32,7 +33,7 @@ const columns: DataTableColumn[] = [
 // selectors
 const selectedStatus = ref<ProjectStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(PROJECT_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.PROJECT_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -60,9 +61,9 @@ const statusChart = computed(() => {
 
   const statuses = Object.keys(counts) as ProjectStatus[];
   return {
-    labels: statuses.map((status) => PROJECT_STATUS[status].text),
+    labels: statuses.map((status) => LabelUtils.PROJECT_STATUS[status].text),
     values: statuses.map((status) => counts[status] ?? 0),
-    colors: statuses.map((status) => PROJECT_STATUS_COLORS[status]),
+    colors: statuses.map((status) => ColorUtils.PROJECT_STATUS[status]),
   };
 });
 
@@ -121,12 +122,12 @@ function handleDelete(project: ProjectInterface): void {
       >
         <template #row="{ row }">
           <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('PRJ', row.id) }}</IdChipComponent>
+            <IdChipComponent>{{ IdUtils.shortId('PRJ', row.id) }}</IdChipComponent>
           </td>
           <td class="px-4 py-3 font-medium">{{ row.name }}</td>
           <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="PROJECT_STATUS[row.status].tone">
-              {{ PROJECT_STATUS[row.status].text }}
+            <StatusBadgeComponent :tone="LabelUtils.PROJECT_STATUS[row.status].tone">
+              {{ LabelUtils.PROJECT_STATUS[row.status].text }}
             </StatusBadgeComponent>
           </td>
           <td class="px-4 py-3">
@@ -142,7 +143,7 @@ function handleDelete(project: ProjectInterface): void {
               </span>
             </div>
           </td>
-          <td class="px-4 py-3 text-ink-soft">{{ formatDate(row.createdAt) }}</td>
+          <td class="px-4 py-3 text-ink-soft">{{ DateUtils.formatDate(row.createdAt) }}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
             <RouterLink
               :to="`/app/projects/${row.id}/edit`"

@@ -11,8 +11,8 @@ import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
 import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { shortId } from '@/utils/id';
-import { SPRINT_STATUS, TASK_STATUS, toSelectOptions } from '@/utils/labels';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
 const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSprintId } =
@@ -40,7 +40,7 @@ const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjec
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'planned');
 
-const selectorStatuses = toSelectOptions(SPRINT_STATUS);
+const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.SPRINT_STATUS);
 
 // computed variables
 const isEditing = computed(() => initialValues !== undefined);
@@ -55,7 +55,9 @@ const selectedPoints = computed(() =>
 
 // functions
 function sprintLabelFor(task: TaskInterface): string | null {
-  return task.sprintId && task.sprintId !== currentSprintId ? shortId('SPR', task.sprintId) : null;
+  return task.sprintId && task.sprintId !== currentSprintId
+    ? IdUtils.shortId('SPR', task.sprintId)
+    : null;
 }
 
 function handleSubmit(): void {
@@ -159,8 +161,8 @@ watch(selectedProjectId, () => {
               </template>
             </span>
           </span>
-          <StatusBadgeComponent :tone="TASK_STATUS[task.status].tone" class="shrink-0">
-            {{ TASK_STATUS[task.status].text }}
+          <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[task.status].tone" class="shrink-0">
+            {{ LabelUtils.TASK_STATUS[task.status].text }}
           </StatusBadgeComponent>
         </label>
       </div>

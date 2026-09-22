@@ -7,7 +7,7 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { USER_ROLE } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 interface NavItem {
@@ -89,7 +89,7 @@ const userDisplay = computed(() => {
 
   return {
     name: currentUser.name,
-    roleLabel: USER_ROLE[currentUser.role].text,
+    roleLabel: LabelUtils.USER_ROLE[currentUser.role].text,
     initials: currentUser.name
       .split(' ')
       .slice(0, 2)
