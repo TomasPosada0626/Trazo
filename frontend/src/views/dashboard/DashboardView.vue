@@ -114,7 +114,7 @@ const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
   currentUserId.value
-    ? ProjectService.getMemberTasks(
+    ? ProjectService.getUserTasks(
         selectedProjectId.value,
         sprintId.value,
         currentUserId.value,

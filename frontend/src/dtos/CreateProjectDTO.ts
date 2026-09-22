@@ -5,6 +5,6 @@ import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 
 /**
  * `id` and `createdAt` are assigned by ProjectService.create(), and
- * `memberIds` is seeded with the creator, so none of them are caller input.
+ * `userIds` is seeded with the creator, so none of them are caller input.
  */
-export type CreateProjectDTO = Omit<ProjectInterface, 'id' | 'createdAt' | 'memberIds'>;
+export type CreateProjectDTO = Omit<ProjectInterface, 'id' | 'createdAt' | 'userIds'>;

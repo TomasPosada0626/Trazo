@@ -42,7 +42,7 @@ export class UserService {
 
     // Drop every reference before the id can be handed to someone else.
     TaskService.unassignUser(id);
-    ProjectService.removeMemberEverywhere(id);
+    ProjectService.removeUserEverywhere(id);
 
     users.splice(index, 1);
     return true;
@@ -55,7 +55,7 @@ export class UserService {
   }
 
   static getAssignedTasks(user: UserInterface): TaskInterface[] {
-    // No membership filter is needed: a task can only be assigned to a member
+    // No project filter is needed: a task can only be assigned to a user
     // of its own project, so everything here is already visible to them.
     return TaskService.getByAssignee(user.id);
   }

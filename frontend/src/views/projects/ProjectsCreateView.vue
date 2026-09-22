@@ -15,7 +15,7 @@ const router = useRouter();
 
 // functions
 function handleSubmit(values: CreateProjectDTO): void {
-  // The service adds the creator as the first member.
+  // The service adds the creator as the first user.
   ProjectService.create(values);
   router.push({ name: 'projects' });
 }

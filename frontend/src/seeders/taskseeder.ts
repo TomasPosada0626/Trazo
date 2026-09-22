@@ -4,7 +4,7 @@
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 
 export const taskSeeder: TaskInterface[] = [
-  // Project 1 — Mobile App Redesign. Members: 1, 2.
+  // Project 1 — Mobile App Redesign. Users: 1, 2.
   {
     id: 1,
     title: 'Design the onboarding flow',
@@ -76,7 +76,7 @@ export const taskSeeder: TaskInterface[] = [
     assigneeId: 1,
   },
 
-  // Project 2 — Customer Portal. Members: 3.
+  // Project 2 — Customer Portal. Users: 3.
   {
     id: 6,
     title: 'Billing history table',
@@ -120,7 +120,7 @@ export const taskSeeder: TaskInterface[] = [
     assigneeId: null,
   },
 
-  // Project 3 — Cloud Migration. Members: 3, 2.
+  // Project 3 — Cloud Migration. Users: 3, 2.
   {
     id: 9,
     title: 'Migrate the legacy database',
@@ -164,7 +164,7 @@ export const taskSeeder: TaskInterface[] = [
     assigneeId: 2,
   },
 
-  // Project 4 — Loyalty Program. Members: 1. Closed project, all tasks done.
+  // Project 4 — Loyalty Program. Users: 1. Closed project, all tasks done.
   {
     id: 12,
     title: 'Points accrual rules',

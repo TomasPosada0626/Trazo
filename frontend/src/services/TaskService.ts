@@ -129,7 +129,7 @@ export class TaskService {
   static getAssignableUsers(projectId: number): UserInterface[] {
     const project = ProjectService.getById(projectId);
 
-    return project ? ProjectService.getMembers(project) : [];
+    return project ? ProjectService.getUsers(project) : [];
   }
 
   static getAssignee(task: TaskInterface): UserInterface | undefined {
@@ -148,8 +148,8 @@ export class TaskService {
       throw new Error('The selected project does not exist.');
     }
 
-    if (assigneeId && !ProjectService.isMember(project, assigneeId)) {
-      throw new Error('The assignee must be a member of the project.');
+    if (assigneeId && !ProjectService.hasUser(project, assigneeId)) {
+      throw new Error('The assignee must be a user of the project.');
     }
   }
 }

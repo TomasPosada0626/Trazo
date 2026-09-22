@@ -10,7 +10,7 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Complete overhaul of the mobile experience.',
     status: 'active',
     createdAt: '2026-02-02',
-    memberIds: [1, 2],
+    userIds: [1, 2],
   },
   {
     id: 2,
@@ -18,7 +18,7 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Account and billing self-service.',
     status: 'active',
     createdAt: '2026-03-18',
-    memberIds: [3],
+    userIds: [3],
   },
   {
     id: 3,
@@ -26,7 +26,7 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Move the legacy infrastructure over.',
     status: 'at_risk',
     createdAt: '2026-01-05',
-    memberIds: [3, 2],
+    userIds: [3, 2],
   },
   {
     id: 4,
@@ -34,6 +34,6 @@ export const projectSeeder: ProjectInterface[] = [
     description: 'Points and rewards system.',
     status: 'completed',
     createdAt: '2025-09-11',
-    memberIds: [1],
+    userIds: [1],
   },
 ];

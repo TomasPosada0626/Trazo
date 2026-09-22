@@ -37,7 +37,7 @@ const sprint = computed(() => {
   if (!found || !currentUserId) return undefined;
 
   const project = ProjectService.getById(found.projectId);
-  if (!project || !ProjectService.isMember(project, currentUserId)) return undefined;
+  if (!project || !ProjectService.hasUser(project, currentUserId)) return undefined;
 
   return found;
 });
@@ -105,7 +105,7 @@ function handleSubmit(values: UpdateSprintDTO): void {
     <PanelCardComponent v-else title="Sprint not found" padded>
       <p class="text-sm text-ink-soft">
         The sprint you are trying to edit does not exist, or it belongs to a project you are not a
-        member of.
+        user of.
       </p>
       <RouterLink
         to="/app/sprints"

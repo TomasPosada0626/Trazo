@@ -70,7 +70,7 @@ function handleSubmit(): void {
 
 // watchers
 // Moving a task to another project can strand its assignee, who may not be a
-// member there. Clearing it keeps the form from submitting a pair the service
+// user there. Clearing it keeps the form from submitting a pair the service
 // would reject.
 watch(selectorAssignees, (newOptions) => {
   if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {

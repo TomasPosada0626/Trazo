@@ -103,7 +103,7 @@ function handleSubmit(values: UpdateTaskDTO): void {
     <PanelCardComponent v-else title="Task not found" padded>
       <p class="text-sm text-ink-soft">
         The task you are trying to edit does not exist, or it belongs to a project you are not a
-        member of.
+        user of.
       </p>
       <RouterLink
         to="/app/tasks"

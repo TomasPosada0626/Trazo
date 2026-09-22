@@ -16,7 +16,7 @@ import { nextId } from '@/utils/id';
 
 export class ProjectService {
   static getAllUserProjects(userId: number): ProjectInterface[] {
-    return useProjectStore().projects.filter((project) => project.memberIds.includes(userId));
+    return useProjectStore().projects.filter((project) => project.userIds.includes(userId));
   }
 
   static getUserProjectsByStatus(
@@ -38,7 +38,7 @@ export class ProjectService {
     const project: ProjectInterface = {
       id: nextId(useProjectStore().projects),
       createdAt: new Date().toISOString(),
-      memberIds: creator ? [creator.id] : [],
+      userIds: creator ? [creator.id] : [],
       ...CreateProjectDTO,
     };
 
@@ -67,51 +67,51 @@ export class ProjectService {
     }
   }
 
-  static getMembers(project: ProjectInterface): UserInterface[] {
-    return project.memberIds
-      .map((memberId) => UserService.getById(memberId))
+  static getUsers(project: ProjectInterface): UserInterface[] {
+    return project.userIds
+      .map((userId) => UserService.getById(userId))
       .filter((user): user is UserInterface => user !== undefined);
   }
 
-  static getNonMembers(project: ProjectInterface): UserInterface[] {
-    return UserService.getAll().filter((user) => !project.memberIds.includes(user.id));
+  static getAvailableUsers(project: ProjectInterface): UserInterface[] {
+    return UserService.getAll().filter((user) => !project.userIds.includes(user.id));
   }
 
-  static addMember(projectId: number, userId: number): void {
+  static addUser(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
-    if (!project || project.memberIds.includes(userId)) return;
+    if (!project || project.userIds.includes(userId)) return;
 
     if (!UserService.getById(userId)) return;
 
-    project.memberIds.push(userId);
+    project.userIds.push(userId);
   }
 
-  static removeMemberEverywhere(userId: number): void {
-    // Ids are reused once the highest is freed, so a leftover id would make
-    // the next user created a member of projects they were never added to.
+  static removeUserEverywhere(userId: number): void {
+    // Ids are reused once the highest is freed, so a leftover id would put
+    // the next user created onto projects they were never added to.
     useProjectStore().projects.forEach((project) => {
-      const index = project.memberIds.indexOf(userId);
+      const index = project.userIds.indexOf(userId);
       if (index !== -1) {
-        project.memberIds.splice(index, 1);
+        project.userIds.splice(index, 1);
       }
     });
   }
 
-  static isMember(project: ProjectInterface, userId: number): boolean {
-    return project.memberIds.includes(userId);
+  static hasUser(project: ProjectInterface, userId: number): boolean {
+    return project.userIds.includes(userId);
   }
 
-  static removeMember(projectId: number, userId: number): void {
+  static removeUser(projectId: number, userId: number): void {
     const project = ProjectService.getById(projectId);
     if (!project) return;
 
-    // Refusing self-removal is what guarantees at least one admin member
+    // Refusing self-removal is what guarantees at least one admin user
     // remains: to leave a project you administer, delete it.
     if (userId === AuthService.getCurrentUser()?.id) return;
 
-    const index = project.memberIds.indexOf(userId);
+    const index = project.userIds.indexOf(userId);
     if (index !== -1) {
-      project.memberIds.splice(index, 1);
+      project.userIds.splice(index, 1);
     }
   }
 
@@ -194,11 +194,11 @@ export class ProjectService {
       (task) => task.status !== 'done',
     );
 
-    // Members with nothing open still get a row: an idle member is exactly
+    // Users with nothing open still get a row: an idle user is exactly
     // what this chart should reveal.
-    const rows = ProjectService.getMembers(project).map((member) => ({
-      label: member.name,
-      value: open.filter((task) => task.assigneeId === member.id).length,
+    const rows = ProjectService.getUsers(project).map((user) => ({
+      label: user.name,
+      value: open.filter((task) => task.assigneeId === user.id).length,
     }));
 
     const unassigned = open.filter((task) => task.assigneeId === null).length;
@@ -211,7 +211,7 @@ export class ProjectService {
     return { labels: rows.map((row) => row.label), values: rows.map((row) => row.value) };
   }
 
-  static getMemberTasks(
+  static getUserTasks(
     projectId: number,
     sprintId: number | null,
     userId: number,

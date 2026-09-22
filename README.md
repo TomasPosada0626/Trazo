@@ -16,7 +16,7 @@ See [Demo Accounts](#demo-accounts) below for login credentials.
 
 ## Features
 
-- **Project management** — Full CRUD, with membership-based visibility: a project is visible only to the users listed in its members
+- **Project management** — Full CRUD, with membership-based visibility: a project is visible only to the users listed in its `userIds`
 - **Sprint planning** — Schedule tasks into sprints; committed points, completed points and days remaining are all derived, never stored
 - **Task tracking** — Full CRUD, scoped to a project, with type, priority, status and assignee
 - **Role-based access control**
@@ -88,7 +88,7 @@ frontend/
 │   │   ├── ui/         # Domain-agnostic primitives: DataTableComponent, TextFieldComponent, ...
 │   │   ├── dashboard/  # BarChartComponent, PieChartComponent, StatCardComponent
 │   │   ├── layout/     # AppSidebarComponent
-│   │   ├── projects/   # ProjectFormComponent, ProjectMembersComponent
+│   │   ├── projects/   # ProjectFormComponent, ProjectUsersComponent
 │   │   ├── sprints/    # SprintFormComponent
 │   │   ├── tasks/      # TaskFormComponent
 │   │   └── users/      # UserFormComponent
@@ -179,7 +179,7 @@ There is no separate landing page: the Dashboard is the app's home screen once s
 | /login          | login     |      ❌       |       ❌        | Guest-only; redirects signed-in users     |
 | /app/dashboard  | dashboard |      ✅       |       ❌        | Role-aware home: indicators + charts      |
 | /app/tasks      | tasks     |      ✅       |       ❌        | Task CRUD, scoped to the user's projects  |
-| /app/projects   | projects  |      ✅       |       ✅        | Admin: Project CRUD + membership          |
+| /app/projects   | projects  |      ✅       |       ✅        | Admin: Project CRUD + its user roster     |
 | /app/sprints    | sprints   |      ✅       |       ✅        | Admin: Sprint CRUD + task scheduling      |
 | /app/users      | users     |      ✅       |       ✅        | Admin: User CRUD + roles                  |
 
