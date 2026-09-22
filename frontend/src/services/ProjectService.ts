@@ -34,11 +34,11 @@ export class ProjectService {
   }
 
   static create(CreateProjectDTO: CreateProjectDTO): ProjectInterface {
-    const creator = AuthService.getCurrentUser();
+    const user = AuthService.getCurrentUser();
     const project: ProjectInterface = {
       id: nextId(useProjectStore().projects),
       createdAt: new Date().toISOString(),
-      userIds: creator ? [creator.id] : [],
+      userIds: user ? [user.id] : [],
       ...CreateProjectDTO,
     };
 
