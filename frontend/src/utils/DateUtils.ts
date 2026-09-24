@@ -20,6 +20,7 @@ export class DateUtils {
 
   static formatDate(iso: string): string {
     const date = new Date(iso);
+
     // UTC getters, so a date-only string never shifts a day in a negative
     // timezone offset.
     const day = String(date.getUTCDate()).padStart(2, '0');

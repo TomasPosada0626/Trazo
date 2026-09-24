@@ -4,13 +4,14 @@
 // external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
-import SprintTableComponent, {
-  type SprintRow,
-} from '@/components/sprints/SprintTableComponent.vue';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import SprintTableComponent, {
+  type SprintRow,
+} from '@/components/sprints/SprintTableComponent.vue';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

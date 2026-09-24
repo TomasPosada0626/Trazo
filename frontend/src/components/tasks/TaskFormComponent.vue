@@ -4,8 +4,11 @@
 // external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
-import SelectFieldComponent, { type SelectOption } from '@/components/shared/SelectFieldComponent.vue';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
@@ -69,9 +72,6 @@ function handleSubmit(): void {
 }
 
 // watchers
-// Moving a task to another project can strand its assignee, who may not be a
-// user there. Clearing it keeps the form from submitting a pair the service
-// would reject.
 watch(selectorAssignees, (newOptions) => {
   if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {
     selectedAssigneeId.value = UNASSIGNED;

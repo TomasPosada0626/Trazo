@@ -3,14 +3,17 @@
 
 // external imports
 import { computed, ref, watch } from 'vue';
+
 // internal imports
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
-import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/shared/SelectFieldComponent.vue';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

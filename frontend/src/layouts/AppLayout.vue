@@ -4,6 +4,7 @@
 // external imports
 import { computed } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
+
 // internal imports
 import AppSidebarComponent from '@/components/layout/AppSidebarComponent.vue';
 import { AuthService } from '@/services/AuthService';

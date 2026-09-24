@@ -22,10 +22,13 @@ declare module 'vue-router' {
     // Breadcrumb shown in the app layout's topbar: "title / section".
     title?: string;
     section?: string;
+
     // Redirects to Login when there's no active session.
     requiresAuth?: boolean;
+
     // Redirects non-admins to the Dashboard. Implies requiresAuth.
     requiresAdmin?: boolean;
+
     // Redirects already-authenticated users away from Login.
     guestOnly?: boolean;
   }

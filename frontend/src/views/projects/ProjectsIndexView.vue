@@ -4,6 +4,7 @@
 // external imports
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import ProjectTableComponent, {

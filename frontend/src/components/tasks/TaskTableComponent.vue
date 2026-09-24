@@ -3,6 +3,7 @@
 
 // external imports
 import { RouterLink } from 'vue-router';
+
 // internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
