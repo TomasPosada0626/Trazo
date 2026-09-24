@@ -7,8 +7,8 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
 import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

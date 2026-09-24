@@ -4,8 +4,8 @@
 // external imports
 import { computed, ref, watch } from 'vue';
 // internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { LabelUtils } from '@/utils/LabelUtils';
 

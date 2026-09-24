@@ -5,8 +5,8 @@
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 // internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import { LabelUtils } from '@/utils/LabelUtils';

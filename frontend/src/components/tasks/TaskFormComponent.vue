@@ -5,8 +5,8 @@
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 // internal imports
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/shared/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
 import { LabelUtils } from '@/utils/LabelUtils';

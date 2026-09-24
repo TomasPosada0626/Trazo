@@ -5,8 +5,8 @@
 import { useRouter } from 'vue-router';
 // internal imports
 import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
 

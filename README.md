@@ -85,13 +85,13 @@ The full class diagram and architecture diagram are documented in the [Wiki](htt
 frontend/
 ├── src/
 │   ├── components/
-│   │   ├── ui/         # Domain-agnostic primitives: DataTableComponent, TextFieldComponent, ...
+│   │   ├── shared/     # Domain-agnostic primitives: DataTableComponent (styles-only shell), ...
 │   │   ├── dashboard/  # BarChartComponent, PieChartComponent, StatCardComponent
 │   │   ├── layout/     # AppSidebarComponent
-│   │   ├── projects/   # ProjectFormComponent, ProjectUsersComponent
-│   │   ├── sprints/    # SprintFormComponent
-│   │   ├── tasks/      # TaskFormComponent
-│   │   └── users/      # UserFormComponent
+│   │   ├── projects/   # ProjectFormComponent, ProjectUsersComponent, ProjectTableComponent
+│   │   ├── sprints/    # SprintFormComponent, SprintTableComponent
+│   │   ├── tasks/      # TaskFormComponent, TaskTableComponent, AssignedTaskTableComponent
+│   │   └── users/      # UserFormComponent, UserTableComponent
 │   ├── layouts/         # AppLayout — the route-level shell; resolves the session
 │   ├── views/           # Route components, one folder per page
 │   ├── router/          # Route table + beforeEach guard

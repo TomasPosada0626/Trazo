@@ -5,9 +5,9 @@
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 // internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';

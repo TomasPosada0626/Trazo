@@ -5,33 +5,22 @@
 import { computed, ref, watch } from 'vue';
 // internal imports
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
+import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent, { type SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { ColorUtils } from '@/utils/ColorUtils';
-import { DateUtils } from '@/utils/DateUtils';
 import { IdUtils } from '@/utils/IdUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const ALL_TIME = 'all';
-
-const myTaskColumns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'dueDate', label: 'Due date' },
-];
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -259,31 +248,7 @@ watch(
       </PanelCardComponent>
 
       <PanelCardComponent v-else title="My assigned tasks">
-        <DataTableComponent
-          :columns="myTaskColumns"
-          :rows="userTasks"
-          empty-message="Nothing is assigned to you in this range."
-        >
-          <template #row="{ row }">
-            <td class="px-4 py-3">
-              <IdChipComponent>{{ IdUtils.shortId('TSK', row.id) }}</IdChipComponent>
-            </td>
-            <td class="px-4 py-3 font-medium">{{ row.title }}</td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[row.status].tone">
-                {{ LabelUtils.TASK_STATUS[row.status].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="LabelUtils.TASK_PRIORITY[row.priority].tone">
-                {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3 text-ink-soft">
-              {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
-            </td>
-          </template>
-        </DataTableComponent>
+        <AssignedTaskTableComponent :tasks="userTasks" />
       </PanelCardComponent>
     </template>
   </div>

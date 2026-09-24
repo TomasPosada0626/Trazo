@@ -1,8 +1,8 @@
 // Author: Mateo Garcia Carreno
 
 // internal imports
-import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import type { BadgeTone } from '@/components/ui/StatusBadgeComponent.vue';
+import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
+import type { BadgeTone } from '@/components/shared/StatusBadgeComponent.vue';
 import type { ProjectStatus } from '@/interfaces/ProjectInterface';
 import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';

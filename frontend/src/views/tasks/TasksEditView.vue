@@ -6,9 +6,9 @@ import { computed, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // internal imports
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

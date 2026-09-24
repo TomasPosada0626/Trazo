@@ -5,8 +5,8 @@
 import { useRouter } from 'vue-router';
 // internal imports
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import { UserService } from '@/services/UserService';
 

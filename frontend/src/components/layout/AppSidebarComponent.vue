@@ -5,7 +5,7 @@
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 // internal imports
-import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
+import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { LabelUtils } from '@/utils/LabelUtils';
 
