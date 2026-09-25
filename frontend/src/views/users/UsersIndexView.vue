@@ -4,34 +4,20 @@
 // external imports
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { UserInterface } from '@/interfaces/UserInterface';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import UserTableComponent, { type UserRow } from '@/components/users/UserTableComponent.vue';
 import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
-import { USER_ROLE, toFilterOptions } from '@/utils/labels';
-
-// variables
-type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
-
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: 'Role' },
-  { key: 'projects', label: 'Active projects' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // selectors
 const selectedRole = ref('all');
 
-const selectorRoles = toFilterOptions(USER_ROLE);
+const selectorRoles = LabelUtils.toFilterOptions(LabelUtils.USER_ROLE);
 
 // computed variables
 const users = computed<UserRow[]>(() =>
@@ -90,42 +76,11 @@ function handleDelete(user: UserRow): void {
         />
       </template>
 
-      <DataTableComponent :columns="columns" :rows="filteredUsers">
-        <template #row="{ row }">
-          <td class="px-4 py-3">
-            <IdChipComponent>{{ row.id }}</IdChipComponent>
-          </td>
-          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
-          <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="USER_ROLE[row.role].tone">
-              {{ USER_ROLE[row.role].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
-          <td class="px-4 py-3 text-right">
-            <RouterLink
-              :to="`/app/users/${row.id}/edit`"
-              class="text-sm font-medium text-accent hover:underline"
-            >
-              Edit
-            </RouterLink>
-            <button
-              type="button"
-              class="ml-4 text-sm font-medium transition-colors"
-              :class="
-                row.id === currentUserId
-                  ? 'cursor-not-allowed text-ink-soft/50'
-                  : 'text-ink-soft hover:text-red-600'
-              "
-              :disabled="row.id === currentUserId"
-              @click="handleDelete(row)"
-            >
-              Delete
-            </button>
-          </td>
-        </template>
-      </DataTableComponent>
+      <UserTableComponent
+        :users="filteredUsers"
+        :current-user-id="currentUserId"
+        @delete="handleDelete"
+      />
     </PanelCardComponent>
   </div>
 </template>

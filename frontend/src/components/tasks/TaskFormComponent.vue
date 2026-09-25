@@ -4,12 +4,15 @@
 // external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
-import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
@@ -42,15 +45,15 @@ const selectorAssignees = computed<SelectOption<number>[]>(() => [
 
 const selectedType = ref<string>(initialValues?.type ?? 'feature');
 
-const selectorTypes = toSelectOptions(TASK_TYPE);
+const selectorTypes = LabelUtils.toSelectOptions(LabelUtils.TASK_TYPE);
 
 const selectedPriority = ref<string>(initialValues?.priority ?? 'medium');
 
-const selectorPriorities = toSelectOptions(TASK_PRIORITY);
+const selectorPriorities = LabelUtils.toSelectOptions(LabelUtils.TASK_PRIORITY);
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 
-const selectorStatuses = toSelectOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.TASK_STATUS);
 
 // functions
 function handleSubmit(): void {
@@ -69,9 +72,6 @@ function handleSubmit(): void {
 }
 
 // watchers
-// Moving a task to another project can strand its assignee, who may not be a
-// member there. Clearing it keeps the form from submitting a pair the service
-// would reject.
 watch(selectorAssignees, (newOptions) => {
   if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {
     selectedAssigneeId.value = UNASSIGNED;

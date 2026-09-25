@@ -4,44 +4,27 @@
 // external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
+
 // internal imports
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import TaskTableComponent, { type TaskRow } from '@/components/tasks/TaskTableComponent.vue';
+import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_TYPE,
-  TASK_TYPE_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
 };
-
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'project', label: 'Project' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'assignee', label: 'Assignee' },
-  { key: 'dueDate', label: 'Due date' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
 
 const route = useRoute();
 
@@ -58,7 +41,7 @@ const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -67,13 +50,17 @@ const projects = computed(() =>
   currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
 );
 
-const tasks = computed(() =>
+const tasks = computed<TaskRow[]>(() =>
   currentUserId.value
     ? TaskService.getUserTasksFiltered(
         currentUserId.value,
         selectedProjectId.value,
         selectedStatus.value,
-      )
+      ).map((task) => ({
+        ...task,
+        projectName: ProjectService.getById(task.projectId)?.name ?? 'Unknown project',
+        assigneeName: TaskService.getAssignee(task)?.name ?? '—',
+      }))
     : [],
 );
 
@@ -83,24 +70,16 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof TASK_TYPE_COLORS)[];
+  const types = Object.keys(counts) as (keyof typeof ColorUtils.TASK_TYPE)[];
   return {
-    labels: types.map((type) => TASK_TYPE[type].text),
+    labels: types.map((type) => LabelUtils.TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => TASK_TYPE_COLORS[type]),
+    colors: types.map((type) => ColorUtils.TASK_TYPE[type]),
   };
 });
 
 // functions
-function projectName(task: TaskInterface): string {
-  return ProjectService.getById(task.projectId)?.name ?? 'Unknown project';
-}
-
-function assigneeName(task: TaskInterface): string {
-  return TaskService.getAssignee(task)?.name ?? '—';
-}
-
-function handleDelete(task: TaskInterface): void {
+function handleDelete(task: TaskRow): void {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,
   );
@@ -172,48 +151,7 @@ function handleDelete(task: TaskInterface): void {
         </div>
       </template>
 
-      <DataTableComponent
-        :columns="columns"
-        :rows="tasks"
-        empty-message="No tasks match this filter. Create one to get started."
-      >
-        <template #row="{ row }">
-          <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
-          </td>
-          <td class="px-4 py-3 font-medium">{{ row.title }}</td>
-          <td class="px-4 py-3 text-ink-soft">{{ projectName(row) }}</td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-              {{ TASK_STATUS[row.status].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-              {{ TASK_PRIORITY[row.priority].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3 text-ink-soft">{{ assigneeName(row) }}</td>
-          <td class="px-4 py-3 text-ink-soft">
-            {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
-          </td>
-          <td class="px-4 py-3 text-right whitespace-nowrap">
-            <RouterLink
-              :to="`/app/tasks/${row.id}/edit`"
-              class="text-sm font-medium text-accent hover:underline"
-            >
-              Edit
-            </RouterLink>
-            <button
-              type="button"
-              class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
-              @click="handleDelete(row)"
-            >
-              Delete
-            </button>
-          </td>
-        </template>
-      </DataTableComponent>
+      <TaskTableComponent :tasks="tasks" @delete="handleDelete" />
     </PanelCardComponent>
 
     <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>

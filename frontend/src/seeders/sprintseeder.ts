@@ -3,16 +3,6 @@
 // internal imports
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 
-/**
- * Mock sprints preloaded on first load.
- *
- * Neither committed nor completed points are stored: both are summed from the
- * sprint's tasks by SprintService, so they can never disagree with the work
- * actually scheduled.
- *
- * Project 4 deliberately has no sprints, so the dashboard's range selector has a
- * project that exercises the "no sprints" state.
- */
 export const sprintSeeder: SprintInterface[] = [
   {
     id: 1,

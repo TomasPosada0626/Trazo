@@ -4,8 +4,9 @@
 // external imports
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+
 // internal imports
-import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
+import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
 
 // reactive variables

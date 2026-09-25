@@ -4,6 +4,7 @@
   "env": {
     "browser": true
   },
+  "ignorePatterns": ["**/dist/**", "**/dist-ssr/**", "**/coverage/**"],
   "categories": {
     "correctness": "error"
   }

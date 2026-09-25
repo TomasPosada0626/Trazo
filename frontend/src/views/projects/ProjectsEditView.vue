@@ -4,11 +4,12 @@
 // external imports
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
+
 // internal imports
 import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
-import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
+import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
@@ -24,26 +25,26 @@ const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
 
 const project = computed(() => {
   const found = ProjectService.getById(projectId);
-  if (!found || !currentUserId.value || !ProjectService.isMember(found, currentUserId.value)) {
+  if (!found || !currentUserId.value || !ProjectService.hasUser(found, currentUserId.value)) {
     return undefined;
   }
 
   return found;
 });
 
-const members = computed(() => (project.value ? ProjectService.getMembers(project.value) : []));
+const users = computed(() => (project.value ? ProjectService.getUsers(project.value) : []));
 
-const nonMembers = computed(() =>
-  project.value ? ProjectService.getNonMembers(project.value) : [],
+const availableUsers = computed(() =>
+  project.value ? ProjectService.getAvailableUsers(project.value) : [],
 );
 
 // functions
-function handleAddMember(userId: number): void {
-  ProjectService.addMember(projectId, userId);
+function handleAddUser(userId: number): void {
+  ProjectService.addUser(projectId, userId);
 }
 
-function handleRemoveMember(userId: number): void {
-  ProjectService.removeMember(projectId, userId);
+function handleRemoveUser(userId: number): void {
+  ProjectService.removeUser(projectId, userId);
 }
 
 function handleSubmit(values: UpdateProjectDTO): void {
@@ -72,13 +73,13 @@ function handleSubmit(values: UpdateProjectDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="project" title="Project members" padded>
-      <ProjectMembersComponent
-        :members="members"
-        :non-members="nonMembers"
+    <PanelCardComponent v-if="project" title="Project users" padded>
+      <ProjectUsersComponent
+        :users="users"
+        :available-users="availableUsers"
         :current-user-id="currentUserId"
-        @add="handleAddMember"
-        @remove="handleRemoveMember"
+        @add="handleAddUser"
+        @remove="handleRemoveUser"
       />
     </PanelCardComponent>
 
