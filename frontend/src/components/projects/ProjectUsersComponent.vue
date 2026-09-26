@@ -3,16 +3,17 @@
 
 // external imports
 import { computed, ref, watch } from 'vue';
+
 // internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { USER_ROLE } from '@/utils/labels';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // props
-const { members, nonMembers, currentUserId } = defineProps<{
-  members: UserInterface[];
-  nonMembers: UserInterface[];
+const { users, availableUsers, currentUserId } = defineProps<{
+  users: UserInterface[];
+  availableUsers: UserInterface[];
   currentUserId: number | null;
 }>();
 
@@ -26,7 +27,7 @@ const NONE = 0;
 const selectedUserId = ref<number>(NONE);
 
 const selectorUsers = computed(() =>
-  nonMembers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
+  availableUsers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
 );
 
 // functions
@@ -42,7 +43,7 @@ function handleAdd(): void {
 // watchers
 // Keep the picker pointing at a user who is still addable.
 watch(
-  () => nonMembers,
+  () => availableUsers,
   (newOptions) => {
     if (!newOptions.some((user) => user.id === selectedUserId.value)) {
       selectedUserId.value = newOptions[0]?.id ?? NONE;
@@ -55,39 +56,39 @@ watch(
 <template>
   <div class="space-y-5">
     <ul class="divide-y divide-line border-y border-line">
-      <li v-for="member in members" :key="member.id" class="flex items-center gap-3 py-3">
+      <li v-for="user in users" :key="user.id" class="flex items-center gap-3 py-3">
         <span
           class="grid size-8 shrink-0 place-items-center rounded-full bg-ink/5 text-xs font-semibold"
         >
-          {{ member.name.charAt(0) }}
+          {{ user.name.charAt(0) }}
         </span>
         <span class="min-w-0 leading-tight">
           <span class="block truncate text-sm font-medium">
-            {{ member.name }}
-            <span v-if="member.id === currentUserId" class="text-ink-soft">(you)</span>
+            {{ user.name }}
+            <span v-if="user.id === currentUserId" class="text-ink-soft">(you)</span>
           </span>
-          <span class="block truncate text-xs text-ink-soft">{{ member.email }}</span>
+          <span class="block truncate text-xs text-ink-soft">{{ user.email }}</span>
         </span>
 
-        <StatusBadgeComponent :tone="USER_ROLE[member.role].tone" class="ml-auto shrink-0">
-          {{ USER_ROLE[member.role].text }}
+        <StatusBadgeComponent :tone="LabelUtils.USER_ROLE[user.role].tone" class="ml-auto shrink-0">
+          {{ LabelUtils.USER_ROLE[user.role].text }}
         </StatusBadgeComponent>
 
         <button
           type="button"
           class="shrink-0 text-sm font-medium transition-colors"
           :class="
-            canRemove(member.id)
+            canRemove(user.id)
               ? 'text-ink-soft hover:text-red-600'
               : 'cursor-not-allowed text-ink-soft/40'
           "
-          :disabled="!canRemove(member.id)"
+          :disabled="!canRemove(user.id)"
           :title="
-            canRemove(member.id)
+            canRemove(user.id)
               ? 'Remove from project'
               : 'You cannot remove yourself: delete the project to leave it'
           "
-          @click="emit('remove', member.id)"
+          @click="emit('remove', user.id)"
         >
           Remove
         </button>
@@ -96,9 +97,9 @@ watch(
 
     <div v-if="selectorUsers.length" class="flex items-end gap-3">
       <SelectFieldComponent
-        id="project-add-member"
+        id="project-add-user"
         v-model="selectedUserId"
-        label="Add member"
+        label="Add user"
         :options="selectorUsers"
         class="flex-1"
       />

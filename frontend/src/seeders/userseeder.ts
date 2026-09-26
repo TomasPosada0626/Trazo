@@ -3,7 +3,6 @@
 // internal imports
 import type { UserInterface } from '@/interfaces/UserInterface';
 
-/** Mock users preloaded on first load, per the MVP's LocalStorage-only scope. */
 export const userSeeder: UserInterface[] = [
   {
     id: 1,

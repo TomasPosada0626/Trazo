@@ -3,41 +3,27 @@
 
 // external imports
 import { computed, ref, watch } from 'vue';
+
 // internal imports
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
 import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
 import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
-import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  CHART_COLORS,
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_STATUS_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
+import { ColorUtils } from '@/utils/ColorUtils';
+import { IdUtils } from '@/utils/IdUtils';
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const ALL_TIME = 'all';
-
-const myTaskColumns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'dueDate', label: 'Due date' },
-];
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -52,13 +38,13 @@ const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
-    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
+    label: `${IdUtils.shortId('SPR', sprint.id)} · ${sprint.name}`,
   })),
 ]);
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -76,44 +62,38 @@ const hasSprints = computed(() => sprints.value.length > 0);
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
 const progress = computed(() =>
-  DashboardService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
+  ProjectService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
-const activeSprints = computed(() =>
-  DashboardService.getActiveSprintCount(selectedProjectId.value),
-);
+const activeSprints = computed(() => ProjectService.getActiveSprintCount(selectedProjectId.value));
 const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(
+  ProjectService.getCompletedTaskCount(
     selectedProjectId.value,
     sprintId.value,
     selectedStatus.value,
   ),
 );
 const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
+  ProjectService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
+  ProjectService.getOverdueTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
 );
 
 const statusSeries = computed(() =>
-  DashboardService.getTasksByStatus(selectedProjectId.value, sprintId.value),
+  ProjectService.getTasksByStatus(selectedProjectId.value, sprintId.value),
 );
 const statusChart = computed(() => ({
-  labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
+  labels: statusSeries.value.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
   values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
+  colors: statusSeries.value.labels.map((status) => ColorUtils.TASK_STATUS[status]),
 }));
 
-const completion = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
+const completion = computed(() => SprintService.getVelocitySeries(selectedProjectId.value));
 const completionChart = computed(() => ({
   labels: completion.value.labels,
   series: [
-    { label: 'Committed', values: completion.value.committed, color: CHART_COLORS.muted },
-    { label: 'Completed', values: completion.value.values, color: CHART_COLORS.done },
+    { label: 'Committed', values: completion.value.committed, color: ColorUtils.CHART.muted },
+    { label: 'Completed', values: completion.value.values, color: ColorUtils.CHART.done },
   ],
 }));
 
@@ -121,7 +101,7 @@ const isAdmin = computed(() => AuthService.isAdmin());
 
 const userTasks = computed(() =>
   currentUserId.value
-    ? DashboardService.getUserTasks(
+    ? ProjectService.getUserTasks(
         selectedProjectId.value,
         sprintId.value,
         currentUserId.value,
@@ -131,7 +111,7 @@ const userTasks = computed(() =>
 );
 
 const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(
+  ProjectService.getWorkloadByAssignee(
     selectedProjectId.value,
     sprintId.value,
     selectedStatus.value,
@@ -139,17 +119,19 @@ const workload = computed(() =>
 );
 const workloadChart = computed(() => ({
   labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
+  series: [{ label: 'Open tasks', values: workload.value.values, color: ColorUtils.CHART.ink }],
 }));
 
 const projectDistribution = computed(() =>
   currentUserId.value
-    ? DashboardService.getTasksByProject(currentUserId.value)
+    ? ProjectService.getTasksByProject(currentUserId.value)
     : { labels: [], values: [] },
 );
 const projectDistributionChart = computed(() => ({
   labels: projectDistribution.value.labels,
-  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: CHART_COLORS.ink }],
+  series: [
+    { label: 'Tasks', values: projectDistribution.value.values, color: ColorUtils.CHART.ink },
+  ],
 }));
 
 // watchers
@@ -269,31 +251,7 @@ watch(
       </PanelCardComponent>
 
       <PanelCardComponent v-else title="My assigned tasks">
-        <DataTableComponent
-          :columns="myTaskColumns"
-          :rows="userTasks"
-          empty-message="Nothing is assigned to you in this range."
-        >
-          <template #row="{ row }">
-            <td class="px-4 py-3">
-              <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
-            </td>
-            <td class="px-4 py-3 font-medium">{{ row.title }}</td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-                {{ TASK_STATUS[row.status].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-                {{ TASK_PRIORITY[row.priority].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3 text-ink-soft">
-              {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
-            </td>
-          </template>
-        </DataTableComponent>
+        <AssignedTaskTableComponent :tasks="userTasks" />
       </PanelCardComponent>
     </template>
   </div>

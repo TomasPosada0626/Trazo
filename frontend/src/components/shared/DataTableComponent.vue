@@ -1,16 +1,8 @@
 <script setup lang="ts" generic="T extends { id: number }">
 // Author: Mateo Garcia Carreno
 
-// variables
-export interface DataTableColumn {
-  key: string;
-  label: string;
-  class?: string;
-}
-
 // props
 const { emptyMessage = 'No records to display.' } = defineProps<{
-  columns: DataTableColumn[];
   rows: T[];
   emptyMessage?: string;
 }>();
@@ -21,15 +13,8 @@ const { emptyMessage = 'No records to display.' } = defineProps<{
     <table class="w-full border-collapse text-sm">
       <thead>
         <tr class="border-b border-line">
-          <th
-            v-for="column in columns"
-            :key="column.key"
-            scope="col"
-            class="px-4 py-3 text-left font-mono text-[10px] font-semibold tracking-[0.12em] text-ink-soft uppercase"
-            :class="column.class"
-          >
-            {{ column.label }}
-          </th>
+          <!-- The entity's table component supplies the <th> cells. -->
+          <slot name="head" />
         </tr>
       </thead>
       <tbody>
@@ -38,7 +23,7 @@ const { emptyMessage = 'No records to display.' } = defineProps<{
           :key="row.id"
           class="border-b border-line/60 transition-colors last:border-0 hover:bg-ink/[0.02]"
         >
-          <!-- The view supplies the <td> cells for each row. -->
+          <!-- ...and the <td> cells for each row. -->
           <slot name="row" :row="row" />
         </tr>
       </tbody>

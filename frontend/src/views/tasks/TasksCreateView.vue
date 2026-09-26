@@ -4,11 +4,12 @@
 // external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+
 // internal imports
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';

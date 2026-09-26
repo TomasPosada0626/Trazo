@@ -30,6 +30,12 @@
   background-color: var(--badge-color);
 }
 
+/* Column header cell. Each entity's table component writes its own <th> list,
+   so the styling lives here rather than being copied into all five of them. */
+@utility table-head-cell {
+  @apply px-4 py-3 text-left font-mono text-[10px] font-semibold tracking-[0.12em] text-ink-soft uppercase;
+}
+
 /* Blueprint-style grid background. */
 @utility grid-paper {
   background-image:

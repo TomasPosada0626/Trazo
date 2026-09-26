@@ -4,40 +4,19 @@
 // external imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+
 // internal imports
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import SprintTableComponent, {
+  type SprintRow,
+} from '@/components/sprints/SprintTableComponent.vue';
+import type { SprintStatus } from '@/interfaces/SprintInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { formatDateRange } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import { SPRINT_STATUS, SPRINT_STATUS_COLORS, toFilterOptions } from '@/utils/labels';
-
-// variables
-type SprintRow = SprintInterface & {
-  committedPoints: number;
-  completedPoints: number;
-  remainingDays: number;
-  taskCount: number;
-};
-
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Sprint' },
-  { key: 'dates', label: 'Dates' },
-  { key: 'committed', label: 'Committed pts.' },
-  { key: 'completed', label: 'Completed pts.' },
-  { key: 'tasks', label: 'Tasks' },
-  { key: 'remaining', label: 'Days left' },
-  { key: 'status', label: 'Status' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
+import { LabelUtils } from '@/utils/LabelUtils';
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -48,7 +27,7 @@ const selectorProjects = computed(() =>
 
 const selectedStatus = ref<SprintStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(SPRINT_STATUS);
+const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.SPRINT_STATUS);
 
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
@@ -141,47 +120,7 @@ watch(
         </div>
       </template>
 
-      <DataTableComponent
-        :columns="columns"
-        :rows="sprints"
-        empty-message="This project has no sprints matching the filter."
-      >
-        <template #row="{ row }">
-          <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('SPR', row.id) }}</IdChipComponent>
-          </td>
-          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
-          <td class="px-4 py-3 text-ink-soft">
-            {{ formatDateRange(row.startDate, row.endDate) }}
-          </td>
-          <td class="px-4 py-3 font-mono">{{ row.committedPoints }}</td>
-          <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
-          <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
-          <td class="px-4 py-3 text-ink-soft">
-            {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
-          </td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :color="SPRINT_STATUS_COLORS[row.status]">
-              {{ SPRINT_STATUS[row.status].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3 text-right whitespace-nowrap">
-            <RouterLink
-              :to="`/app/sprints/${row.id}/edit`"
-              class="text-sm font-medium text-accent hover:underline"
-            >
-              Edit
-            </RouterLink>
-            <button
-              type="button"
-              class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
-              @click="handleDelete(row)"
-            >
-              Delete
-            </button>
-          </td>
-        </template>
-      </DataTableComponent>
+      <SprintTableComponent :sprints="sprints" @delete="handleDelete" />
     </PanelCardComponent>
   </div>
 </template>

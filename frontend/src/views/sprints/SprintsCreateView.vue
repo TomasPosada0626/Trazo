@@ -4,10 +4,11 @@
 // external imports
 import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+
 // internal imports
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
 import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
