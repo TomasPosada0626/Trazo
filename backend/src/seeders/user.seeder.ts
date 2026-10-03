@@ -1,0 +1,31 @@
+// Author: Mateo Garcia Carreno
+
+// external imports
+import type { DeepPartial } from 'typeorm';
+
+// internal imports
+import type { User } from '../users/entities/user.entity.js';
+
+export const userSeeder: DeepPartial<User>[] = [
+  {
+    id: 1,
+    name: 'Ana Duarte',
+    email: 'admin@trazo.com',
+    password: 'admin123',
+    role: 'admin',
+  },
+  {
+    id: 2,
+    name: 'Maria Lopez',
+    email: 'maria@trazo.com',
+    password: 'member123',
+    role: 'member',
+  },
+  {
+    id: 3,
+    name: 'Juan Perez',
+    email: 'juan@trazo.com',
+    password: 'admin123',
+    role: 'admin',
+  },
+];
