@@ -1,0 +1,208 @@
+// Author: Mateo Garcia Carreno
+
+// external imports
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+
+// internal imports
+import { Project } from '../projects/entities/project.entity.js';
+import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed.event.js';
+import { ProjectsService } from '../projects/projects.service.js';
+import { CreateTaskDto } from './dto/create-task.dto.js';
+import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
+import { UpdateTaskDto } from './dto/update-task.dto.js';
+import { Task } from './entities/task.entity.js';
+
+@Injectable()
+export class TasksService {
+  constructor(
+    @InjectRepository(Task)
+    private tasksRepository: Repository<Task>,
+    private readonly projectsService: ProjectsService,
+  ) {}
+
+  async findAllForUser(
+    userId: number,
+    { projectId, status }: FindTasksQueryDto = {},
+  ): Promise<Task[]> {
+    let projectIds: number[];
+    if (projectId !== undefined) {
+      await this.projectsService.findOneForUser(projectId, userId);
+      projectIds = [projectId];
+    } else {
+      const projects = await this.projectsService.findAllForUser(userId);
+      projectIds = projects.map((project) => project.id);
+    }
+
+    return this.tasksRepository.find({
+      where: { project: { id: In(projectIds) }, ...(status && { status }) },
+      order: { id: 'ASC' },
+    });
+  }
+
+  async findOne(id: number): Promise<Task> {
+    const task = await this.tasksRepository.findOneBy({ id });
+    if (!task) {
+      throw new NotFoundException('The task does not exist.');
+    }
+
+    return task;
+  }
+
+  async findOneForUser(id: number, userId: number): Promise<Task> {
+    const task = await this.findOne(id);
+    const project = await this.projectsService.findOne(task.projectId);
+
+    // A task is visible exactly when its project is.
+    if (!this.projectsService.hasUser(project, userId)) {
+      throw new NotFoundException('The task does not exist.');
+    }
+
+    return task;
+  }
+
+  async create(
+    createTaskDto: CreateTaskDto,
+    currentUserId: number,
+  ): Promise<Task> {
+    const { projectId, assigneeId = null, ...fields } = createTaskDto;
+    const project = await this.projectsService.findOneForUser(
+      projectId,
+      currentUserId,
+    );
+    this.assertAssignable(project, assigneeId);
+
+    // A new task always starts in the backlog: work is scheduled from the
+    // sprint, through scheduleInSprint(), and never here.
+    const task = this.tasksRepository.create({
+      ...fields,
+      project: { id: projectId },
+      sprint: null,
+      assignee: assigneeId === null ? null : { id: assigneeId },
+    });
+    const saved = await this.tasksRepository.save(task);
+
+    return this.findOne(saved.id);
+  }
+
+  async update(
+    id: number,
+    updateTaskDto: UpdateTaskDto,
+    currentUserId: number,
+  ): Promise<Task> {
+    const task = await this.findOneForUser(id, currentUserId);
+    const {
+      projectId = task.projectId,
+      assigneeId = task.assigneeId,
+      ...fields
+    } = updateTaskDto;
+
+    // Validate the task as it will look once merged, so a change to one field
+    // is checked against the fields it depends on rather than in isolation.
+    const project = await this.projectsService.findOneForUser(
+      projectId,
+      currentUserId,
+    );
+    this.assertAssignable(project, assigneeId);
+
+    // The old sprint belongs to the old project, so a task that changes
+    // project goes back to the backlog of the new one.
+    const movesProject = projectId !== task.projectId;
+
+    await this.tasksRepository.save(
+      this.tasksRepository.merge(task, fields, {
+        project: { id: projectId },
+        assignee: assigneeId === null ? null : { id: assigneeId },
+        ...(movesProject && { sprint: null }),
+      }),
+    );
+
+    return this.findOne(id);
+  }
+
+  async remove(id: number, currentUserId: number): Promise<void> {
+    await this.findOneForUser(id, currentUserId);
+    await this.tasksRepository.delete(id);
+  }
+
+  async assertInProject(projectId: number, taskIds: number[]): Promise<void> {
+    const projectTaskIds = new Set(
+      (await this.findByProject(projectId)).map((task) => task.id),
+    );
+
+    if (taskIds.some((taskId) => !projectTaskIds.has(taskId))) {
+      throw new BadRequestException(
+        "Every scheduled task must belong to the sprint's project.",
+      );
+    }
+  }
+
+  async scheduleInSprint(
+    sprintId: number,
+    projectId: number,
+    taskIds: number[],
+  ): Promise<void> {
+    await this.assertInProject(projectId, taskIds);
+
+    // Deselected tasks return to the backlog, not to whichever sprint they
+    // were in before, and scheduling is scoped to the sprint's own project so
+    // a task can never point at a sprint that belongs somewhere else.
+    const selected = new Set(taskIds);
+    const unscheduled = (await this.findByProject(projectId))
+      .filter((task) => task.sprintId === sprintId && !selected.has(task.id))
+      .map((task) => task.id);
+
+    if (unscheduled.length) {
+      await this.tasksRepository.update(
+        { id: In(unscheduled) },
+        { sprint: null },
+      );
+    }
+    if (taskIds.length) {
+      await this.tasksRepository.update(
+        { id: In(taskIds) },
+        { sprint: { id: sprintId } },
+      );
+    }
+  }
+
+  @OnEvent(ProjectUserRemovedEvent.NAME)
+  async unassignFromProject({
+    projectId,
+    userId,
+  }: ProjectUserRemovedEvent): Promise<void> {
+    // An assignee must be a user of the project, so leaving the roster hands
+    // the user's tasks in that project back to nobody.
+    const assigned = (await this.findByProject(projectId))
+      .filter((task) => task.assigneeId === userId)
+      .map((task) => task.id);
+
+    if (assigned.length) {
+      await this.tasksRepository.update(
+        { id: In(assigned) },
+        { assignee: null },
+      );
+    }
+  }
+
+  private findByProject(projectId: number): Promise<Task[]> {
+    return this.tasksRepository.findBy({ project: { id: projectId } });
+  }
+
+  private assertAssignable(project: Project, assigneeId: number | null): void {
+    if (
+      assigneeId !== null &&
+      !this.projectsService.hasUser(project, assigneeId)
+    ) {
+      throw new BadRequestException(
+        'The assignee must be a user of the project.',
+      );
+    }
+  }
+}

@@ -2,9 +2,11 @@
 
 // external imports
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // internal imports
+import { AuthModule } from './auth/auth.module.js';
 import { HomeModule } from './home/home.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { SprintsModule } from './sprints/sprints.module.js';
@@ -19,8 +21,10 @@ import { UsersModule } from './users/users.module.js';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    EventEmitterModule.forRoot(),
     HomeModule,
     UsersModule,
+    AuthModule,
     ProjectsModule,
     SprintsModule,
     TasksModule,

@@ -1,6 +1,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 // internal imports
@@ -19,6 +20,11 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
+
+  // whitelist drops fields a DTO does not declare, so a body cannot slip a
+  // stored field like `id` or a sprint's `projectId` past the service.
+  // transform turns query strings into the numbers the query DTOs declare.
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   await app.listen(process.env.PORT ?? 3000);
 }
