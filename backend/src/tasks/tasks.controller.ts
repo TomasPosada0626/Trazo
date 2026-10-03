@@ -17,6 +17,7 @@ import {
 import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
+import type { TaskRowDto } from './dto/task-row.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { Task } from './entities/task.entity.js';
 import { TasksService } from './tasks.service.js';
@@ -29,8 +30,8 @@ export class TasksController {
   findAll(
     @Query() query: FindTasksQueryDto,
     @CurrentUserId() currentUserId: number,
-  ): Promise<Task[]> {
-    return this.tasksService.findAllForUser(currentUserId, query);
+  ): Promise<TaskRowDto[]> {
+    return this.tasksService.findRowsForUser(currentUserId, query);
   }
 
   @Get(':id')

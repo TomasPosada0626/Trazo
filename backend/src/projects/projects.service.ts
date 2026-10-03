@@ -16,6 +16,7 @@ import { User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
 import { FindProjectsQueryDto } from './dto/find-projects-query.dto.js';
+import type { ProjectRowDto } from './dto/project-row.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { Project } from './entities/project.entity.js';
 import { ProjectUserRemovedEvent } from './events/project-user-removed.event.js';
@@ -37,6 +38,37 @@ export class ProjectsService {
       where: { users: { id: userId }, ...(status && { status }) },
       order: { id: 'ASC' },
     });
+  }
+
+  async findRowsForUser(
+    userId: number,
+    query: FindProjectsQueryDto = {},
+  ): Promise<ProjectRowDto[]> {
+    const projects = await this.findAllForUser(userId, query);
+    if (!projects.length) return [];
+
+    // Counted through the inverse relation rather than by asking
+    // TasksService, which already depends on this service.
+    const counts = await this.projectsRepository
+      .createQueryBuilder('project')
+      .leftJoin('project.tasks', 'task')
+      .select('project.id', 'id')
+      .addSelect('COUNT(task.id)', 'total')
+      .addSelect('COUNT(CASE WHEN task.status = :done THEN 1 END)', 'done')
+      .setParameter('done', 'done')
+      .whereInIds(projects.map((project) => project.id))
+      .groupBy('project.id')
+      .getRawMany<{ id: number; total: number; done: number }>();
+    const progress = new Map(
+      counts.map((row) => [
+        row.id,
+        row.total ? Math.round((row.done / row.total) * 100) : 0,
+      ]),
+    );
+
+    return projects.map((project) =>
+      Object.assign(project, { progress: progress.get(project.id) ?? 0 }),
+    );
   }
 
   async findOne(id: number): Promise<Project> {

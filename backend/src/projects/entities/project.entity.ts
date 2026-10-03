@@ -7,12 +7,14 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
 
 // internal imports
+import { Task } from '../../tasks/entities/task.entity.js';
 import { User } from '../../users/entities/user.entity.js';
 
 export const PROJECT_STATUSES = [
@@ -42,7 +44,7 @@ export class Project {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.projects)
   @JoinTable({
     name: 'project_users',
     joinColumn: { name: 'projectId' },
@@ -52,4 +54,7 @@ export class Project {
 
   @RelationId((project: Project) => project.users)
   userIds: number[];
+
+  @OneToMany(() => Task, (task) => task.project)
+  tasks: Relation<Task[]>;
 }

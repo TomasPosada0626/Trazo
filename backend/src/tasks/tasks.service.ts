@@ -14,8 +14,10 @@ import { In, Repository } from 'typeorm';
 import { Project } from '../projects/entities/project.entity.js';
 import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed.event.js';
 import { ProjectsService } from '../projects/projects.service.js';
+import { UsersService } from '../users/users.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
+import type { TaskRowDto } from './dto/task-row.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { Task } from './entities/task.entity.js';
 
@@ -25,23 +27,55 @@ export class TasksService {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
     private readonly projectsService: ProjectsService,
+    private readonly usersService: UsersService,
   ) {}
 
-  async findAllForUser(
+  async findRowsForUser(
     userId: number,
     { projectId, status }: FindTasksQueryDto = {},
-  ): Promise<Task[]> {
-    let projectIds: number[];
-    if (projectId !== undefined) {
-      await this.projectsService.findOneForUser(projectId, userId);
-      projectIds = [projectId];
-    } else {
-      const projects = await this.projectsService.findAllForUser(userId);
-      projectIds = projects.map((project) => project.id);
+  ): Promise<TaskRowDto[]> {
+    const projects = await this.projectsService.findAllForUser(userId);
+    const projectNames = new Map(
+      projects.map((project) => [project.id, project.name]),
+    );
+
+    // Same answer as ProjectsService.findOneForUser for a project the caller
+    // is not on.
+    if (projectId !== undefined && !projectNames.has(projectId)) {
+      throw new NotFoundException('The project does not exist.');
     }
 
-    return this.tasksRepository.find({
+    const projectIds =
+      projectId === undefined ? [...projectNames.keys()] : [projectId];
+    const tasks = await this.tasksRepository.find({
       where: { project: { id: In(projectIds) }, ...(status && { status }) },
+      order: { id: 'ASC' },
+    });
+
+    const assigneeIds = tasks
+      .map((task) => task.assigneeId)
+      .filter((assigneeId) => assigneeId !== null);
+    const assignees = await this.usersService.findByIds([
+      ...new Set(assigneeIds),
+    ]);
+    const assigneeNames = new Map(
+      assignees.map((user) => [user.id, user.name]),
+    );
+
+    return tasks.map((task) =>
+      Object.assign(task, {
+        projectName: projectNames.get(task.projectId) ?? '',
+        assigneeName:
+          task.assigneeId === null
+            ? null
+            : (assigneeNames.get(task.assigneeId) ?? null),
+      }),
+    );
+  }
+
+  findByProjects(projectIds: number[]): Promise<Task[]> {
+    return this.tasksRepository.find({
+      where: { project: { id: In(projectIds) } },
       order: { id: 'ASC' },
     });
   }
@@ -133,7 +167,7 @@ export class TasksService {
 
   async assertInProject(projectId: number, taskIds: number[]): Promise<void> {
     const projectTaskIds = new Set(
-      (await this.findByProject(projectId)).map((task) => task.id),
+      (await this.findByProjects([projectId])).map((task) => task.id),
     );
 
     if (taskIds.some((taskId) => !projectTaskIds.has(taskId))) {
@@ -154,7 +188,7 @@ export class TasksService {
     // were in before, and scheduling is scoped to the sprint's own project so
     // a task can never point at a sprint that belongs somewhere else.
     const selected = new Set(taskIds);
-    const unscheduled = (await this.findByProject(projectId))
+    const unscheduled = (await this.findByProjects([projectId]))
       .filter((task) => task.sprintId === sprintId && !selected.has(task.id))
       .map((task) => task.id);
 
@@ -179,7 +213,7 @@ export class TasksService {
   }: ProjectUserRemovedEvent): Promise<void> {
     // An assignee must be a user of the project, so leaving the roster hands
     // the user's tasks in that project back to nobody.
-    const assigned = (await this.findByProject(projectId))
+    const assigned = (await this.findByProjects([projectId]))
       .filter((task) => task.assigneeId === userId)
       .map((task) => task.id);
 
@@ -189,10 +223,6 @@ export class TasksService {
         { assignee: null },
       );
     }
-  }
-
-  private findByProject(projectId: number): Promise<Task[]> {
-    return this.tasksRepository.findBy({ project: { id: projectId } });
   }
 
   private assertAssignable(project: Project, assigneeId: number | null): void {

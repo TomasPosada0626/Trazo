@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // internal imports
 import { AuthModule } from './auth/auth.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 import { HomeModule } from './home/home.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { SprintsModule } from './sprints/sprints.module.js';
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module.js';
     ProjectsModule,
     SprintsModule,
     TasksModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
