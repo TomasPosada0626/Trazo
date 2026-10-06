@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 // internal imports
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
@@ -14,8 +14,11 @@ import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
 import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
+import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { ColorUtils } from '@/utils/ColorUtils';
@@ -24,6 +27,12 @@ import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
 const ALL_TIME = 'all';
+
+// reactive variables
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const sprints = ref<SprintInterface[]>([]);
+const dashboard = ref<Awaited<ReturnType<typeof DashboardService.get>> | null>(null);
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -47,116 +56,100 @@ const selectedStatus = ref<TaskStatus | 'all'>('all');
 const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const sprints = computed(() =>
-  selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
-);
-
 const hasSprints = computed(() => sprints.value.length > 0);
 
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
-const progress = computed(() =>
-  ProjectService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
-const activeSprints = computed(() => ProjectService.getActiveSprintCount(selectedProjectId.value));
-const completedTasks = computed(() =>
-  ProjectService.getCompletedTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const totalTasks = computed(() =>
-  ProjectService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
-const overdueTasks = computed(() =>
-  ProjectService.getOverdueTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
+const progress = computed(() => dashboard.value?.progress ?? 0);
+const activeSprints = computed(() => dashboard.value?.activeSprints ?? 0);
+const completedTasks = computed(() => dashboard.value?.completedTasks ?? 0);
+const totalTasks = computed(() => dashboard.value?.totalTasks ?? 0);
+const overdueTasks = computed(() => dashboard.value?.overdueTasks ?? 0);
 
-const statusSeries = computed(() =>
-  ProjectService.getTasksByStatus(selectedProjectId.value, sprintId.value),
-);
-const statusChart = computed(() => ({
-  labels: statusSeries.value.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
-  values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => ColorUtils.TASK_STATUS[status]),
-}));
+const statusChart = computed(() => {
+  const series = dashboard.value?.tasksByStatus ?? { labels: [], values: [] };
 
-const completion = computed(() => SprintService.getVelocitySeries(selectedProjectId.value));
-const completionChart = computed(() => ({
-  labels: completion.value.labels,
-  series: [
-    { label: 'Committed', values: completion.value.committed, color: ColorUtils.CHART.muted },
-    { label: 'Completed', values: completion.value.values, color: ColorUtils.CHART.done },
-  ],
-}));
+  return {
+    labels: series.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
+    values: series.values,
+    colors: series.labels.map((status) => ColorUtils.TASK_STATUS[status]),
+  };
+});
+
+const completionChart = computed(() => {
+  const velocity = dashboard.value?.velocity ?? { sprintIds: [], committed: [], completed: [] };
+
+  return {
+    labels: velocity.sprintIds.map((id) => IdUtils.shortId('SPR', id)),
+    series: [
+      { label: 'Committed', values: velocity.committed, color: ColorUtils.CHART.muted },
+      { label: 'Completed', values: velocity.completed, color: ColorUtils.CHART.done },
+    ],
+  };
+});
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
-const userTasks = computed(() =>
-  currentUserId.value
-    ? ProjectService.getUserTasks(
-        selectedProjectId.value,
-        sprintId.value,
-        currentUserId.value,
-        selectedStatus.value,
-      )
-    : [],
-);
+const userTasks = computed(() => dashboard.value?.userTasks ?? []);
 
-const workload = computed(() =>
-  ProjectService.getWorkloadByAssignee(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const workloadChart = computed(() => ({
-  labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: ColorUtils.CHART.ink }],
-}));
+const workloadChart = computed(() => {
+  const rows = dashboard.value?.workload ?? [];
 
-const projectDistribution = computed(() =>
-  currentUserId.value
-    ? ProjectService.getTasksByProject(currentUserId.value)
-    : { labels: [], values: [] },
-);
-const projectDistributionChart = computed(() => ({
-  labels: projectDistribution.value.labels,
-  series: [
-    { label: 'Tasks', values: projectDistribution.value.values, color: ColorUtils.CHART.ink },
-  ],
-}));
+  return {
+    labels: rows.map((row) => row.name ?? 'Unassigned'),
+    series: [
+      {
+        label: 'Open tasks',
+        values: rows.map((row) => row.openTasks),
+        color: ColorUtils.CHART.ink,
+      },
+    ],
+  };
+});
+
+const projectDistributionChart = computed(() => {
+  const series = dashboard.value?.tasksByProject ?? { labels: [], values: [] };
+
+  return {
+    labels: series.labels,
+    series: [{ label: 'Tasks', values: series.values, color: ColorUtils.CHART.ink }],
+  };
+});
+
+// functions
+async function loadSprints(): Promise<void> {
+  sprints.value = selectedProjectId.value
+    ? await SprintService.getAll(selectedProjectId.value)
+    : [];
+}
+
+async function loadDashboard(): Promise<void> {
+  dashboard.value = selectedProjectId.value
+    ? await DashboardService.get(selectedProjectId.value, sprintId.value, selectedStatus.value)
+    : null;
+}
 
 // watchers
-// Pick the first project once, and recover if the selected one is deleted.
-watch(
-  projects,
-  (newProjects) => {
-    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
-      selectedProjectId.value = newProjects[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
+// The range options belong to the previous project, so the range goes back to
+// "All time" before the dashboard is asked for anything; a sprint of another
+// project would be rejected by the API.
+watch(selectedProjectId, async () => {
+  selectedRange.value = ALL_TIME;
+  await loadSprints();
+});
 
-// Reset to "All time" whenever the chosen sprint stops belonging to the
-// selected project, which happens on every project change.
-watch(
-  sprints,
-  (newSprints) => {
-    if (!newSprints.some((sprint) => sprint.id === selectedRange.value)) {
-      selectedRange.value = ALL_TIME;
-    }
-  },
-  { immediate: true },
-);
+// Every number on the page comes from one request, so any filter change
+// replaces the whole response.
+watch([selectedProjectId, selectedRange, selectedStatus], loadDashboard);
+
+// lifecycle hooks
+onMounted(async () => {
+  projects.value = await ProjectService.getAll();
+  isLoading.value = false;
+
+  // Selecting the first project is what triggers the first load.
+  selectedProjectId.value = projects.value[0]?.id ?? 0;
+});
 </script>
 
 <template>
@@ -195,7 +188,7 @@ watch(
       </template>
     </PageHeaderComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="Nothing to show yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="Nothing to show yet" padded>
       <p class="text-sm text-ink-soft">
         You do not belong to any project yet. Once you are added to one, its progress appears here.
       </p>

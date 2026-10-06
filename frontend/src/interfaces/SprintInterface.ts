@@ -12,4 +12,8 @@ export interface SprintInterface {
   endDate: string;
   status: SprintStatus;
   projectId: number;
+  committedPoints?: number;
+  completedPoints?: number;
+  taskCount?: number;
+  remainingDays?: number;
 }

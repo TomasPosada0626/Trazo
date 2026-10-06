@@ -15,4 +15,5 @@ export interface ProjectInterface {
    * derived with ProjectService.getAllUserProjects(userId).
    */
   userIds: number[];
+  progress?: number;
 }

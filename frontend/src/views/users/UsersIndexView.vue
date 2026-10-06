@@ -2,17 +2,22 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
 // internal imports
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import UserTableComponent, { type UserRow } from '@/components/users/UserTableComponent.vue';
+import UserTableComponent from '@/components/users/UserTableComponent.vue';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
+
+// reactive variables
+const users = ref<UserInterface[]>([]);
 
 // selectors
 const selectedRole = ref('all');
@@ -20,16 +25,6 @@ const selectedRole = ref('all');
 const selectorRoles = LabelUtils.toFilterOptions(LabelUtils.USER_ROLE);
 
 // computed variables
-const users = computed<UserRow[]>(() =>
-  UserService.getAll().map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    activeProjects: UserService.getActiveProjects(user),
-  })),
-);
-
 const filteredUsers = computed(() =>
   selectedRole.value === 'all'
     ? users.value
@@ -39,12 +34,26 @@ const filteredUsers = computed(() =>
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
 
 // functions
-function handleDelete(user: UserRow): void {
+async function loadUsers(): Promise<void> {
+  users.value = await UserService.getAll();
+}
+
+async function handleDelete(user: UserInterface): Promise<void> {
   if (user.id === currentUserId.value) return;
 
   const confirmed = window.confirm(`Delete the user "${user.name}"? This action cannot be undone.`);
-  if (confirmed) UserService.remove(user.id);
+  if (!confirmed) return;
+
+  try {
+    await UserService.remove(user.id);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The user could not be deleted.'));
+  }
 }
+
+// lifecycle hooks
+onMounted(loadUsers);
 </script>
 
 <template>

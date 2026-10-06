@@ -13,7 +13,6 @@ import { In, Not, Repository } from 'typeorm';
 // internal imports
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import type { UserRowDto } from './dto/user-row.dto.js';
 import { User } from './entities/user.entity.js';
 
 @Injectable()
@@ -23,12 +22,8 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find({ order: { id: 'ASC' } });
-  }
-
-  async findRows(): Promise<UserRowDto[]> {
-    const users = await this.findAll();
+  async findAll(): Promise<User[]> {
+    const users = await this.usersRepository.find({ order: { id: 'ASC' } });
 
     // Counted through the inverse relation rather than by asking
     // ProjectsService, which already depends on this service.
@@ -45,9 +40,11 @@ export class UsersService {
       counts.map((row) => [row.id, row.activeProjects]),
     );
 
-    return users.map((user) =>
-      Object.assign(user, { activeProjects: activeProjects.get(user.id) ?? 0 }),
-    );
+    for (const user of users) {
+      user.activeProjects = activeProjects.get(user.id) ?? 0;
+    }
+
+    return users;
   }
 
   async findOne(id: number): Promise<User> {

@@ -2,7 +2,7 @@
 // Author: Hever-Alfonso
 
 // external imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 // internal imports
@@ -11,9 +11,12 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
 import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
-import { AuthService } from '@/services/AuthService';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const route = useRoute();
@@ -23,6 +26,10 @@ const taskId = Number(route.params.id);
 
 // reactive variables
 const error = ref('');
+const isLoading = ref(true);
+const task = ref<TaskInterface | null>(null);
+const projects = ref<ProjectInterface[]>([]);
+const usersByProject = ref<Record<number, UserInterface[]>>({});
 
 // selectors
 const selectorProjects = computed<SelectOption<number>[]>(() =>
@@ -31,40 +38,47 @@ const selectorProjects = computed<SelectOption<number>[]>(() =>
 
 const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[]>>(() =>
   Object.fromEntries(
-    projects.value.map((project) => [
-      project.id,
-      TaskService.getAssignableUsers(project.id).map((user) => ({
-        value: user.id,
-        label: `${user.name} · ${user.email}`,
-      })),
+    Object.entries(usersByProject.value).map(([projectId, users]) => [
+      projectId,
+      users.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
     ]),
   ),
 );
 
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const task = computed(() => {
-  const found = TaskService.getById(taskId);
-  if (!found) return undefined;
-
-  return projects.value.some((project) => project.id === found.projectId) ? found : undefined;
-});
-
 // functions
-function handleSubmit(values: UpdateTaskDTO): void {
+async function handleSubmit(values: UpdateTaskDTO): Promise<void> {
   error.value = '';
   try {
-    TaskService.update(taskId, values);
-    router.push({ name: 'tasks', query: { saved: 'updated' } });
+    await TaskService.update(taskId, values);
+    await router.push({ name: 'tasks', query: { saved: 'updated' } });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'The task could not be updated.';
+    error.value = ErrorUtils.getMessage(err, 'The task could not be updated.');
   }
 }
+
+// lifecycle hooks
+onMounted(async () => {
+  try {
+    const found = await TaskService.getById(taskId);
+    projects.value = await ProjectService.getAll();
+
+    // The task can move to another project, so every project's roster is
+    // loaded for the assignee picker, not just its current one.
+    const rosters = await Promise.all(
+      projects.value.map((project) => ProjectService.getUsers(project.id)),
+    );
+    usersByProject.value = Object.fromEntries(
+      projects.value.map((project, index) => [project.id, rosters[index] ?? []]),
+    );
+    task.value = found;
+  } catch {
+    // A 404 covers both a missing task and one in a project the user is not
+    // on, so either way the view shows "not found".
+    task.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -101,7 +115,7 @@ function handleSubmit(values: UpdateTaskDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="Task not found" padded>
+    <PanelCardComponent v-else-if="!isLoading" title="Task not found" padded>
       <p class="text-sm text-ink-soft">
         The task you are trying to edit does not exist, or it belongs to a project you are not a
         user of.

@@ -44,4 +44,12 @@ export class Sprint {
 
   @RelationId((sprint: Sprint) => sprint.project)
   projectId: number;
+
+  committedPoints?: number;
+
+  completedPoints?: number;
+
+  taskCount?: number;
+
+  remainingDays?: number;
 }

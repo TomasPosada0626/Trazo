@@ -78,4 +78,8 @@ export class Task {
 
   @RelationId((task: Task) => task.assignee)
   assigneeId: number | null;
+
+  projectName?: string;
+
+  assigneeName?: string | null;
 }

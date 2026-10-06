@@ -15,8 +15,6 @@ import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
-import { FindProjectsQueryDto } from './dto/find-projects-query.dto.js';
-import type { ProjectRowDto } from './dto/project-row.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { Project } from './entities/project.entity.js';
 import { ProjectUserRemovedEvent } from './events/project-user-removed.event.js';
@@ -30,21 +28,15 @@ export class ProjectsService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  findAllForUser(
-    userId: number,
-    { status }: FindProjectsQueryDto = {},
-  ): Promise<Project[]> {
+  findAllForUser(userId: number): Promise<Project[]> {
     return this.projectsRepository.find({
-      where: { users: { id: userId }, ...(status && { status }) },
+      where: { users: { id: userId } },
       order: { id: 'ASC' },
     });
   }
 
-  async findRowsForUser(
-    userId: number,
-    query: FindProjectsQueryDto = {},
-  ): Promise<ProjectRowDto[]> {
-    const projects = await this.findAllForUser(userId, query);
+  async findAllWithProgress(userId: number): Promise<Project[]> {
+    const projects = await this.findAllForUser(userId);
     if (!projects.length) return [];
 
     // Counted through the inverse relation rather than by asking
@@ -66,9 +58,11 @@ export class ProjectsService {
       ]),
     );
 
-    return projects.map((project) =>
-      Object.assign(project, { progress: progress.get(project.id) ?? 0 }),
-    );
+    for (const project of projects) {
+      project.progress = progress.get(project.id) ?? 0;
+    }
+
+    return projects;
   }
 
   async findOne(id: number): Promise<Project> {

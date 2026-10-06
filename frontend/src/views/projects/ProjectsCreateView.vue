@@ -10,15 +10,20 @@ import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const router = useRouter();
 
 // functions
-function handleSubmit(values: CreateProjectDTO): void {
-  // The service adds the creator as the first user.
-  ProjectService.create(values);
-  router.push({ name: 'projects' });
+async function handleSubmit(values: CreateProjectDTO): Promise<void> {
+  try {
+    // The API adds the creator as the first user.
+    await ProjectService.create(values);
+    await router.push({ name: 'projects' });
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The project could not be created.'));
+  }
 }
 </script>
 

@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 // internal imports
@@ -12,12 +12,13 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
-import TaskTableComponent, { type TaskRow } from '@/components/tasks/TaskTableComponent.vue';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
-import { AuthService } from '@/services/AuthService';
+import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
 import { ColorUtils } from '@/utils/ColorUtils';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
 
 // variables
@@ -30,6 +31,9 @@ const route = useRoute();
 
 // reactive variables
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const projectTasks = ref<TaskInterface[]>([]);
 
 // selectors
 const selectedProjectId = ref<number | 'all'>('all');
@@ -44,24 +48,10 @@ const selectedStatus = ref<TaskStatus | 'all'>('all');
 const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
 
 // computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const tasks = computed<TaskRow[]>(() =>
-  currentUserId.value
-    ? TaskService.getUserTasksFiltered(
-        currentUserId.value,
-        selectedProjectId.value,
-        selectedStatus.value,
-      ).map((task) => ({
-        ...task,
-        projectName: ProjectService.getById(task.projectId)?.name ?? 'Unknown project',
-        assigneeName: TaskService.getAssignee(task)?.name ?? '—',
-      }))
-    : [],
+const tasks = computed(() =>
+  selectedStatus.value === 'all'
+    ? projectTasks.value
+    : projectTasks.value.filter((task) => task.status === selectedStatus.value),
 );
 
 const typeChart = computed(() => {
@@ -79,15 +69,35 @@ const typeChart = computed(() => {
 });
 
 // functions
-function handleDelete(task: TaskRow): void {
+async function loadTasks(): Promise<void> {
+  projectTasks.value = await TaskService.getAll(selectedProjectId.value);
+}
+
+async function handleDelete(task: TaskInterface): Promise<void> {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,
   );
   if (!confirmed) return;
 
-  TaskService.remove(task.id);
-  notice.value = `The task "${task.title}" was deleted.`;
+  try {
+    await TaskService.remove(task.id);
+    notice.value = `The task "${task.title}" was deleted.`;
+    await loadTasks();
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The task could not be deleted.'));
+  }
 }
+
+// watchers
+// The project filter is applied by the API, so changing it is a new request;
+// the status filter narrows what is already loaded.
+watch(selectedProjectId, loadTasks);
+
+// lifecycle hooks
+onMounted(async () => {
+  [projects.value] = await Promise.all([ProjectService.getAll(), loadTasks()]);
+  isLoading.value = false;
+});
 </script>
 
 <template>
@@ -154,7 +164,7 @@ function handleDelete(task: TaskRow): void {
       <TaskTableComponent :tasks="tasks" @delete="handleDelete" />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.

@@ -18,8 +18,6 @@ import {
 import { AdminGuard } from '../auth/admin.guard.js';
 import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { CreateSprintDto } from './dto/create-sprint.dto.js';
-import { FindSprintsQueryDto } from './dto/find-sprints-query.dto.js';
-import type { SprintRowDto } from './dto/sprint-row.dto.js';
 import { UpdateSprintDto } from './dto/update-sprint.dto.js';
 import { Sprint } from './entities/sprint.entity.js';
 import { SprintsService } from './sprints.service.js';
@@ -30,10 +28,11 @@ export class SprintsController {
 
   @Get()
   findAll(
-    @Query() query: FindSprintsQueryDto,
+    @Query('projectId', new ParseIntPipe({ optional: true }))
+    projectId: number | undefined,
     @CurrentUserId() currentUserId: number,
-  ): Promise<SprintRowDto[]> {
-    return this.sprintsService.findRowsForUser(currentUserId, query);
+  ): Promise<Sprint[]> {
+    return this.sprintsService.findAllWithPoints(currentUserId, projectId);
   }
 
   @Get(':id')

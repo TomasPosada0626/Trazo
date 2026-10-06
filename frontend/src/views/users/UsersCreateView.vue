@@ -10,14 +10,19 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import { UserService } from '@/services/UserService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const router = useRouter();
 
 // functions
-function handleSubmit(values: CreateUserDTO): void {
-  UserService.create(values);
-  router.push({ name: 'users' });
+async function handleSubmit(values: CreateUserDTO): Promise<void> {
+  try {
+    await UserService.create(values);
+    await router.push({ name: 'users' });
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The user could not be created.'));
+  }
 }
 </script>
 

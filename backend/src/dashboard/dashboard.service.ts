@@ -8,11 +8,13 @@ import { DateUtils } from '../common/date.utils.js';
 import { Project } from '../projects/entities/project.entity.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { SprintsService } from '../sprints/sprints.service.js';
-import { Task, TASK_STATUSES } from '../tasks/entities/task.entity.js';
+import {
+  Task,
+  TASK_STATUSES,
+  type TaskStatus,
+} from '../tasks/entities/task.entity.js';
 import { TasksService } from '../tasks/tasks.service.js';
 import { UsersService } from '../users/users.service.js';
-import { DashboardQueryDto } from './dto/dashboard-query.dto.js';
-import type { DashboardDto } from './dto/dashboard.dto.js';
 
 @Injectable()
 export class DashboardService {
@@ -24,9 +26,30 @@ export class DashboardService {
   ) {}
 
   async getDashboard(
-    { projectId, sprintId, status }: DashboardQueryDto,
+    projectId: number,
+    sprintId: number | undefined,
+    status: string | undefined,
     currentUserId: number,
-  ): Promise<DashboardDto> {
+  ): Promise<{
+    progress: number;
+    activeSprints: number;
+    completedTasks: number;
+    totalTasks: number;
+    overdueTasks: number;
+    tasksByStatus: { labels: TaskStatus[]; values: number[] };
+    tasksByProject: { labels: string[]; values: number[] };
+    velocity: { sprintIds: number[]; committed: number[]; completed: number[] };
+    workload: { name: string | null; openTasks: number }[] | null;
+    userTasks: Task[];
+  }> {
+    // A query string arrives untyped, so the status filter is checked here
+    // rather than trusted; an unknown value would otherwise match no task.
+    if (status !== undefined && !TASK_STATUSES.some((s) => s === status)) {
+      throw new BadRequestException(
+        `status must be one of: ${TASK_STATUSES.join(', ')}.`,
+      );
+    }
+
     const project = await this.projectsService.findOneForUser(
       projectId,
       currentUserId,

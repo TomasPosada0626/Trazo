@@ -18,7 +18,6 @@ import { AdminGuard } from '../auth/admin.guard.js';
 import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import type { UserRowDto } from './dto/user-row.dto.js';
 import { User } from './entities/user.entity.js';
 import { UsersService } from './users.service.js';
 
@@ -28,8 +27,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(): Promise<UserRowDto[]> {
-    return this.usersService.findRows();
+  findAll(): Promise<User[]> {
+    return this.usersService.findAll();
   }
 
   @Get(':id')

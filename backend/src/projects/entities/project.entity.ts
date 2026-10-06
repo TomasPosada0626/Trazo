@@ -57,4 +57,6 @@ export class Project {
 
   @OneToMany(() => Task, (task) => task.project)
   tasks: Relation<Task[]>;
+
+  progress?: number;
 }

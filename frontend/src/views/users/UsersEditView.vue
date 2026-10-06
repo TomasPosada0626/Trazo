@@ -2,7 +2,7 @@
 // Author: Tomás Posada
 
 // external imports
-import { computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 // internal imports
@@ -10,23 +10,44 @@ import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { UserService } from '@/services/UserService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const route = useRoute();
 const router = useRouter();
 const userId = Number(route.params.id);
 
-// computed variables
-const user = computed(() => UserService.getById(userId));
+// reactive variables
+const isLoading = ref(true);
+const user = ref<UserInterface | null>(null);
 
 // functions
-function handleSubmit(values: UpdateUserDTO): void {
+async function handleSubmit(values: UpdateUserDTO): Promise<void> {
+  // A blank password means "keep the current one", so it is left out of the
+  // request rather than sent as an empty string the API would reject.
   const { password, ...accountChanges } = values;
   const changes: UpdateUserDTO = password ? values : accountChanges;
-  UserService.update(userId, changes);
-  router.push({ name: 'users' });
+
+  try {
+    await UserService.update(userId, changes);
+    await router.push({ name: 'users' });
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The user could not be updated.'));
+  }
 }
+
+// lifecycle hooks
+onMounted(async () => {
+  try {
+    user.value = await UserService.getById(userId);
+  } catch {
+    user.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -46,7 +67,7 @@ function handleSubmit(values: UpdateUserDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="User not found" padded>
+    <PanelCardComponent v-else-if="!isLoading" title="User not found" padded>
       <p class="text-sm text-ink-soft">The user you are trying to edit does not exist.</p>
       <RouterLink
         to="/app/users"

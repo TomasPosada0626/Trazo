@@ -16,8 +16,6 @@ import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
-import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
-import type { TaskRowDto } from './dto/task-row.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { Task } from './entities/task.entity.js';
 
@@ -30,10 +28,7 @@ export class TasksService {
     private readonly usersService: UsersService,
   ) {}
 
-  async findRowsForUser(
-    userId: number,
-    { projectId, status }: FindTasksQueryDto = {},
-  ): Promise<TaskRowDto[]> {
+  async findAllWithNames(userId: number, projectId?: number): Promise<Task[]> {
     const projects = await this.projectsService.findAllForUser(userId);
     const projectNames = new Map(
       projects.map((project) => [project.id, project.name]),
@@ -47,10 +42,7 @@ export class TasksService {
 
     const projectIds =
       projectId === undefined ? [...projectNames.keys()] : [projectId];
-    const tasks = await this.tasksRepository.find({
-      where: { project: { id: In(projectIds) }, ...(status && { status }) },
-      order: { id: 'ASC' },
-    });
+    const tasks = await this.findByProjects(projectIds);
 
     const assigneeIds = tasks
       .map((task) => task.assigneeId)
@@ -62,15 +54,15 @@ export class TasksService {
       assignees.map((user) => [user.id, user.name]),
     );
 
-    return tasks.map((task) =>
-      Object.assign(task, {
-        projectName: projectNames.get(task.projectId) ?? '',
-        assigneeName:
-          task.assigneeId === null
-            ? null
-            : (assigneeNames.get(task.assigneeId) ?? null),
-      }),
-    );
+    for (const task of tasks) {
+      task.projectName = projectNames.get(task.projectId) ?? '';
+      task.assigneeName =
+        task.assigneeId === null
+          ? null
+          : (assigneeNames.get(task.assigneeId) ?? null);
+    }
+
+    return tasks;
   }
 
   findByProjects(projectIds: number[]): Promise<Task[]> {

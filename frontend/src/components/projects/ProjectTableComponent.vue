@@ -13,14 +13,11 @@ import { DateUtils } from '@/utils/DateUtils';
 import { IdUtils } from '@/utils/IdUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type ProjectRow = ProjectInterface & { progress: number };
-
 // props
-const { projects } = defineProps<{ projects: ProjectRow[] }>();
+const { projects } = defineProps<{ projects: ProjectInterface[] }>();
 
 // emits
-const emit = defineEmits<{ delete: [project: ProjectRow] }>();
+const emit = defineEmits<{ delete: [project: ProjectInterface] }>();
 </script>
 
 <template>
@@ -50,9 +47,9 @@ const emit = defineEmits<{ delete: [project: ProjectRow] }>();
       <td class="px-4 py-3">
         <div class="flex items-center gap-2">
           <div class="h-1.5 w-24 bg-line">
-            <div class="h-full bg-emerald-600" :style="{ width: `${row.progress}%` }"></div>
+            <div class="h-full bg-emerald-600" :style="{ width: `${row.progress ?? 0}%` }"></div>
           </div>
-          <span class="font-mono text-xs text-ink-soft">{{ row.progress }}%</span>
+          <span class="font-mono text-xs text-ink-soft">{{ row.progress ?? 0 }}%</span>
         </div>
       </td>
       <td class="px-4 py-3 text-ink-soft">{{ DateUtils.formatDate(row.createdAt) }}</td>

@@ -10,4 +10,7 @@ import type { TaskInterface } from '@/interfaces/TaskInterface';
  * Everything else, `projectId` included, comes from the form: a task cannot
  * exist without the project it belongs to.
  */
-export type CreateTaskDTO = Omit<TaskInterface, 'id' | 'createdAt' | 'sprintId'>;
+export type CreateTaskDTO = Omit<
+  TaskInterface,
+  'id' | 'createdAt' | 'sprintId' | 'projectName' | 'assigneeName'
+>;

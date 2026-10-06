@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 // internal imports
@@ -11,8 +11,11 @@ import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.v
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const route = useRoute();
@@ -20,37 +23,63 @@ const router = useRouter();
 
 const projectId = Number(route.params.id);
 
+// reactive variables
+const isLoading = ref(true);
+const project = ref<ProjectInterface | null>(null);
+const users = ref<UserInterface[]>([]);
+const availableUsers = ref<UserInterface[]>([]);
+
 // computed variables
 const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
 
-const project = computed(() => {
-  const found = ProjectService.getById(projectId);
-  if (!found || !currentUserId.value || !ProjectService.hasUser(found, currentUserId.value)) {
-    return undefined;
-  }
-
-  return found;
-});
-
-const users = computed(() => (project.value ? ProjectService.getUsers(project.value) : []));
-
-const availableUsers = computed(() =>
-  project.value ? ProjectService.getAvailableUsers(project.value) : [],
-);
-
 // functions
-function handleAddUser(userId: number): void {
-  ProjectService.addUser(projectId, userId);
+async function loadUsers(): Promise<void> {
+  [users.value, availableUsers.value] = await Promise.all([
+    ProjectService.getUsers(projectId),
+    ProjectService.getAvailableUsers(projectId),
+  ]);
 }
 
-function handleRemoveUser(userId: number): void {
-  ProjectService.removeUser(projectId, userId);
+async function handleAddUser(userId: number): Promise<void> {
+  try {
+    await ProjectService.addUser(projectId, userId);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The user could not be added.'));
+  }
 }
 
-function handleSubmit(values: UpdateProjectDTO): void {
-  ProjectService.update(projectId, values);
-  router.push({ name: 'projects' });
+async function handleRemoveUser(userId: number): Promise<void> {
+  try {
+    await ProjectService.removeUser(projectId, userId);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The user could not be removed.'));
+  }
 }
+
+async function handleSubmit(values: UpdateProjectDTO): Promise<void> {
+  try {
+    await ProjectService.update(projectId, values);
+    await router.push({ name: 'projects' });
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The project could not be updated.'));
+  }
+}
+
+// lifecycle hooks
+onMounted(async () => {
+  try {
+    project.value = await ProjectService.getById(projectId);
+    await loadUsers();
+  } catch {
+    // The API answers 404 both for a missing project and for one the user is
+    // not on, so either way the view shows "not found".
+    project.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -83,7 +112,7 @@ function handleSubmit(values: UpdateProjectDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!project" title="Project not found" padded>
+    <PanelCardComponent v-if="!isLoading && !project" title="Project not found" padded>
       <p class="text-sm text-ink-soft">
         The project you are trying to edit does not exist, or you do not belong to it.
       </p>

@@ -23,7 +23,8 @@ async function bootstrap() {
 
   // whitelist drops fields a DTO does not declare, so a body cannot slip a
   // stored field like `id` or a sprint's `projectId` past the service.
-  // transform turns query strings into the numbers the query DTOs declare.
+  // transform hands the service the validated DTO instance rather than the
+  // raw body, which is what makes @Trim()'s trimmed strings stick.
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   await app.listen(process.env.PORT ?? 3000);

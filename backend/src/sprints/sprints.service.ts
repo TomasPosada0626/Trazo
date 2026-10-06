@@ -15,8 +15,6 @@ import { DateUtils } from '../common/date.utils.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { TasksService } from '../tasks/tasks.service.js';
 import { CreateSprintDto } from './dto/create-sprint.dto.js';
-import { FindSprintsQueryDto } from './dto/find-sprints-query.dto.js';
-import type { SprintRowDto } from './dto/sprint-row.dto.js';
 import { UpdateSprintDto } from './dto/update-sprint.dto.js';
 import { Sprint } from './entities/sprint.entity.js';
 
@@ -29,9 +27,9 @@ export class SprintsService {
     private readonly tasksService: TasksService,
   ) {}
 
-  async findAllForUser(
+  async findAllWithPoints(
     userId: number,
-    { projectId }: FindSprintsQueryDto = {},
+    projectId?: number,
   ): Promise<Sprint[]> {
     let projectIds: number[];
     if (projectId !== undefined) {
@@ -42,31 +40,21 @@ export class SprintsService {
       projectIds = projects.map((project) => project.id);
     }
 
-    return this.sprintsRepository.find({
+    const sprints = await this.sprintsRepository.find({
       where: { project: { id: In(projectIds) } },
       order: { id: 'ASC' },
     });
-  }
+    await this.addPoints(sprints);
 
-  async findRowsForUser(
-    userId: number,
-    query: FindSprintsQueryDto = {},
-  ): Promise<SprintRowDto[]> {
-    const sprints = await this.findAllForUser(userId, query);
-    const points = await this.getPoints(sprints);
     const today = DateUtils.startOfToday();
+    for (const sprint of sprints) {
+      sprint.remainingDays = Math.max(
+        0,
+        DateUtils.daysBetween(today, sprint.endDate),
+      );
+    }
 
-    return sprints.map((sprint) =>
-      Object.assign(sprint, {
-        committedPoints: points.get(sprint.id)?.committedPoints ?? 0,
-        completedPoints: points.get(sprint.id)?.completedPoints ?? 0,
-        taskCount: points.get(sprint.id)?.taskCount ?? 0,
-        remainingDays: Math.max(
-          0,
-          DateUtils.daysBetween(today, sprint.endDate),
-        ),
-      }),
-    );
+    return sprints;
   }
 
   countActive(projectId: number): Promise<number> {
@@ -87,16 +75,12 @@ export class SprintsService {
       where: { project: { id: projectId } },
       order: { id: 'ASC' },
     });
-    const points = await this.getPoints(sprints);
+    await this.addPoints(sprints);
 
     return {
       sprintIds: sprints.map((sprint) => sprint.id),
-      committed: sprints.map(
-        (sprint) => points.get(sprint.id)?.committedPoints ?? 0,
-      ),
-      completed: sprints.map(
-        (sprint) => points.get(sprint.id)?.completedPoints ?? 0,
-      ),
+      committed: sprints.map((sprint) => sprint.committedPoints ?? 0),
+      completed: sprints.map((sprint) => sprint.completedPoints ?? 0),
     };
   }
 
@@ -185,39 +169,32 @@ export class SprintsService {
     await this.sprintsRepository.delete(id);
   }
 
-  private async getPoints(
-    sprints: Sprint[],
-  ): Promise<
-    Map<
-      number,
-      { committedPoints: number; completedPoints: number; taskCount: number }
-    >
-  > {
-    const points = new Map(
-      sprints.map((sprint) => [
-        sprint.id,
-        { committedPoints: 0, completedPoints: 0, taskCount: 0 },
-      ]),
-    );
-    if (!sprints.length) return points;
+  private async addPoints(sprints: Sprint[]): Promise<void> {
+    if (!sprints.length) return;
+
+    const byId = new Map(sprints.map((sprint) => [sprint.id, sprint]));
+    for (const sprint of sprints) {
+      sprint.committedPoints = 0;
+      sprint.completedPoints = 0;
+      sprint.taskCount = 0;
+    }
 
     // Summed from the tasks on every read, never stored, so a task changing
     // status or sprint can never leave a total stale.
     const projectIds = [...new Set(sprints.map((sprint) => sprint.projectId))];
     const tasks = await this.tasksService.findByProjects(projectIds);
     for (const task of tasks) {
-      const sprintPoints =
-        task.sprintId === null ? undefined : points.get(task.sprintId);
-      if (!sprintPoints) continue;
+      const sprint =
+        task.sprintId === null ? undefined : byId.get(task.sprintId);
+      if (!sprint) continue;
 
-      sprintPoints.committedPoints += task.storyPoints;
-      sprintPoints.taskCount += 1;
+      sprint.committedPoints = (sprint.committedPoints ?? 0) + task.storyPoints;
+      sprint.taskCount = (sprint.taskCount ?? 0) + 1;
       if (task.status === 'done') {
-        sprintPoints.completedPoints += task.storyPoints;
+        sprint.completedPoints =
+          (sprint.completedPoints ?? 0) + task.storyPoints;
       }
     }
-
-    return points;
   }
 
   private assertDateRange(startDate: string, endDate: string): void {

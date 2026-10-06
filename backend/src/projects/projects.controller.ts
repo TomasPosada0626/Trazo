@@ -10,7 +10,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -18,10 +17,7 @@ import {
 import { AdminGuard } from '../auth/admin.guard.js';
 import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { User } from '../users/entities/user.entity.js';
-import { AddProjectUserDto } from './dto/add-project-user.dto.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
-import { FindProjectsQueryDto } from './dto/find-projects-query.dto.js';
-import type { ProjectRowDto } from './dto/project-row.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { Project } from './entities/project.entity.js';
 import { ProjectsService } from './projects.service.js';
@@ -31,11 +27,8 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll(
-    @Query() query: FindProjectsQueryDto,
-    @CurrentUserId() currentUserId: number,
-  ): Promise<ProjectRowDto[]> {
-    return this.projectsService.findRowsForUser(currentUserId, query);
+  findAll(@CurrentUserId() currentUserId: number): Promise<Project[]> {
+    return this.projectsService.findAllWithProgress(currentUserId);
   }
 
   @Get(':id')
@@ -95,14 +88,10 @@ export class ProjectsController {
   @UseGuards(AdminGuard)
   addUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body() addProjectUserDto: AddProjectUserDto,
+    @Body('userId', ParseIntPipe) userId: number,
     @CurrentUserId() currentUserId: number,
   ): Promise<User[]> {
-    return this.projectsService.addUser(
-      id,
-      addProjectUserDto.userId,
-      currentUserId,
-    );
+    return this.projectsService.addUser(id, userId, currentUserId);
   }
 
   @Delete(':id/users/:userId')

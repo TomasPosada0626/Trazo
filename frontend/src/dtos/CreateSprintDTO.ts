@@ -11,4 +11,7 @@ import type { SprintInterface } from '@/interfaces/SprintInterface';
  * writing it to the record. An empty array is valid: a sprint can be planned
  * before any work is scheduled into it.
  */
-export type CreateSprintDTO = Omit<SprintInterface, 'id'> & { taskIds: number[] };
+export type CreateSprintDTO = Omit<
+  SprintInterface,
+  'id' | 'committedPoints' | 'completedPoints' | 'taskCount' | 'remainingDays'
+> & { taskIds: number[] };

@@ -2,21 +2,25 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 
 // internal imports
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import SprintTableComponent, {
-  type SprintRow,
-} from '@/components/sprints/SprintTableComponent.vue';
-import type { SprintStatus } from '@/interfaces/SprintInterface';
-import { AuthService } from '@/services/AuthService';
+import SprintTableComponent from '@/components/sprints/SprintTableComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
+
+// reactive variables
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const projectSprints = ref<SprintInterface[]>([]);
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -30,49 +34,48 @@ const selectedStatus = ref<SprintStatus | 'all'>('all');
 const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.SPRINT_STATUS);
 
 // computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
+const sprints = computed(() =>
+  selectedStatus.value === 'all'
+    ? projectSprints.value
+    : projectSprints.value.filter((sprint) => sprint.status === selectedStatus.value),
 );
-
-const sprints = computed<SprintRow[]>(() => {
-  if (!selectedProjectId.value) return [];
-
-  return SprintService.getByProject(selectedProjectId.value)
-    .filter((sprint) => selectedStatus.value === 'all' || sprint.status === selectedStatus.value)
-    .map((sprint) => ({
-      ...sprint,
-      committedPoints: SprintService.getTotalCommittedPoints(sprint),
-      completedPoints: SprintService.getTotalCompletedPoints(sprint),
-      remainingDays: SprintService.getRemainingDays(sprint),
-      taskCount: SprintService.getTasks(sprint).length,
-    }));
-});
 
 const selectedProjectName = computed(
   () => projects.value.find((project) => project.id === selectedProjectId.value)?.name ?? '',
 );
 
 // functions
-function handleDelete(sprint: SprintRow): void {
+async function loadSprints(): Promise<void> {
+  projectSprints.value = selectedProjectId.value
+    ? await SprintService.getAll(selectedProjectId.value)
+    : [];
+}
+
+async function handleDelete(sprint: SprintInterface): Promise<void> {
   const confirmed = window.confirm(
     `Delete the sprint "${sprint.name}"? Its tasks return to the backlog.`,
   );
-  if (confirmed) SprintService.remove(sprint.id);
+  if (!confirmed) return;
+
+  try {
+    await SprintService.remove(sprint.id);
+    await loadSprints();
+  } catch (err) {
+    window.alert(ErrorUtils.getMessage(err, 'The sprint could not be deleted.'));
+  }
 }
 
 // watchers
-// Select the first project, and recover if the current one disappears.
-watch(
-  projects,
-  (newProjects) => {
-    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
-      selectedProjectId.value = newProjects[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
+watch(selectedProjectId, loadSprints);
+
+// lifecycle hooks
+onMounted(async () => {
+  projects.value = await ProjectService.getAll();
+  isLoading.value = false;
+
+  // Selecting the first project is what triggers the first sprint load.
+  selectedProjectId.value = projects.value[0]?.id ?? 0;
+});
 </script>
 
 <template>
@@ -92,7 +95,7 @@ watch(
       </template>
     </PageHeaderComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         Sprints belong to a project. Create a project first, then plan its sprints.
       </p>

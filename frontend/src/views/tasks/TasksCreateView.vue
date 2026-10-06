@@ -2,7 +2,7 @@
 // Author: Hever-Alfonso
 
 // external imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 
 // internal imports
@@ -11,15 +11,20 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
-import { AuthService } from '@/services/AuthService';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const router = useRouter();
 
 // reactive variables
 const error = ref('');
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const usersByProject = ref<Record<number, UserInterface[]>>({});
 
 // selectors
 const selectorProjects = computed<SelectOption<number>[]>(() =>
@@ -28,33 +33,38 @@ const selectorProjects = computed<SelectOption<number>[]>(() =>
 
 const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[]>>(() =>
   Object.fromEntries(
-    projects.value.map((project) => [
-      project.id,
-      TaskService.getAssignableUsers(project.id).map((user) => ({
-        value: user.id,
-        label: `${user.name} · ${user.email}`,
-      })),
+    Object.entries(usersByProject.value).map(([projectId, users]) => [
+      projectId,
+      users.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
     ]),
   ),
 );
 
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
 // functions
-function handleSubmit(values: CreateTaskDTO): void {
+async function handleSubmit(values: CreateTaskDTO): Promise<void> {
   error.value = '';
   try {
-    TaskService.create(values);
-    router.push({ name: 'tasks', query: { saved: 'created' } });
+    await TaskService.create(values);
+    await router.push({ name: 'tasks', query: { saved: 'created' } });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'The task could not be created.';
+    error.value = ErrorUtils.getMessage(err, 'The task could not be created.');
   }
 }
+
+// lifecycle hooks
+onMounted(async () => {
+  projects.value = await ProjectService.getAll();
+
+  // One roster per project: the assignee picker offers only the users of the
+  // project the task is filed under.
+  const rosters = await Promise.all(
+    projects.value.map((project) => ProjectService.getUsers(project.id)),
+  );
+  usersByProject.value = Object.fromEntries(
+    projects.value.map((project, index) => [project.id, rosters[index] ?? []]),
+  );
+  isLoading.value = false;
+});
 </script>
 
 <template>
@@ -64,7 +74,7 @@ function handleSubmit(values: CreateTaskDTO): void {
       subtitle="Describe the work, file it under a project and hand it to a teammate."
     />
 
-    <PanelCardComponent v-if="selectorProjects.length" title="Task details" padded>
+    <PanelCardComponent v-if="!isLoading && selectorProjects.length" title="Task details" padded>
       <p
         v-if="error"
         class="mb-5 border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-accent"
@@ -80,7 +90,7 @@ function handleSubmit(values: CreateTaskDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="No projects available" padded>
+    <PanelCardComponent v-else-if="!isLoading" title="No projects available" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.

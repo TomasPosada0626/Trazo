@@ -14,19 +14,11 @@ import { DateUtils } from '@/utils/DateUtils';
 import { IdUtils } from '@/utils/IdUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type SprintRow = SprintInterface & {
-  committedPoints: number;
-  completedPoints: number;
-  remainingDays: number;
-  taskCount: number;
-};
-
 // props
-const { sprints } = defineProps<{ sprints: SprintRow[] }>();
+const { sprints } = defineProps<{ sprints: SprintInterface[] }>();
 
 // emits
-const emit = defineEmits<{ delete: [sprint: SprintRow] }>();
+const emit = defineEmits<{ delete: [sprint: SprintInterface] }>();
 </script>
 
 <template>
@@ -58,7 +50,7 @@ const emit = defineEmits<{ delete: [sprint: SprintRow] }>();
       <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
       <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
       <td class="px-4 py-3 text-ink-soft">
-        {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
+        {{ row.status === 'completed' ? '—' : `${row.remainingDays ?? 0} d` }}
       </td>
       <td class="px-4 py-3">
         <StatusBadgeComponent :color="ColorUtils.SPRINT_STATUS[row.status]">

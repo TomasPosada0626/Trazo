@@ -1,13 +1,11 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
 
 // internal imports
 import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { DashboardService } from './dashboard.service.js';
-import { DashboardQueryDto } from './dto/dashboard-query.dto.js';
-import type { DashboardDto } from './dto/dashboard.dto.js';
 
 @Controller('dashboard')
 export class DashboardController {
@@ -15,9 +13,17 @@ export class DashboardController {
 
   @Get()
   getDashboard(
-    @Query() query: DashboardQueryDto,
+    @Query('projectId', ParseIntPipe) projectId: number,
+    @Query('sprintId', new ParseIntPipe({ optional: true }))
+    sprintId: number | undefined,
+    @Query('status') status: string | undefined,
     @CurrentUserId() currentUserId: number,
-  ): Promise<DashboardDto> {
-    return this.dashboardService.getDashboard(query, currentUserId);
+  ): ReturnType<DashboardService['getDashboard']> {
+    return this.dashboardService.getDashboard(
+      projectId,
+      sprintId,
+      status,
+      currentUserId,
+    );
   }
 }

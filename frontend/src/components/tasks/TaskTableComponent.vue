@@ -13,14 +13,11 @@ import { DateUtils } from '@/utils/DateUtils';
 import { IdUtils } from '@/utils/IdUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type TaskRow = TaskInterface & { projectName: string; assigneeName: string };
-
 // props
-const { tasks } = defineProps<{ tasks: TaskRow[] }>();
+const { tasks } = defineProps<{ tasks: TaskInterface[] }>();
 
 // emits
-const emit = defineEmits<{ delete: [task: TaskRow] }>();
+const emit = defineEmits<{ delete: [task: TaskInterface] }>();
 </script>
 
 <template>
@@ -55,7 +52,7 @@ const emit = defineEmits<{ delete: [task: TaskRow] }>();
           {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
         </StatusBadgeComponent>
       </td>
-      <td class="px-4 py-3 text-ink-soft">{{ row.assigneeName }}</td>
+      <td class="px-4 py-3 text-ink-soft">{{ row.assigneeName ?? '—' }}</td>
       <td class="px-4 py-3 text-ink-soft">
         {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
       </td>

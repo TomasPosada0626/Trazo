@@ -11,17 +11,14 @@ import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
-
 // props
 const { users, currentUserId } = defineProps<{
-  users: UserRow[];
+  users: UserInterface[];
   currentUserId?: number;
 }>();
 
 // emits
-const emit = defineEmits<{ delete: [user: UserRow] }>();
+const emit = defineEmits<{ delete: [user: UserInterface] }>();
 </script>
 
 <template>

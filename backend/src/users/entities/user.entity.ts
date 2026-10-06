@@ -30,4 +30,6 @@ export class User {
 
   @ManyToMany(() => Project, (project) => project.users)
   projects: Relation<Project[]>;
+
+  activeProjects?: number;
 }

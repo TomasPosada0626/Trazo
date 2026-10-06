@@ -2,7 +2,7 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 // internal imports
@@ -11,11 +11,13 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
 import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
 import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
+import { ErrorUtils } from '@/utils/ErrorUtils';
 
 // variables
 const route = useRoute();
@@ -24,25 +26,17 @@ const sprintId = Number(route.params.id);
 
 // reactive variables
 const error = ref('');
+const isLoading = ref(true);
+const sprint = ref<SprintInterface | null>(null);
+const project = ref<ProjectInterface | null>(null);
+const projectTasks = ref<TaskInterface[]>([]);
 
 // selectors
-const selectorProjects = computed(() => {
-  const project = sprint.value ? ProjectService.getById(sprint.value.projectId) : undefined;
-  return project ? [{ value: project.id, label: project.name }] : [];
-});
+const selectorProjects = computed(() =>
+  project.value ? [{ value: project.value.id, label: project.value.name }] : [],
+);
 
 // computed variables
-const sprint = computed(() => {
-  const found = SprintService.getById(sprintId);
-  const currentUserId = AuthService.getCurrentUser()?.id;
-  if (!found || !currentUserId) return undefined;
-
-  const project = ProjectService.getById(found.projectId);
-  if (!project || !ProjectService.hasUser(project, currentUserId)) return undefined;
-
-  return found;
-});
-
 const initialValues = computed<CreateSprintDTO | undefined>(() => {
   if (!sprint.value) return undefined;
 
@@ -53,28 +47,43 @@ const initialValues = computed<CreateSprintDTO | undefined>(() => {
     startDate: sprint.value.startDate,
     endDate: sprint.value.endDate,
     status: sprint.value.status,
-    taskIds: SprintService.getTasks(sprint.value).map((task) => task.id),
+    taskIds: projectTasks.value.filter((task) => task.sprintId === sprintId).map((task) => task.id),
   };
 });
 
-const tasksByProject = computed<Record<number, TaskInterface[]>>(() => {
-  const projectId = sprint.value?.projectId;
-  if (!projectId) return {};
-
-  return { [projectId]: TaskService.getByProject(projectId) };
-});
+const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
+  sprint.value ? { [sprint.value.projectId]: projectTasks.value } : {},
+);
 
 // functions
-function handleSubmit(values: UpdateSprintDTO): void {
+async function handleSubmit(values: UpdateSprintDTO): Promise<void> {
   error.value = '';
 
   try {
-    SprintService.update(sprintId, values);
-    router.push({ name: 'sprints' });
+    await SprintService.update(sprintId, values);
+    await router.push({ name: 'sprints' });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'The sprint could not be updated.';
+    error.value = ErrorUtils.getMessage(err, 'The sprint could not be updated.');
   }
 }
+
+// lifecycle hooks
+onMounted(async () => {
+  try {
+    const found = await SprintService.getById(sprintId);
+    [project.value, projectTasks.value] = await Promise.all([
+      ProjectService.getById(found.projectId),
+      TaskService.getAll(found.projectId),
+    ]);
+    sprint.value = found;
+  } catch {
+    // A 404 covers both a missing sprint and one in a project the user is not
+    // on, so either way the view shows "not found".
+    sprint.value = null;
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <template>
@@ -103,7 +112,7 @@ function handleSubmit(values: UpdateSprintDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-else title="Sprint not found" padded>
+    <PanelCardComponent v-else-if="!isLoading" title="Sprint not found" padded>
       <p class="text-sm text-ink-soft">
         The sprint you are trying to edit does not exist, or it belongs to a project you are not a
         user of.

@@ -1,62 +1,37 @@
 // Author: Tomás Posada
 
+// external imports
+import axios from 'axios';
+
 // internal imports
 import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
 import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
-import { TaskService } from '@/services/TaskService';
-import { useUserStore } from '@/stores/userstore';
-import { IdUtils } from '@/utils/IdUtils';
 
 export class UserService {
-  static getAll(): UserInterface[] {
-    return useUserStore().users;
+  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/users`;
+
+  static async getAll(): Promise<UserInterface[]> {
+    const { data } = await axios.get<UserInterface[]>(UserService.API_URL);
+    return data;
   }
 
-  static getById(id: number): UserInterface | undefined {
-    return useUserStore().users.find((user) => user.id === id);
+  static async getById(id: number): Promise<UserInterface> {
+    const { data } = await axios.get<UserInterface>(`${UserService.API_URL}/${id}`);
+    return data;
   }
 
-  static create(CreateUserDTO: CreateUserDTO): UserInterface {
-    const user: UserInterface = { id: IdUtils.nextId(useUserStore().users), ...CreateUserDTO };
-    useUserStore().users.push(user);
-    return user;
+  static async create(createUserDTO: CreateUserDTO): Promise<UserInterface> {
+    const { data } = await axios.post<UserInterface>(UserService.API_URL, createUserDTO);
+    return data;
   }
 
-  static update(id: number, changes: UpdateUserDTO): void {
-    const user = UserService.getById(id);
-    if (!user) return;
-
-    Object.assign(user, changes);
+  static async update(id: number, changes: UpdateUserDTO): Promise<UserInterface> {
+    const { data } = await axios.patch<UserInterface>(`${UserService.API_URL}/${id}`, changes);
+    return data;
   }
 
-  static remove(id: number): boolean {
-    if (id === AuthService.getCurrentUser()?.id) return false;
-
-    const users = useUserStore().users;
-    const index = users.findIndex((user) => user.id === id);
-    if (index === -1) return false;
-
-    // Drop every reference before the id can be handed to someone else.
-    TaskService.unassignUser(id);
-    ProjectService.removeUserEverywhere(id);
-
-    users.splice(index, 1);
-    return true;
-  }
-
-  static getActiveProjects(user: UserInterface): number {
-    return ProjectService.getAllUserProjects(user.id).filter(
-      (project) => project.status === 'active',
-    ).length;
-  }
-
-  static getAssignedTasks(user: UserInterface): TaskInterface[] {
-    // No project filter is needed: a task can only be assigned to a user
-    // of its own project, so everything here is already visible to them.
-    return TaskService.getByAssignee(user.id);
+  static async remove(id: number): Promise<void> {
+    await axios.delete(`${UserService.API_URL}/${id}`);
   }
 }

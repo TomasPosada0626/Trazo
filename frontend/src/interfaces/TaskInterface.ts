@@ -23,4 +23,6 @@ export interface TaskInterface {
   sprintId: number | null;
   /** Null while nobody has picked the task up. */
   assigneeId: number | null;
+  projectName?: string;
+  assigneeName?: string | null;
 }
