@@ -1,13 +1,22 @@
 // Author: Mateo Garcia Carreno
 
 // external imports
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  ParseIntPipe,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 
 // internal imports
-import { CurrentUserId } from '../common/current-user-id.decorator.js';
+import { AuthGuard } from '../auth/auth.guard.js';
+import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
 import { DashboardService } from './dashboard.service.js';
 
 @Controller('dashboard')
+@UseGuards(AuthGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
@@ -17,13 +26,13 @@ export class DashboardController {
     @Query('sprintId', new ParseIntPipe({ optional: true }))
     sprintId: number | undefined,
     @Query('status') status: string | undefined,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): ReturnType<DashboardService['getDashboard']> {
     return this.dashboardService.getDashboard(
       projectId,
       sprintId,
       status,
-      currentUserId,
+      req.user.sub,
     );
   }
 }

@@ -1,31 +1,38 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
-// internal imports
-import { User } from '../users/entities/user.entity.js';
+// Internal imports
+import type { JWTPayloadInterface } from '../interfaces/auth/JWTPayloadInterface.js';
 import { UsersService } from '../users/users.service.js';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-  async login(email: string, password: string): Promise<User> {
-    // No DTO validates the body, so a missing field is caught here, before an
-    // undefined email reaches the query.
+  async signIn(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string }> {
     if (!email || !password) {
       throw new UnauthorizedException('Incorrect email or password.');
     }
 
     const user = await this.usersService.findByEmailWithPassword(email.trim());
 
-    // One message for both failures, so the response does not reveal which
-    // emails have an account.
-    if (!user || user.password !== password) {
+    if (user?.password !== password) {
       throw new UnauthorizedException('Incorrect email or password.');
     }
 
-    return this.usersService.findOne(user.id);
+    const payload: JWTPayloadInterface = { sub: user.id, email: user.email };
+
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }

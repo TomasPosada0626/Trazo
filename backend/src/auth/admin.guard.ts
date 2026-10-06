@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   CanActivate,
   ExecutionContext,
@@ -9,11 +9,10 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { Request } from 'express';
 
-// internal imports
-import { readCurrentUserId } from '../common/current-user-id.decorator.js';
+// Internal imports
 import { User } from '../users/entities/user.entity.js';
+import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
 import { UsersService } from '../users/users.service.js';
 
 @Injectable()
@@ -21,17 +20,14 @@ export class AdminGuard implements CanActivate {
   constructor(private readonly usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const userId = readCurrentUserId(request);
+    const request = context.switchToHttp().getRequest<UserRequestInterface>();
 
     let user: User;
     try {
-      user = await this.usersService.findOne(userId);
+      user = await this.usersService.findOne(request.user.sub);
     } catch (error) {
-      // A header naming a deleted user is a stale session, not a missing
-      // resource, so it answers like any other unauthenticated request.
       if (error instanceof NotFoundException) {
-        throw new UnauthorizedException('Sign in to continue.');
+        throw new UnauthorizedException();
       }
       throw error;
     }

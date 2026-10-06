@@ -10,12 +10,14 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 
 // internal imports
+import { AuthGuard } from '../auth/auth.guard.js';
+import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
 import { AdminGuard } from '../auth/admin.guard.js';
-import { CurrentUserId } from '../common/current-user-id.decorator.js';
 import { User } from '../users/entities/user.entity.js';
 import { CreateProjectDto } from './dto/create-project.dto.js';
 import { UpdateProjectDto } from './dto/update-project.dto.js';
@@ -23,29 +25,30 @@ import { Project } from './entities/project.entity.js';
 import { ProjectsService } from './projects.service.js';
 
 @Controller('projects')
+@UseGuards(AuthGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  findAll(@CurrentUserId() currentUserId: number): Promise<Project[]> {
-    return this.projectsService.findAllWithProgress(currentUserId);
+  findAll(@Request() req: UserRequestInterface): Promise<Project[]> {
+    return this.projectsService.findAllWithProgress(req.user.sub);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<Project> {
-    return this.projectsService.findOneForUser(id, currentUserId);
+    return this.projectsService.findOneForUser(id, req.user.sub);
   }
 
   @Post()
   @UseGuards(AdminGuard)
   create(
     @Body() createProjectDto: CreateProjectDto,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<Project> {
-    return this.projectsService.create(createProjectDto, currentUserId);
+    return this.projectsService.create(createProjectDto, req.user.sub);
   }
 
   @Patch(':id')
@@ -53,35 +56,35 @@ export class ProjectsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProjectDto: UpdateProjectDto,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<Project> {
-    return this.projectsService.update(id, updateProjectDto, currentUserId);
+    return this.projectsService.update(id, updateProjectDto, req.user.sub);
   }
 
   @Delete(':id')
   @UseGuards(AdminGuard)
   remove(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<void> {
-    return this.projectsService.remove(id, currentUserId);
+    return this.projectsService.remove(id, req.user.sub);
   }
 
   @Get(':id/users')
   getUsers(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<User[]> {
-    return this.projectsService.getUsers(id, currentUserId);
+    return this.projectsService.getUsers(id, req.user.sub);
   }
 
   @Get(':id/available-users')
   @UseGuards(AdminGuard)
   getAvailableUsers(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<User[]> {
-    return this.projectsService.getAvailableUsers(id, currentUserId);
+    return this.projectsService.getAvailableUsers(id, req.user.sub);
   }
 
   @Post(':id/users')
@@ -89,9 +92,9 @@ export class ProjectsController {
   addUser(
     @Param('id', ParseIntPipe) id: number,
     @Body('userId', ParseIntPipe) userId: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<User[]> {
-    return this.projectsService.addUser(id, userId, currentUserId);
+    return this.projectsService.addUser(id, userId, req.user.sub);
   }
 
   @Delete(':id/users/:userId')
@@ -99,8 +102,8 @@ export class ProjectsController {
   removeUser(
     @Param('id', ParseIntPipe) id: number,
     @Param('userId', ParseIntPipe) userId: number,
-    @CurrentUserId() currentUserId: number,
+    @Request() req: UserRequestInterface,
   ): Promise<User[]> {
-    return this.projectsService.removeUser(id, userId, currentUserId);
+    return this.projectsService.removeUser(id, userId, req.user.sub);
   }
 }
