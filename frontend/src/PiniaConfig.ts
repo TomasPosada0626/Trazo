@@ -1,34 +1,34 @@
+// Author: Mateo Garcia Carreno
+
+// external imports
 import { createPinia } from 'pinia';
 import { watch } from 'vue';
 
-const PINIA_STATE_KEY = 'piniaState';
+const AUTH_STATE_KEY = 'authState';
+const LEGACY_STATE_KEY = 'piniaState_v2';
 
 export default class PiniaConfig {
   public static init() {
     const pinia = createPinia();
 
-    /* const savedState = localStorage.getItem(PINIA_STATE_KEY);
-    if (savedState) {
-      // Saved stores win, but a store added after this browser's last visit
-      // is missing from the saved blob, so it falls back to its seeder.
-      // Without this, adding an entity leaves existing users with an empty
-      // table until they clear LocalStorage by hand.
-      pinia.state.value = { ...seededState, ...JSON.parse(savedState) };
-    } else {
-      pinia.state.value = seededState;
-      localStorage.setItem(PINIA_STATE_KEY, JSON.stringify(pinia.state.value));
+    // The LocalStorage-era blob held every user, password included. The
+    // backend owns that data now, so nothing in it is worth keeping.
+    localStorage.removeItem(LEGACY_STATE_KEY);
+
+    // Only the session survives a reload. Everything else comes from the API
+    // on every visit, so a stale copy can never shadow the server.
+    const savedAuth = localStorage.getItem(AUTH_STATE_KEY);
+    if (savedAuth) {
+      pinia.state.value.auth = JSON.parse(savedAuth);
     }
 
-    // The whole Pinia state tree is the "database": any change to any
-    // store gets persisted here, so individual services never touch
-    // localStorage directly.
     watch(
-      pinia.state,
-      (state) => {
-        localStorage.setItem(PINIA_STATE_KEY, JSON.stringify(state));
+      () => pinia.state.value.auth,
+      (auth) => {
+        localStorage.setItem(AUTH_STATE_KEY, JSON.stringify(auth));
       },
       { deep: true },
-    ); */
+    );
 
     return pinia;
   }

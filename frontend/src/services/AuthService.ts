@@ -1,34 +1,29 @@
 // Author: Tomás Posada
 
+// external imports
+import axios from 'axios';
+
 // internal imports
 import type { LoginDTO } from '@/dtos/LoginDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { UserService } from '@/services/UserService';
 import { useAuthStore } from '@/stores/authstore';
 
 export class AuthService {
-  static login(credentials: LoginDTO): UserInterface {
-    const user = UserService.getAll().find(
-      (candidate) =>
-        candidate.email === credentials.email && candidate.password === credentials.password,
-    );
-    if (!user) {
-      throw new Error('Incorrect email or password.');
-    }
+  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
 
-    useAuthStore().currentUserId = user.id;
-    return user;
+  static async login(credentials: LoginDTO): Promise<UserInterface> {
+    const { data } = await axios.post<UserInterface>(`${AuthService.API_URL}/login`, credentials);
+
+    useAuthStore().currentUser = data;
+    return data;
   }
 
   static logout(): void {
-    useAuthStore().currentUserId = null;
+    useAuthStore().currentUser = null;
   }
 
   static getCurrentUser(): UserInterface | undefined {
-    const currentUserId = useAuthStore().currentUserId;
-    if (!currentUserId) return undefined;
-
-    return UserService.getById(currentUserId);
+    return useAuthStore().currentUser ?? undefined;
   }
 
   static isAdmin(): boolean {
