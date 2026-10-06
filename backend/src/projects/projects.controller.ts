@@ -31,7 +31,7 @@ export class ProjectsController {
 
   @Get()
   findAll(@Request() req: UserRequestInterface): Promise<Project[]> {
-    return this.projectsService.findAllWithProgress(req.user.sub);
+    return this.projectsService.findAllWithTaskCounts(req.user.sub);
   }
 
   @Get(':id')

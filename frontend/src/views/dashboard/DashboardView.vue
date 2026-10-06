@@ -18,9 +18,9 @@ import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskStatus } from '@/interfaces/TaskInterface';
 import { AuthService } from '@/services/AuthService';
-import { DashboardService } from '@/services/DashboardService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
+import { TaskService } from '@/services/TaskService';
 import { ColorUtils } from '@/utils/ColorUtils';
 import { IdUtils } from '@/utils/IdUtils';
 import { LabelUtils } from '@/utils/LabelUtils';
@@ -32,7 +32,7 @@ const ALL_TIME = 'all';
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const sprints = ref<SprintInterface[]>([]);
-const dashboard = ref<Awaited<ReturnType<typeof DashboardService.get>> | null>(null);
+const taskStats = ref<Awaited<ReturnType<typeof TaskService.getStats>> | null>(null);
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -60,14 +60,16 @@ const hasSprints = computed(() => sprints.value.length > 0);
 
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
-const progress = computed(() => dashboard.value?.progress ?? 0);
-const activeSprints = computed(() => dashboard.value?.activeSprints ?? 0);
-const completedTasks = computed(() => dashboard.value?.completedTasks ?? 0);
-const totalTasks = computed(() => dashboard.value?.totalTasks ?? 0);
-const overdueTasks = computed(() => dashboard.value?.overdueTasks ?? 0);
+const progress = computed(() => taskStats.value?.progress ?? 0);
+const activeSprints = computed(
+  () => sprints.value.filter((sprint) => sprint.status === 'active').length,
+);
+const completedTasks = computed(() => taskStats.value?.completedTasks ?? 0);
+const totalTasks = computed(() => taskStats.value?.totalTasks ?? 0);
+const overdueTasks = computed(() => taskStats.value?.overdueTasks ?? 0);
 
 const statusChart = computed(() => {
-  const series = dashboard.value?.tasksByStatus ?? { labels: [], values: [] };
+  const series = taskStats.value?.tasksByStatus ?? { labels: [], values: [] };
 
   return {
     labels: series.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
@@ -76,24 +78,28 @@ const statusChart = computed(() => {
   };
 });
 
-const completionChart = computed(() => {
-  const velocity = dashboard.value?.velocity ?? { sprintIds: [], committed: [], completed: [] };
-
-  return {
-    labels: velocity.sprintIds.map((id) => IdUtils.shortId('SPR', id)),
-    series: [
-      { label: 'Committed', values: velocity.committed, color: ColorUtils.CHART.muted },
-      { label: 'Completed', values: velocity.completed, color: ColorUtils.CHART.done },
-    ],
-  };
-});
+const completionChart = computed(() => ({
+  labels: sprints.value.map((sprint) => IdUtils.shortId('SPR', sprint.id)),
+  series: [
+    {
+      label: 'Committed',
+      values: sprints.value.map((sprint) => sprint.committedPoints ?? 0),
+      color: ColorUtils.CHART.muted,
+    },
+    {
+      label: 'Completed',
+      values: sprints.value.map((sprint) => sprint.completedPoints ?? 0),
+      color: ColorUtils.CHART.done,
+    },
+  ],
+}));
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
-const userTasks = computed(() => dashboard.value?.userTasks ?? []);
+const userTasks = computed(() => taskStats.value?.userTasks ?? []);
 
 const workloadChart = computed(() => {
-  const rows = dashboard.value?.workload ?? [];
+  const rows = taskStats.value?.workload ?? [];
 
   return {
     labels: rows.map((row) => row.name ?? 'Unassigned'),
@@ -107,14 +113,16 @@ const workloadChart = computed(() => {
   };
 });
 
-const projectDistributionChart = computed(() => {
-  const series = dashboard.value?.tasksByProject ?? { labels: [], values: [] };
-
-  return {
-    labels: series.labels,
-    series: [{ label: 'Tasks', values: series.values, color: ColorUtils.CHART.ink }],
-  };
-});
+const projectDistributionChart = computed(() => ({
+  labels: projects.value.map((project) => project.name),
+  series: [
+    {
+      label: 'Tasks',
+      values: projects.value.map((project) => project.taskCount ?? 0),
+      color: ColorUtils.CHART.ink,
+    },
+  ],
+}));
 
 // functions
 async function loadSprints(): Promise<void> {
@@ -123,24 +131,21 @@ async function loadSprints(): Promise<void> {
     : [];
 }
 
-async function loadDashboard(): Promise<void> {
-  dashboard.value = selectedProjectId.value
-    ? await DashboardService.get(selectedProjectId.value, sprintId.value, selectedStatus.value)
+async function loadTaskStats(): Promise<void> {
+  taskStats.value = selectedProjectId.value
+    ? await TaskService.getStats(selectedProjectId.value, sprintId.value, selectedStatus.value)
     : null;
 }
 
 // watchers
 // The range options belong to the previous project, so the range goes back to
-// "All time" before the dashboard is asked for anything; a sprint of another
-// project would be rejected by the API.
+// "All time" before the task stats are requested again.
 watch(selectedProjectId, async () => {
   selectedRange.value = ALL_TIME;
   await loadSprints();
 });
 
-// Every number on the page comes from one request, so any filter change
-// replaces the whole response.
-watch([selectedProjectId, selectedRange, selectedStatus], loadDashboard);
+watch([selectedProjectId, selectedRange, selectedStatus], loadTaskStats);
 
 // lifecycle hooks
 onMounted(async () => {

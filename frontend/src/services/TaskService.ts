@@ -6,7 +6,7 @@ import axios from 'axios';
 // internal imports
 import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
 import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
+import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
 
 export class TaskService {
   private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/tasks`;
@@ -16,6 +16,29 @@ export class TaskService {
     // leaving the parameter out, which axios does for undefined values.
     const { data } = await axios.get<TaskInterface[]>(TaskService.API_URL, {
       params: { projectId: projectId === 'all' ? undefined : projectId },
+    });
+    return data;
+  }
+
+  static async getStats(
+    projectId: number,
+    sprintId: number | null,
+    status: TaskStatus | 'all',
+  ): Promise<{
+    progress: number;
+    completedTasks: number;
+    totalTasks: number;
+    overdueTasks: number;
+    tasksByStatus: { labels: TaskStatus[]; values: number[] };
+    workload: { name: string | null; openTasks: number }[] | null;
+    userTasks: TaskInterface[];
+  }> {
+    const { data } = await axios.get(`${TaskService.API_URL}/stats`, {
+      params: {
+        projectId,
+        sprintId: sprintId ?? undefined,
+        status: status === 'all' ? undefined : status,
+      },
     });
     return data;
   }

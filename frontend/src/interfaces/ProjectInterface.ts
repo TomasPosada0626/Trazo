@@ -16,4 +16,5 @@ export interface ProjectInterface {
    */
   userIds: number[];
   progress?: number;
+  taskCount?: number;
 }

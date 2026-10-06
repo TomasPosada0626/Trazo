@@ -35,7 +35,7 @@ export class ProjectsService {
     });
   }
 
-  async findAllWithProgress(userId: number): Promise<Project[]> {
+  async findAllWithTaskCounts(userId: number): Promise<Project[]> {
     const projects = await this.findAllForUser(userId);
     if (!projects.length) return [];
 
@@ -51,15 +51,12 @@ export class ProjectsService {
       .whereInIds(projects.map((project) => project.id))
       .groupBy('project.id')
       .getRawMany<{ id: number; total: number; done: number }>();
-    const progress = new Map(
-      counts.map((row) => [
-        row.id,
-        row.total ? Math.round((row.done / row.total) * 100) : 0,
-      ]),
-    );
+    const countsById = new Map(counts.map((row) => [row.id, row]));
 
     for (const project of projects) {
-      project.progress = progress.get(project.id) ?? 0;
+      const { total = 0, done = 0 } = countsById.get(project.id) ?? {};
+      project.taskCount = total;
+      project.progress = total ? Math.round((done / total) * 100) : 0;
     }
 
     return projects;

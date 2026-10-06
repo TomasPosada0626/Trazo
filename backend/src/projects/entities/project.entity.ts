@@ -59,4 +59,6 @@ export class Project {
   tasks: Relation<Task[]>;
 
   progress?: number;
+
+  taskCount?: number;
 }

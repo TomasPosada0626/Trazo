@@ -37,6 +37,22 @@ export class TasksController {
     return this.tasksService.findAllWithNames(req.user.sub, projectId);
   }
 
+  @Get('stats')
+  getStats(
+    @Query('projectId', ParseIntPipe) projectId: number,
+    @Query('sprintId', new ParseIntPipe({ optional: true }))
+    sprintId: number | undefined,
+    @Query('status') status: string | undefined,
+    @Request() req: UserRequestInterface,
+  ): ReturnType<TasksService['getStats']> {
+    return this.tasksService.getStats(
+      req.user.sub,
+      projectId,
+      sprintId,
+      status,
+    );
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,

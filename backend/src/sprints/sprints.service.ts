@@ -57,33 +57,6 @@ export class SprintsService {
     return sprints;
   }
 
-  countActive(projectId: number): Promise<number> {
-    return this.sprintsRepository.countBy({
-      project: { id: projectId },
-      status: 'active',
-    });
-  }
-
-  async getVelocitySeries(projectId: number): Promise<{
-    sprintIds: number[];
-    committed: number[];
-    completed: number[];
-  }> {
-    // Always the whole project: a velocity chart of a single sprint would be
-    // one pair of bars with nothing to compare against.
-    const sprints = await this.sprintsRepository.find({
-      where: { project: { id: projectId } },
-      order: { id: 'ASC' },
-    });
-    await this.addPoints(sprints);
-
-    return {
-      sprintIds: sprints.map((sprint) => sprint.id),
-      committed: sprints.map((sprint) => sprint.committedPoints ?? 0),
-      completed: sprints.map((sprint) => sprint.completedPoints ?? 0),
-    };
-  }
-
   async findOne(id: number): Promise<Sprint> {
     const sprint = await this.sprintsRepository.findOneBy({ id });
     if (!sprint) {

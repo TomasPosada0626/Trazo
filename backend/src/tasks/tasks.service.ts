@@ -11,13 +11,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 // internal imports
+import { DateUtils } from '../common/date.utils.js';
 import { Project } from '../projects/entities/project.entity.js';
 import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed.event.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
-import { Task } from './entities/task.entity.js';
+import {
+  Task,
+  TASK_STATUSES,
+  type TaskStatus,
+} from './entities/task.entity.js';
 
 @Injectable()
 export class TasksService {
@@ -63,6 +68,70 @@ export class TasksService {
     }
 
     return tasks;
+  }
+
+  async getStats(
+    currentUserId: number,
+    projectId: number,
+    sprintId: number | undefined,
+    status: string | undefined,
+  ): Promise<{
+    progress: number;
+    completedTasks: number;
+    totalTasks: number;
+    overdueTasks: number;
+    tasksByStatus: { labels: TaskStatus[]; values: number[] };
+    workload: { name: string | null; openTasks: number }[] | null;
+    userTasks: Task[];
+  }> {
+    if (status !== undefined && !TASK_STATUSES.some((s) => s === status)) {
+      throw new BadRequestException(
+        `status must be one of: ${TASK_STATUSES.join(', ')}.`,
+      );
+    }
+
+    const project = await this.projectsService.findOneForUser(
+      projectId,
+      currentUserId,
+    );
+    const currentUser = await this.usersService.findOne(currentUserId);
+
+    const projectTasks = await this.findByProjects([projectId]);
+    const inRange =
+      sprintId === undefined
+        ? projectTasks
+        : projectTasks.filter((task) => task.sprintId === sprintId);
+    const filtered =
+      status === undefined
+        ? inRange
+        : inRange.filter((task) => task.status === status);
+    const done = filtered.filter((task) => task.status === 'done').length;
+
+    return {
+      progress: filtered.length
+        ? Math.round((done / filtered.length) * 100)
+        : 0,
+      completedTasks: done,
+      totalTasks: filtered.length,
+      overdueTasks: filtered.filter(
+        (task) =>
+          task.status !== 'done' &&
+          task.dueDate !== null &&
+          DateUtils.isPastDate(task.dueDate),
+      ).length,
+      tasksByStatus: {
+        labels: [...TASK_STATUSES],
+        values: TASK_STATUSES.map(
+          (taskStatus) =>
+            inRange.filter((task) => task.status === taskStatus).length,
+        ),
+      },
+      workload:
+        currentUser.role === 'admin'
+          ? await this.getWorkload(project, filtered)
+          : null,
+      userTasks: this.getUserTasks(filtered, currentUserId),
+    };
   }
 
   findByProjects(projectIds: number[]): Promise<Task[]> {
@@ -215,6 +284,42 @@ export class TasksService {
         { assignee: null },
       );
     }
+  }
+
+  private async getWorkload(
+    project: Project,
+    tasks: Task[],
+  ): Promise<{ name: string | null; openTasks: number }[]> {
+    const open = tasks.filter((task) => task.status !== 'done');
+    const users = await this.usersService.findByIds(project.userIds);
+
+    const rows: { name: string | null; openTasks: number }[] = users.map(
+      (user) => ({
+        name: user.name,
+        openTasks: open.filter((task) => task.assigneeId === user.id).length,
+      }),
+    );
+
+    const unassigned = open.filter((task) => task.assigneeId === null).length;
+    if (unassigned > 0) {
+      rows.push({ name: null, openTasks: unassigned });
+    }
+
+    return rows.sort((a, b) => b.openTasks - a.openTasks);
+  }
+
+  private getUserTasks(tasks: Task[], userId: number): Task[] {
+    const farFuture = '9999-12-31';
+
+    return tasks
+      .filter((task) => task.assigneeId === userId)
+      .sort((a, b) => {
+        const aDone = a.status === 'done' ? 1 : 0;
+        const bDone = b.status === 'done' ? 1 : 0;
+        if (aDone !== bDone) return aDone - bDone;
+
+        return (a.dueDate ?? farFuture).localeCompare(b.dueDate ?? farFuture);
+      });
   }
 
   private assertAssignable(project: Project, assigneeId: number | null): void {
