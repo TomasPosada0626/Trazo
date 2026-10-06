@@ -39,3 +39,6 @@ __screenshots__/
 
 # Claude
 CLAUDE.md
+
+# Environment variables
+.env
