@@ -1,16 +1,16 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
@@ -25,8 +25,6 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     const users = await this.usersRepository.find({ order: { id: 'ASC' } });
 
-    // Counted through the inverse relation rather than by asking
-    // ProjectsService, which already depends on this service.
     const counts = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoin('user.projects', 'project', 'project.status = :status', {
@@ -56,22 +54,22 @@ export class UsersService {
     return user;
   }
 
-  findByIds(ids: number[]): Promise<User[]> {
-    return this.usersRepository.find({
+  async findByIds(ids: number[]): Promise<User[]> {
+    return await this.usersRepository.find({
       where: { id: In(ids) },
       order: { id: 'ASC' },
     });
   }
 
-  findAllExcept(ids: number[]): Promise<User[]> {
-    return this.usersRepository.find({
+  async findAllExcept(ids: number[]): Promise<User[]> {
+    return await this.usersRepository.find({
       where: { id: Not(In(ids)) },
       order: { id: 'ASC' },
     });
   }
 
-  findByEmailWithPassword(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
       where: { email },
       select: { id: true, email: true, password: true },
     });
@@ -83,9 +81,7 @@ export class UsersService {
     const user = this.usersRepository.create(createUserDto);
     const saved = await this.usersRepository.save(user);
 
-    // Re-read so the response goes through `select: false` and never echoes
-    // the password back.
-    return this.findOne(saved.id);
+    return await this.findOne(saved.id);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
@@ -98,7 +94,7 @@ export class UsersService {
       this.usersRepository.merge(user, updateUserDto),
     );
 
-    return this.findOne(id);
+    return await this.findOne(id);
   }
 
   async remove(id: number, currentUserId: number): Promise<void> {
@@ -108,8 +104,6 @@ export class UsersService {
 
     await this.findOne(id);
 
-    // The foreign keys unassign the user's tasks and drop them from every
-    // project roster, so nothing else has to be cleaned up here.
     await this.usersRepository.delete(id);
   }
 

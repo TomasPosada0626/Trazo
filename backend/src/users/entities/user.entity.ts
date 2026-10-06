@@ -1,32 +1,42 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+// External imports
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import type { Relation } from 'typeorm';
 
-// internal imports
+// Internal imports
 import { Project } from '../../projects/entities/project.entity.js';
-
-export const USER_ROLES = ['admin', 'member'] as const;
-
-export type UserRole = (typeof USER_ROLES)[number];
+import { USER_ROLES, type UserRole } from '../../types/UsersTypes.js';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ select: false })
+  @Column({ type: 'varchar', length: 255, select: false })
   password: string;
 
   @Column({ type: 'simple-enum', enum: USER_ROLES })
   role: UserRole;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt: Date;
 
   @ManyToMany(() => Project, (project) => project.users)
   projects: Relation<Project[]>;

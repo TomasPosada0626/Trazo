@@ -1,9 +1,9 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Module } from '@nestjs/common';
 
-// internal imports
+// Internal imports
 import { HomeController } from './home.controller.js';
 
 @Module({

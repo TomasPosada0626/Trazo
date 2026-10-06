@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   Column,
   CreateDateColumn,
@@ -9,32 +9,29 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
 
-// internal imports
+// Internal imports
 import { Project } from '../../projects/entities/project.entity.js';
 import { Sprint } from '../../sprints/entities/sprint.entity.js';
+import {
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  TASK_TYPES,
+  type TaskPriority,
+  type TaskStatus,
+  type TaskType,
+} from '../../types/TasksTypes.js';
 import { User } from '../../users/entities/user.entity.js';
-
-export const TASK_TYPES = ['feature', 'bug', 'chore', 'research'] as const;
-
-export type TaskType = (typeof TASK_TYPES)[number];
-
-export const TASK_PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
-
-export type TaskPriority = (typeof TASK_PRIORITIES)[number];
-
-export const TASK_STATUSES = ['todo', 'in_progress', 'done'] as const;
-
-export type TaskStatus = (typeof TASK_STATUSES)[number];
 
 @Entity()
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
   @Column({ type: 'text' })
@@ -52,11 +49,14 @@ export class Task {
   @Column({ type: 'simple-enum', enum: TASK_STATUSES })
   status: TaskStatus;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
   @Column({ type: 'date', nullable: true })
   dueDate: string | null;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt: Date;
 
   @ManyToOne(() => Project, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'projectId' })

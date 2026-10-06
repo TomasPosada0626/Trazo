@@ -1,15 +1,15 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
 import { ProjectsModule } from '../projects/projects.module.js';
-import { UsersModule } from '../users/users.module.js';
 import { Task } from './entities/task.entity.js';
 import { TasksController } from './tasks.controller.js';
 import { TasksService } from './tasks.service.js';
+import { UsersModule } from '../users/users.module.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Task]), ProjectsModule, UsersModule],

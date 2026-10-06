@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   Body,
   Controller,
@@ -14,13 +14,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-// internal imports
-import { AuthGuard } from '../auth/auth.guard.js';
-import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
+// Internal imports
 import { AdminGuard } from '../auth/admin.guard.js';
+import { AuthGuard } from '../auth/auth.guard.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
+import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users')
@@ -29,33 +29,33 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  async findAll(): Promise<User[]> {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    return await this.usersService.findOne(id);
   }
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.usersService.create(createUserDto);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateUserDto);
+    return await this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(
+  async remove(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: UserRequestInterface,
   ): Promise<void> {
-    return this.usersService.remove(id, req.user.sub);
+    return await this.usersService.remove(id, req.user.sub);
   }
 }

@@ -1,28 +1,25 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { OnEvent } from '@nestjs/event-emitter';
 
-// internal imports
+// Internal imports
+import { CreateTaskDto } from './dto/create-task.dto.js';
 import { DateUtils } from '../common/date.utils.js';
 import { Project } from '../projects/entities/project.entity.js';
-import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed.event.js';
 import { ProjectsService } from '../projects/projects.service.js';
-import { UsersService } from '../users/users.service.js';
-import { CreateTaskDto } from './dto/create-task.dto.js';
+import { ProjectUserRemovedEvent } from '../projects/events/project-user-removed.event.js';
+import { Task } from './entities/task.entity.js';
+import { TASK_STATUSES, type TaskStatus } from '../types/TasksTypes.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
-import {
-  Task,
-  TASK_STATUSES,
-  type TaskStatus,
-} from './entities/task.entity.js';
+import { UsersService } from '../users/users.service.js';
 
 @Injectable()
 export class TasksService {
@@ -39,8 +36,6 @@ export class TasksService {
       projects.map((project) => [project.id, project.name]),
     );
 
-    // Same answer as ProjectsService.findOneForUser for a project the caller
-    // is not on.
     if (projectId !== undefined && !projectNames.has(projectId)) {
       throw new NotFoundException('The project does not exist.');
     }
@@ -134,8 +129,8 @@ export class TasksService {
     };
   }
 
-  findByProjects(projectIds: number[]): Promise<Task[]> {
-    return this.tasksRepository.find({
+  async findByProjects(projectIds: number[]): Promise<Task[]> {
+    return await this.tasksRepository.find({
       where: { project: { id: In(projectIds) } },
       order: { id: 'ASC' },
     });
@@ -154,7 +149,6 @@ export class TasksService {
     const task = await this.findOne(id);
     const project = await this.projectsService.findOne(task.projectId);
 
-    // A task is visible exactly when its project is.
     if (!this.projectsService.hasUser(project, userId)) {
       throw new NotFoundException('The task does not exist.');
     }
@@ -173,8 +167,6 @@ export class TasksService {
     );
     this.assertAssignable(project, assigneeId);
 
-    // A new task always starts in the backlog: work is scheduled from the
-    // sprint, through scheduleInSprint(), and never here.
     const task = this.tasksRepository.create({
       ...fields,
       project: { id: projectId },
@@ -183,7 +175,7 @@ export class TasksService {
     });
     const saved = await this.tasksRepository.save(task);
 
-    return this.findOne(saved.id);
+    return await this.findOne(saved.id);
   }
 
   async update(
@@ -198,16 +190,12 @@ export class TasksService {
       ...fields
     } = updateTaskDto;
 
-    // Validate the task as it will look once merged, so a change to one field
-    // is checked against the fields it depends on rather than in isolation.
     const project = await this.projectsService.findOneForUser(
       projectId,
       currentUserId,
     );
     this.assertAssignable(project, assigneeId);
 
-    // The old sprint belongs to the old project, so a task that changes
-    // project goes back to the backlog of the new one.
     const movesProject = projectId !== task.projectId;
 
     await this.tasksRepository.save(
@@ -218,7 +206,7 @@ export class TasksService {
       }),
     );
 
-    return this.findOne(id);
+    return await this.findOne(id);
   }
 
   async remove(id: number, currentUserId: number): Promise<void> {
@@ -245,9 +233,6 @@ export class TasksService {
   ): Promise<void> {
     await this.assertInProject(projectId, taskIds);
 
-    // Deselected tasks return to the backlog, not to whichever sprint they
-    // were in before, and scheduling is scoped to the sprint's own project so
-    // a task can never point at a sprint that belongs somewhere else.
     const selected = new Set(taskIds);
     const unscheduled = (await this.findByProjects([projectId]))
       .filter((task) => task.sprintId === sprintId && !selected.has(task.id))
@@ -272,8 +257,6 @@ export class TasksService {
     projectId,
     userId,
   }: ProjectUserRemovedEvent): Promise<void> {
-    // An assignee must be a user of the project, so leaving the roster hands
-    // the user's tasks in that project back to nobody.
     const assigned = (await this.findByProjects([projectId]))
       .filter((task) => task.assigneeId === userId)
       .map((task) => task.id);

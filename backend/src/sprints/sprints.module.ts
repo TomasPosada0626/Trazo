@@ -1,16 +1,16 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
 import { ProjectsModule } from '../projects/projects.module.js';
-import { TasksModule } from '../tasks/tasks.module.js';
-import { UsersModule } from '../users/users.module.js';
 import { Sprint } from './entities/sprint.entity.js';
 import { SprintsController } from './sprints.controller.js';
 import { SprintsService } from './sprints.service.js';
+import { TasksModule } from '../tasks/tasks.module.js';
+import { UsersModule } from '../users/users.module.js';
 
 @Module({
   imports: [

@@ -1,11 +1,11 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { Module } from '@nestjs/common';
+// External imports
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
 import { AuthModule } from './auth/auth.module.js';
 import { HomeModule } from './home/home.module.js';
 import { ProjectsModule } from './projects/projects.module.js';

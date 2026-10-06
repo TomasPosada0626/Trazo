@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   IsArray,
   IsDateString,
@@ -8,19 +8,21 @@ import {
   IsInt,
   IsNotEmpty,
   IsString,
+  MaxLength,
 } from 'class-validator';
 
-// internal imports
-import { Trim } from '../../common/trim.decorator.js';
+// Internal imports
 import {
   SPRINT_STATUSES,
   type SprintStatus,
-} from '../entities/sprint.entity.js';
+} from '../../types/SprintsTypes.js';
+import { Trim } from '../../common/trim.decorator.js';
 
 export class CreateSprintDto {
   @Trim()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
   @Trim()

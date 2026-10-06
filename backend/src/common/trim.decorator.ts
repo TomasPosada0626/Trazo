@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Transform } from 'class-transformer';
 
 export function Trim(): PropertyDecorator {

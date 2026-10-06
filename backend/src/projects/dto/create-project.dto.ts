@@ -1,19 +1,20 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { IsIn, IsNotEmpty, IsString } from 'class-validator';
+// External imports
+import { IsIn, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
-// internal imports
-import { Trim } from '../../common/trim.decorator.js';
+// Internal imports
 import {
   PROJECT_STATUSES,
   type ProjectStatus,
-} from '../entities/project.entity.js';
+} from '../../types/ProjectsTypes.js';
+import { Trim } from '../../common/trim.decorator.js';
 
 export class CreateProjectDto {
   @Trim()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
   @Trim()

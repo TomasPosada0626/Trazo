@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   IsDateString,
   IsIn,
@@ -8,11 +8,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   Min,
 } from 'class-validator';
 
-// internal imports
-import { Trim } from '../../common/trim.decorator.js';
+// Internal imports
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -20,12 +20,14 @@ import {
   type TaskPriority,
   type TaskStatus,
   type TaskType,
-} from '../entities/task.entity.js';
+} from '../../types/TasksTypes.js';
+import { Trim } from '../../common/trim.decorator.js';
 
 export class CreateTaskDto {
   @Trim()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   title: string;
 
   @Trim()

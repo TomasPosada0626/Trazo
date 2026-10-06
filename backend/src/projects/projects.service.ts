@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   BadRequestException,
   ConflictException,
@@ -11,13 +11,13 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-// internal imports
-import { User } from '../users/entities/user.entity.js';
-import { UsersService } from '../users/users.service.js';
+// Internal imports
 import { CreateProjectDto } from './dto/create-project.dto.js';
-import { UpdateProjectDto } from './dto/update-project.dto.js';
 import { Project } from './entities/project.entity.js';
 import { ProjectUserRemovedEvent } from './events/project-user-removed.event.js';
+import { UpdateProjectDto } from './dto/update-project.dto.js';
+import { User } from '../users/entities/user.entity.js';
+import { UsersService } from '../users/users.service.js';
 
 @Injectable()
 export class ProjectsService {
@@ -28,8 +28,8 @@ export class ProjectsService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  findAllForUser(userId: number): Promise<Project[]> {
-    return this.projectsRepository.find({
+  async findAllForUser(userId: number): Promise<Project[]> {
+    return await this.projectsRepository.find({
       where: { users: { id: userId } },
       order: { id: 'ASC' },
     });
@@ -39,8 +39,6 @@ export class ProjectsService {
     const projects = await this.findAllForUser(userId);
     if (!projects.length) return [];
 
-    // Counted through the inverse relation rather than by asking
-    // TasksService, which already depends on this service.
     const counts = await this.projectsRepository
       .createQueryBuilder('project')
       .leftJoin('project.tasks', 'task')
@@ -74,8 +72,6 @@ export class ProjectsService {
   async findOneForUser(id: number, userId: number): Promise<Project> {
     const project = await this.findOne(id);
 
-    // Same response as a missing project, so a non-user cannot tell the
-    // difference between "not yours" and "not there".
     if (!this.hasUser(project, userId)) {
       throw new NotFoundException('The project does not exist.');
     }
@@ -89,15 +85,13 @@ export class ProjectsService {
   ): Promise<Project> {
     await this.usersService.findOne(currentUserId);
 
-    // The creator joins the roster, or the project would be invisible to the
-    // person who just made it.
     const project = this.projectsRepository.merge(
       this.projectsRepository.create(createProjectDto),
       { users: [{ id: currentUserId }] },
     );
     const saved = await this.projectsRepository.save(project);
 
-    return this.findOne(saved.id);
+    return await this.findOne(saved.id);
   }
 
   async update(
@@ -111,26 +105,25 @@ export class ProjectsService {
       this.projectsRepository.merge(project, updateProjectDto),
     );
 
-    return this.findOne(id);
+    return await this.findOne(id);
   }
 
   async remove(id: number, currentUserId: number): Promise<void> {
     await this.findOneForUser(id, currentUserId);
 
-    // The foreign keys delete the project's sprints and tasks with it.
     await this.projectsRepository.delete(id);
   }
 
   async getUsers(id: number, currentUserId: number): Promise<User[]> {
     const project = await this.findOneForUser(id, currentUserId);
 
-    return this.usersService.findByIds(project.userIds);
+    return await this.usersService.findByIds(project.userIds);
   }
 
   async getAvailableUsers(id: number, currentUserId: number): Promise<User[]> {
     const project = await this.findOneForUser(id, currentUserId);
 
-    return this.usersService.findAllExcept(project.userIds);
+    return await this.usersService.findAllExcept(project.userIds);
   }
 
   async addUser(
@@ -150,7 +143,7 @@ export class ProjectsService {
       .of(id)
       .add(userId);
 
-    return this.getUsers(id, currentUserId);
+    return await this.getUsers(id, currentUserId);
   }
 
   async removeUser(
@@ -158,8 +151,6 @@ export class ProjectsService {
     userId: number,
     currentUserId: number,
   ): Promise<User[]> {
-    // Refusing self-removal is what guarantees at least one admin user
-    // remains: to leave a project you administer, delete it.
     if (userId === currentUserId) {
       throw new BadRequestException(
         'You cannot remove yourself from a project.',
@@ -177,15 +168,12 @@ export class ProjectsService {
       .of(id)
       .remove(userId);
 
-    // TasksService listens and unassigns the user's tasks in this project.
-    // emitAsync waits for it, so the response reflects both writes and a
-    // failure in the listener reaches the caller.
     await this.eventEmitter.emitAsync(
       ProjectUserRemovedEvent.NAME,
       new ProjectUserRemovedEvent(id, userId),
     );
 
-    return this.getUsers(id, currentUserId);
+    return await this.getUsers(id, currentUserId);
   }
 
   hasUser(project: Project, userId: number): boolean {

@@ -1,4 +1,4 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
 export class ProjectUserRemovedEvent {
   static readonly NAME = 'project.user-removed';

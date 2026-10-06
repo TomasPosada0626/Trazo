@@ -1,29 +1,31 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
 
-// internal imports
+// Internal imports
 import { Project } from '../../projects/entities/project.entity.js';
-
-export const SPRINT_STATUSES = ['planned', 'active', 'completed'] as const;
-
-export type SprintStatus = (typeof SPRINT_STATUSES)[number];
+import {
+  SPRINT_STATUSES,
+  type SprintStatus,
+} from '../../types/SprintsTypes.js';
 
 @Entity()
 export class Sprint {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text' })
@@ -37,6 +39,12 @@ export class Sprint {
 
   @Column({ type: 'simple-enum', enum: SPRINT_STATUSES })
   status: SprintStatus;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt: Date;
 
   @ManyToOne(() => Project, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'projectId' })

@@ -1,9 +1,9 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import type { DeepPartial } from 'typeorm';
 
-// internal imports
+// Internal imports
 import type { User } from '../users/entities/user.entity.js';
 
 export const userSeeder: DeepPartial<User>[] = [

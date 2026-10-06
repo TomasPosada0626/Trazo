@@ -1,9 +1,9 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 
-// internal imports
+// Internal imports
 import { CreateSprintDto } from './create-sprint.dto.js';
 
 export class UpdateSprintDto extends PartialType(

@@ -1,9 +1,9 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import type { DeepPartial } from 'typeorm';
 
-// internal imports
+// Internal imports
 import type { Project } from '../projects/entities/project.entity.js';
 
 export const projectSeeder: DeepPartial<Project>[] = [

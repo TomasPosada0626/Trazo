@@ -1,24 +1,33 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { IsEmail, IsIn, IsNotEmpty, IsString } from 'class-validator';
+// External imports
+import {
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
-// internal imports
+// Internal imports
 import { Trim } from '../../common/trim.decorator.js';
-import { USER_ROLES, type UserRole } from '../entities/user.entity.js';
+import { USER_ROLES, type UserRole } from '../../types/UsersTypes.js';
 
 export class CreateUserDto {
   @Trim()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
   @Trim()
   @IsEmail()
+  @MaxLength(255)
   email: string;
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   password: string;
 
   @IsIn(USER_ROLES)

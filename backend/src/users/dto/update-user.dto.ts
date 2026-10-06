@@ -1,9 +1,9 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { PartialType } from '@nestjs/mapped-types';
 
-// internal imports
+// Internal imports
 import { CreateUserDto } from './create-user.dto.js';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

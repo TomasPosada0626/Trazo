@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   Column,
   CreateDateColumn,
@@ -10,29 +10,24 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   RelationId,
+  UpdateDateColumn,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
 
-// internal imports
+// Internal imports
+import {
+  PROJECT_STATUSES,
+  type ProjectStatus,
+} from '../../types/ProjectsTypes.js';
 import { Task } from '../../tasks/entities/task.entity.js';
 import { User } from '../../users/entities/user.entity.js';
-
-export const PROJECT_STATUSES = [
-  'planning',
-  'active',
-  'at_risk',
-  'paused',
-  'completed',
-] as const;
-
-export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'text' })
@@ -41,8 +36,11 @@ export class Project {
   @Column({ type: 'simple-enum', enum: PROJECT_STATUSES })
   status: ProjectStatus;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt: Date;
 
   @ManyToMany(() => User, (user) => user.projects)
   @JoinTable({

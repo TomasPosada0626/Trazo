@@ -1,10 +1,10 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { ValidationPipe } from '@nestjs/common';
+// External imports
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 
-// internal imports
+// Internal imports
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
@@ -21,12 +21,14 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  // whitelist drops fields a DTO does not declare, so a body cannot slip a
-  // stored field like `id` or a sprint's `projectId` past the service.
-  // transform hands the service the validated DTO instance rather than the
-  // raw body, which is what makes @Trim()'s trimmed strings stick.
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }
-await bootstrap();
+void bootstrap();

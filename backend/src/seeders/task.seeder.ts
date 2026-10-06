@@ -1,13 +1,12 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import type { DeepPartial } from 'typeorm';
 
-// internal imports
+// Internal imports
 import type { Task } from '../tasks/entities/task.entity.js';
 
 export const taskSeeder: DeepPartial<Task>[] = [
-  // Project 1 — Mobile App Redesign. Users: 1, 2.
   {
     id: 1,
     title: 'Design the onboarding flow',
@@ -79,7 +78,6 @@ export const taskSeeder: DeepPartial<Task>[] = [
     assignee: { id: 1 },
   },
 
-  // Project 2 — Customer Portal. Users: 3.
   {
     id: 6,
     title: 'Billing history table',
@@ -123,7 +121,6 @@ export const taskSeeder: DeepPartial<Task>[] = [
     assignee: null,
   },
 
-  // Project 3 — Cloud Migration. Users: 3, 2.
   {
     id: 9,
     title: 'Migrate the legacy database',
@@ -167,7 +164,6 @@ export const taskSeeder: DeepPartial<Task>[] = [
     assignee: { id: 2 },
   },
 
-  // Project 4 — Loyalty Program. Users: 1. Closed project, all tasks done.
   {
     id: 12,
     title: 'Points accrual rules',
@@ -197,10 +193,6 @@ export const taskSeeder: DeepPartial<Task>[] = [
     assignee: { id: 1 },
   },
 
-  // Added so each sprint carries real delivered points. Task 17 stays unfinished
-  // inside a closed sprint on purpose: without work that was scheduled but not
-  // delivered, every completed sprint would show committed == completed and the
-  // velocity chart would have nothing to say.
   {
     id: 14,
     title: 'Navigation shell and tab bar',

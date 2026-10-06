@@ -1,10 +1,10 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
 import { User } from './entities/user.entity.js';
 import { UsersController } from './users.controller.js';
 import { UsersService } from './users.service.js';

@@ -1,22 +1,22 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
-// internal imports
+// Internal imports
+import { CreateSprintDto } from './dto/create-sprint.dto.js';
 import { DateUtils } from '../common/date.utils.js';
 import { ProjectsService } from '../projects/projects.service.js';
-import { TasksService } from '../tasks/tasks.service.js';
-import { CreateSprintDto } from './dto/create-sprint.dto.js';
-import { UpdateSprintDto } from './dto/update-sprint.dto.js';
 import { Sprint } from './entities/sprint.entity.js';
+import { TasksService } from '../tasks/tasks.service.js';
+import { UpdateSprintDto } from './dto/update-sprint.dto.js';
 
 @Injectable()
 export class SprintsService {
@@ -70,7 +70,6 @@ export class SprintsService {
     const sprint = await this.findOne(id);
     const project = await this.projectsService.findOne(sprint.projectId);
 
-    // A sprint is visible exactly when its project is.
     if (!this.projectsService.hasUser(project, userId)) {
       throw new NotFoundException('The sprint does not exist.');
     }
@@ -87,8 +86,6 @@ export class SprintsService {
     this.assertDateRange(fields.startDate, fields.endDate);
     await this.assertNameAvailable(fields.name, projectId);
 
-    // Checked before saving, so a bad task id does not leave behind a sprint
-    // that was created with none of its work.
     await this.tasksService.assertInProject(projectId, taskIds);
 
     const sprint = this.sprintsRepository.create({
@@ -97,10 +94,9 @@ export class SprintsService {
     });
     const saved = await this.sprintsRepository.save(sprint);
 
-    // The sprint has to exist before a task can point at it.
     await this.tasksService.scheduleInSprint(saved.id, projectId, taskIds);
 
-    return this.findOne(saved.id);
+    return await this.findOne(saved.id);
   }
 
   async update(
@@ -126,19 +122,16 @@ export class SprintsService {
       this.sprintsRepository.merge(sprint, fields),
     );
 
-    // An empty array is an instruction, not an absence: it clears the sprint.
     if (taskIds !== undefined) {
       await this.tasksService.scheduleInSprint(id, sprint.projectId, taskIds);
     }
 
-    return this.findOne(id);
+    return await this.findOne(id);
   }
 
   async remove(id: number, currentUserId: number): Promise<void> {
     await this.findOneForUser(id, currentUserId);
 
-    // The foreign key returns the sprint's tasks to the backlog: a task
-    // belongs to its project, the sprint is only where it was scheduled.
     await this.sprintsRepository.delete(id);
   }
 
@@ -152,8 +145,6 @@ export class SprintsService {
       sprint.taskCount = 0;
     }
 
-    // Summed from the tasks on every read, never stored, so a task changing
-    // status or sprint can never leave a total stale.
     const projectIds = [...new Set(sprints.map((sprint) => sprint.projectId))];
     const tasks = await this.tasksService.findByProjects(projectIds);
     for (const task of tasks) {
@@ -171,7 +162,6 @@ export class SprintsService {
   }
 
   private assertDateRange(startDate: string, endDate: string): void {
-    // ISO dates compare correctly as plain strings.
     if (endDate < startDate) {
       throw new BadRequestException(
         'The end date cannot be before the start date.',
