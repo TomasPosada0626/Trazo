@@ -1,40 +1,39 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref, watch } from 'vue';
 
-// internal imports
-import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
-import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SelectFieldComponent, {
-  type SelectOption,
-} from '@/components/shared/SelectFieldComponent.vue';
+// Internal imports
 import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { SprintInterface } from '@/interfaces/SprintInterface';
-import type { TaskStatus } from '@/types/TaskTypes';
 import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
-import { SprintService } from '@/services/SprintService';
-import { TaskService } from '@/services/TaskService';
+import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
 import { ColorUtil } from '@/utils/ColorUtil';
 import { IdUtil } from '@/utils/IdUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
+import { SprintService } from '@/services/SprintService';
+import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
+import { TaskService } from '@/services/TaskService';
+import type { TaskStatus } from '@/types/TaskTypes';
 
-// variables
+// Non-reactive variables
 const ALL_TIME = 'all';
 
-// reactive variables
+// Reactive variables
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const sprints = ref<SprintInterface[]>([]);
 const taskStats = ref<Awaited<ReturnType<typeof TaskService.getTaskStats>> | null>(null);
 
-// selectors
 const selectedProjectId = ref<number>(0);
 
 const selectorProjects = computed(() =>
@@ -55,7 +54,6 @@ const selectedStatus = ref<TaskStatus | 'all'>('all');
 
 const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
-// computed variables
 const hasSprints = computed(() => sprints.value.length > 0);
 
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
@@ -124,7 +122,7 @@ const projectDistributionChart = computed(() => ({
   ],
 }));
 
-// functions
+// Functions
 async function loadSprints(): Promise<void> {
   sprints.value = selectedProjectId.value
     ? await SprintService.getSprints(selectedProjectId.value)
@@ -137,9 +135,7 @@ async function loadTaskStats(): Promise<void> {
     : null;
 }
 
-// watchers
-// The range options belong to the previous project, so the range goes back to
-// "All time" before the task stats are requested again.
+// Watchers
 watch(selectedProjectId, async () => {
   selectedRange.value = ALL_TIME;
   await loadSprints();
@@ -147,12 +143,11 @@ watch(selectedProjectId, async () => {
 
 watch([selectedProjectId, selectedRange, selectedStatus], loadTaskStats);
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   projects.value = await ProjectService.getProjects();
   isLoading.value = false;
 
-  // Selecting the first project is what triggers the first load.
   selectedProjectId.value = projects.value[0]?.id ?? 0;
 });
 </script>

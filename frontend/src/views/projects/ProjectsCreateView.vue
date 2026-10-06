@@ -1,24 +1,23 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { useRouter } from 'vue-router';
 
-// internal imports
-import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
+// Internal imports
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import { ProjectService } from '@/services/ProjectService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
 
-// variables
+// Non-reactive variables
 const router = useRouter();
 
-// functions
+// Functions
 async function handleSubmit(values: CreateProjectDTO): Promise<void> {
   try {
-    // The API adds the creator as the first user.
     await ProjectService.createProject(values);
     await router.push({ name: 'projects' });
   } catch (err) {

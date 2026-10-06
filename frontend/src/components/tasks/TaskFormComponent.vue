@@ -1,20 +1,20 @@
 <script setup lang="ts">
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
+import { LabelUtil } from '@/utils/LabelUtil';
 import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
 import type { TaskPriority, TaskStatus, TaskType } from '@/types/TaskTypes';
-import { LabelUtil } from '@/utils/LabelUtil';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 
-// props
+// Props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
   initialValues?: CreateTaskDTO;
   submitLabel: string;
@@ -22,10 +22,10 @@ const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject
   selectorAssigneesByProject: Record<number, SelectOption<number>[]>;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ submit: [values: CreateTaskDTO] }>();
 
-// reactive variables
+// Reactive variables
 const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
@@ -33,7 +33,6 @@ const description = ref(initialValues?.description ?? '');
 const storyPoints = ref(String(initialValues?.storyPoints ?? 0));
 const dueDate = ref(initialValues?.dueDate ?? '');
 
-// selectors
 const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
 const selectedAssigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
@@ -55,7 +54,7 @@ const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 
 const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.TASK_STATUS);
 
-// functions
+// Functions
 function handleSubmit(): void {
   emit('submit', {
     title: title.value.trim(),
@@ -64,14 +63,13 @@ function handleSubmit(): void {
     storyPoints: Math.max(0, Number(storyPoints.value) || 0),
     priority: selectedPriority.value as TaskPriority,
     status: selectedStatus.value as TaskStatus,
-    // An empty date input means "no deadline", which the interface stores as null.
     dueDate: dueDate.value || null,
     projectId: selectedProjectId.value,
     assigneeId: selectedAssigneeId.value || null,
   });
 }
 
-// watchers
+// Watchers
 watch(selectorAssignees, (newOptions) => {
   if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {
     selectedAssigneeId.value = UNASSIGNED;

@@ -1,42 +1,40 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
-import type { UpdateSprintDTO } from '@/dtos/sprintDTO/UpdateSprintDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { SprintInterface } from '@/interfaces/SprintInterface';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
+import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
+import type { UpdateSprintDTO } from '@/dtos/sprintDTO/UpdateSprintDTO';
 
-// variables
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 const sprintId = Number(route.params.id);
 
-// reactive variables
+// Reactive variables
 const error = ref('');
 const isLoading = ref(true);
 const sprint = ref<SprintInterface | null>(null);
 const project = ref<ProjectInterface | null>(null);
 const projectTasks = ref<TaskInterface[]>([]);
 
-// selectors
 const selectorProjects = computed(() =>
   project.value ? [{ value: project.value.id, label: project.value.name }] : [],
 );
 
-// computed variables
 const initialValues = computed<CreateSprintDTO | undefined>(() => {
   if (!sprint.value) return undefined;
 
@@ -55,7 +53,7 @@ const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
   sprint.value ? { [sprint.value.projectId]: projectTasks.value } : {},
 );
 
-// functions
+// Functions
 async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   error.value = '';
 
@@ -76,7 +74,7 @@ async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   try {
     const found = await SprintService.getSprintById(sprintId);
@@ -86,8 +84,6 @@ onMounted(async () => {
     ]);
     sprint.value = found;
   } catch {
-    // A 404 covers both a missing sprint and one in a project the user is not
-    // on, so either way the view shows "not found".
     sprint.value = null;
   } finally {
     isLoading.value = false;

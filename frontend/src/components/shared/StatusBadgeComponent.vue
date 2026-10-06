@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// variables
+// Non-reactive variables
 export type BadgeTone = 'positive' | 'warning' | 'neutral' | 'danger';
 
 const toneClasses: Record<BadgeTone, string> = {
@@ -18,7 +18,7 @@ const dotClasses: Record<BadgeTone, string> = {
   danger: 'bg-red-500',
 };
 
-// props
+// Props
 const { tone = 'neutral', color } = defineProps<{
   tone?: BadgeTone;
   color?: string;

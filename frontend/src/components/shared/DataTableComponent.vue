@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends { id: number }">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// props
+// Props
 const { emptyMessage = 'No records to display.' } = defineProps<{
   rows: T[];
   emptyMessage?: string;
@@ -13,7 +13,6 @@ const { emptyMessage = 'No records to display.' } = defineProps<{
     <table class="w-full border-collapse text-sm">
       <thead>
         <tr class="border-b border-line">
-          <!-- The entity's table component supplies the <th> cells. -->
           <slot name="head" />
         </tr>
       </thead>
@@ -23,7 +22,6 @@ const { emptyMessage = 'No records to display.' } = defineProps<{
           :key="row.id"
           class="border-b border-line/60 transition-colors last:border-0 hover:bg-ink/[0.02]"
         >
-          <!-- ...and the <td> cells for each row. -->
           <slot name="row" :row="row" />
         </tr>
       </tbody>

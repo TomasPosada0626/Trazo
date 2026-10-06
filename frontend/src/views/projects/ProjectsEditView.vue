@@ -1,38 +1,37 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-// internal imports
-import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
-import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
+// Internal imports
+import { AuthService } from '@/services/AuthService';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { UserInterface } from '@/interfaces/UserInterface';
-import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
+import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
+import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
+import type { UserInterface } from '@/interfaces/UserInterface';
 
-// variables
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 
 const projectId = Number(route.params.id);
 
-// reactive variables
+// Reactive variables
 const isLoading = ref(true);
 const project = ref<ProjectInterface | null>(null);
 const users = ref<UserInterface[]>([]);
 const availableUsers = ref<UserInterface[]>([]);
 
-// computed variables
 const currentUserId = computed(() => AuthService.getLoggedInUser()?.id ?? null);
 
-// functions
+// Functions
 async function loadUsers(): Promise<void> {
   [users.value, availableUsers.value] = await Promise.all([
     ProjectService.getProjectUsers(projectId),
@@ -67,14 +66,12 @@ async function handleSubmit(values: UpdateProjectDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   try {
     project.value = await ProjectService.getProjectById(projectId);
     await loadUsers();
   } catch {
-    // The API answers 404 both for a missing project and for one the user is
-    // not on, so either way the view shows "not found".
     project.value = null;
   } finally {
     isLoading.value = false;

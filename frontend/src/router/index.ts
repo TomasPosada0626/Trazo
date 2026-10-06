@@ -1,5 +1,9 @@
+// Developed by Tomás Posada
+
+// External imports
 import { createRouter, createWebHistory } from 'vue-router';
 
+// Internal imports
 import AppLayout from '@/layouts/AppLayout.vue';
 import { AuthService } from '@/services/AuthService';
 import DashboardView from '@/views/dashboard/DashboardView.vue';
@@ -19,17 +23,10 @@ import UsersIndexView from '@/views/users/UsersIndexView.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
-    // Breadcrumb shown in the app layout's topbar: "title / section".
     title?: string;
     section?: string;
-
-    // Redirects to Login when there's no active session.
     requiresAuth?: boolean;
-
-    // Redirects non-admins to the Dashboard. Implies requiresAuth.
     requiresAdmin?: boolean;
-
-    // Redirects already-authenticated users away from Login.
     guestOnly?: boolean;
   }
 }
@@ -38,7 +35,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      // No landing page: the app opens straight into the login screen.
       path: '/',
       redirect: { name: 'login' },
     },
@@ -49,8 +45,6 @@ const router = createRouter({
       meta: { guestOnly: true },
     },
     {
-      // Authenticated area. requiresAuth is set once here and inherited by
-      // every child via the merged meta.
       path: '/app',
       component: AppLayout,
       meta: { requiresAuth: true },
@@ -154,6 +148,10 @@ router.beforeEach((to) => {
   }
 
   return true;
+});
+
+router.afterEach((to) => {
+  document.title = to.meta.title ? `${to.meta.title} | Trazo` : 'Trazo';
 });
 
 export default router;

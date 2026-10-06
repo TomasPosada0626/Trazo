@@ -1,10 +1,10 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-// internal imports
+// Internal imports
 import type { UserInterface } from '@/interfaces/UserInterface';
 
 export const useAuthStore = defineStore('auth', () => {

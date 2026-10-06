@@ -1,32 +1,30 @@
 <script setup lang="ts">
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import { onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import type { UpdateUserDTO } from '@/dtos/userDTO/UpdateUserDTO';
+import UserFormComponent from '@/components/users/UserFormComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { UserService } from '@/services/UserService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
 
-// variables
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 const userId = Number(route.params.id);
 
-// reactive variables
+// Reactive variables
 const isLoading = ref(true);
 const user = ref<UserInterface | null>(null);
 
-// functions
+// Functions
 async function handleSubmit(values: UpdateUserDTO): Promise<void> {
-  // A blank password means "keep the current one", so it is left out of the
-  // request rather than sent as an empty string the API would reject.
   const { password, ...accountChanges } = values;
   const changes: UpdateUserDTO = password ? values : accountChanges;
 
@@ -38,7 +36,7 @@ async function handleSubmit(values: UpdateUserDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   try {
     user.value = await UserService.getUserById(userId);

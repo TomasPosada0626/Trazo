@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import {
   BarController,
   BarElement,
@@ -14,18 +14,16 @@ import {
 } from 'chart.js';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-// Register only what these charts use, so tree-shaking can drop the rest of
-// Chart.js (line, pie, radar, the date adapters...).
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-// variables
+// Interfaces
 export interface BarSeries {
   label: string;
   values: number[];
   color: string;
 }
 
-// props
+// Props
 const {
   labels,
   series,
@@ -38,11 +36,11 @@ const {
   stepSize?: number;
 }>();
 
-// reactive variables
+// Reactive variables
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 
-// functions
+// Functions
 function datasets(): ChartDataset<'bar'>[] {
   return series.map((entry) => ({
     label: entry.label,
@@ -65,7 +63,6 @@ function render(): void {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        // One series labels itself in the card heading already.
         legend: { display: series.length > 1, position: 'bottom', labels: { boxWidth: 10 } },
       },
       scales: {
@@ -87,9 +84,7 @@ function render(): void {
 
 onMounted(render);
 
-// watchers
-// Rebuilding the data in place keeps Chart.js's own transition, which a
-// destroy-and-recreate would lose.
+// Watchers
 watch(
   () => [labels, series],
   () => {

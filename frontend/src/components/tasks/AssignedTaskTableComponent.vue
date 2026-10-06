@@ -1,16 +1,16 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// internal imports
+// Internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
-import IdChipComponent from '@/components/shared/IdChipComponent.vue';
-import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { DateUtil } from '@/utils/DateUtil';
+import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import { IdUtil } from '@/utils/IdUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 
-// props
+// Props
 const { tasks } = defineProps<{ tasks: TaskInterface[] }>();
 </script>
 

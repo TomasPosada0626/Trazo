@@ -1,36 +1,36 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, ref, watch } from 'vue';
 
-// internal imports
+// Internal imports
+import { LabelUtil } from '@/utils/LabelUtil';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { LabelUtil } from '@/utils/LabelUtil';
 
-// props
+// Props
 const { users, availableUsers, currentUserId } = defineProps<{
   users: UserInterface[];
   availableUsers: UserInterface[];
   currentUserId: number | null;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ add: [userId: number]; remove: [userId: number] }>();
 
-// variables
+// Non-reactive variables
 const NONE = 0;
 
-// selectors
+// Reactive variables
 const selectedUserId = ref<number>(NONE);
 
 const selectorUsers = computed(() =>
   availableUsers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
 );
 
-// functions
+// Functions
 function canRemove(userId: number): boolean {
   return userId !== currentUserId;
 }
@@ -40,8 +40,7 @@ function handleAdd(): void {
   emit('add', selectedUserId.value);
 }
 
-// watchers
-// Keep the picker pointing at a user who is still addable.
+// Watchers
 watch(
   () => availableUsers,
   (newOptions) => {

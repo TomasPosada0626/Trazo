@@ -1,21 +1,21 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
-import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
 import { UserService } from '@/services/UserService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
 
-// variables
+// Non-reactive variables
 const router = useRouter();
 
-// functions
+// Functions
 async function handleSubmit(values: CreateUserDTO): Promise<void> {
   try {
     await UserService.createUser(values);

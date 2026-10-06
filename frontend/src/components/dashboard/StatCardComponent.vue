@@ -1,11 +1,11 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { CountUp } from 'countup.js';
 import { onMounted, ref, watch } from 'vue';
 
-// props
+// Props
 const {
   value,
   suffix = '',
@@ -17,11 +17,11 @@ const {
   total?: number;
 }>();
 
-// reactive variables
+// Reactive variables
 const valueEl = ref<HTMLElement | null>(null);
 let counter: CountUp | null = null;
 
-// functions
+// Functions
 onMounted(() => {
   if (!valueEl.value) return;
 
@@ -33,7 +33,7 @@ onMounted(() => {
   if (!counter.error) counter.start();
 });
 
-// watchers
+// Watchers
 watch(
   () => value,
   (newValue) => counter?.update(newValue),

@@ -1,37 +1,36 @@
 <script setup lang="ts">
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { UpdateTaskDTO } from '@/dtos/taskDTO/UpdateTaskDTO';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import type { UserInterface } from '@/interfaces/UserInterface';
-import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
+import type { UpdateTaskDTO } from '@/dtos/taskDTO/UpdateTaskDTO';
+import type { UserInterface } from '@/interfaces/UserInterface';
 
-// variables
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 
 const taskId = Number(route.params.id);
 
-// reactive variables
+// Reactive variables
 const error = ref('');
 const isLoading = ref(true);
 const task = ref<TaskInterface | null>(null);
 const projects = ref<ProjectInterface[]>([]);
 const usersByProject = ref<Record<number, UserInterface[]>>({});
 
-// selectors
 const selectorProjects = computed<SelectOption<number>[]>(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
@@ -45,7 +44,7 @@ const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[
   ),
 );
 
-// functions
+// Functions
 async function handleSubmit(values: UpdateTaskDTO): Promise<void> {
   error.value = '';
   try {
@@ -56,14 +55,12 @@ async function handleSubmit(values: UpdateTaskDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   try {
     const found = await TaskService.getTaskById(taskId);
     projects.value = await ProjectService.getProjects();
 
-    // The task can move to another project, so every project's roster is
-    // loaded for the assignee picker, not just its current one.
     const rosters = await Promise.all(
       projects.value.map((project) => ProjectService.getProjectUsers(project.id)),
     );
@@ -72,8 +69,6 @@ onMounted(async () => {
     );
     task.value = found;
   } catch {
-    // A 404 covers both a missing task and one in a project the user is not
-    // on, so either way the view shows "not found".
     task.value = null;
   } finally {
     isLoading.value = false;

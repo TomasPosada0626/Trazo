@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// props
+// Props
 const {
   label,
   id,
@@ -16,7 +16,7 @@ const {
   required?: boolean;
 }>();
 
-// variables
+// Non-reactive variables
 const model = defineModel<string>({ required: true });
 </script>
 

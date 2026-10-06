@@ -4,8 +4,8 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 
 import App from './App.vue';
-import AxiosConfig from './AxiosConfig';
 import { AuthService } from './services/AuthService';
+import AxiosConfig from './AxiosConfig';
 import router from './router';
 
 const app = createApp(App);

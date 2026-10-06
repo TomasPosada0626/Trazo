@@ -1,23 +1,23 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
-import DataTableComponent from '@/components/shared/DataTableComponent.vue';
-import IdChipComponent from '@/components/shared/IdChipComponent.vue';
-import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
-import type { SprintInterface } from '@/interfaces/SprintInterface';
+// Internal imports
 import { ColorUtil } from '@/utils/ColorUtil';
+import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import { DateUtil } from '@/utils/DateUtil';
+import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import { IdUtil } from '@/utils/IdUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 
-// props
+// Props
 const { sprints } = defineProps<{ sprints: SprintInterface[] }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ delete: [sprint: SprintInterface] }>();
 </script>
 

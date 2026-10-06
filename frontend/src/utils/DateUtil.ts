@@ -1,4 +1,4 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
 export class DateUtil {
   private static readonly MONTHS = [
@@ -21,8 +21,6 @@ export class DateUtil {
   static formatDate(iso: string): string {
     const date = new Date(iso);
 
-    // UTC getters, so a date-only string never shifts a day in a negative
-    // timezone offset.
     const day = String(date.getUTCDate()).padStart(2, '0');
 
     return `${day} ${DateUtil.MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
@@ -44,8 +42,6 @@ export class DateUtil {
   }
 
   static daysBetween(fromIso: string, toIso: string): number {
-    // Both sides are truncated to their date part, so the result never depends
-    // on the time of day a record was created.
     const from = Date.parse(fromIso.slice(0, 10));
     const to = Date.parse(toIso.slice(0, 10));
 

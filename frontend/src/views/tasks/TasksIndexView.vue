@@ -1,28 +1,28 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-// internal imports
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SelectFieldComponent, {
-  type SelectOption,
-} from '@/components/shared/SelectFieldComponent.vue';
-import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
-import type { TaskStatus } from '@/types/TaskTypes';
-import { ProjectService } from '@/services/ProjectService';
-import { TaskService } from '@/services/TaskService';
+// Internal imports
 import { ColorUtil } from '@/utils/ColorUtil';
 import { ErrorUtil } from '@/utils/ErrorUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { TaskService } from '@/services/TaskService';
+import type { TaskStatus } from '@/types/TaskTypes';
+import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
 
-// variables
+// Non-reactive variables
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
@@ -30,13 +30,12 @@ const SAVED_NOTICES: Record<string, string> = {
 
 const route = useRoute();
 
-// reactive variables
+// Reactive variables
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const projectTasks = ref<TaskInterface[]>([]);
 
-// selectors
 const selectedProjectId = ref<number | 'all'>('all');
 
 const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
@@ -48,7 +47,6 @@ const selectedStatus = ref<TaskStatus | 'all'>('all');
 
 const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
-// computed variables
 const tasks = computed(() =>
   selectedStatus.value === 'all'
     ? projectTasks.value
@@ -69,7 +67,7 @@ const typeChart = computed(() => {
   };
 });
 
-// functions
+// Functions
 async function loadTasks(): Promise<void> {
   projectTasks.value = await TaskService.getTasks(selectedProjectId.value);
 }
@@ -89,12 +87,10 @@ async function handleDelete(task: TaskInterface): Promise<void> {
   }
 }
 
-// watchers
-// The project filter is applied by the API, so changing it is a new request;
-// the status filter narrows what is already loaded.
+// Watchers
 watch(selectedProjectId, loadTasks);
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   [projects.value] = await Promise.all([ProjectService.getProjects(), loadTasks()]);
   isLoading.value = false;

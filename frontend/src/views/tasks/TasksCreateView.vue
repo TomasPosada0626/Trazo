@@ -1,32 +1,31 @@
 <script setup lang="ts">
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { UserInterface } from '@/interfaces/UserInterface';
-import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
+import type { UserInterface } from '@/interfaces/UserInterface';
 
-// variables
+// Non-reactive variables
 const router = useRouter();
 
-// reactive variables
+// Reactive variables
 const error = ref('');
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const usersByProject = ref<Record<number, UserInterface[]>>({});
 
-// selectors
 const selectorProjects = computed<SelectOption<number>[]>(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
@@ -40,7 +39,7 @@ const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[
   ),
 );
 
-// functions
+// Functions
 async function handleSubmit(values: CreateTaskDTO): Promise<void> {
   error.value = '';
   try {
@@ -51,12 +50,10 @@ async function handleSubmit(values: CreateTaskDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   projects.value = await ProjectService.getProjects();
 
-  // One roster per project: the assignee picker offers only the users of the
-  // project the task is filed under.
   const rosters = await Promise.all(
     projects.value.map((project) => ProjectService.getProjectUsers(project.id)),
   );

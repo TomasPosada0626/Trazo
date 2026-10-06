@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 </script>
 
 <template>

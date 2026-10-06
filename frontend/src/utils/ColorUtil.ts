@@ -1,6 +1,6 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// internal imports
+// Internal imports
 import type { ProjectStatus } from '@/types/ProjectTypes';
 import type { SprintStatus } from '@/types/SprintTypes';
 import type { TaskStatus, TaskType } from '@/types/TaskTypes';
@@ -33,8 +33,6 @@ export class ColorUtil {
     research: '#f59e0b',
   };
 
-  // For charts with no matching enum, like velocity's committed-vs-completed
-  // bars. Drawn from the Tailwind theme tokens in input.css.
   static readonly CHART = {
     ink: '#0d3355',
     done: '#059669',

@@ -1,30 +1,28 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
+import { AuthService } from '@/services/AuthService';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import UserTableComponent from '@/components/users/UserTableComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
-import { LabelUtil } from '@/utils/LabelUtil';
+import UserTableComponent from '@/components/users/UserTableComponent.vue';
 
-// reactive variables
+// Reactive variables
 const users = ref<UserInterface[]>([]);
 
-// selectors
 const selectedRole = ref('all');
 
 const selectorRoles = LabelUtil.toFilterOptions(LabelUtil.USER_ROLE);
 
-// computed variables
 const filteredUsers = computed(() =>
   selectedRole.value === 'all'
     ? users.value
@@ -33,7 +31,7 @@ const filteredUsers = computed(() =>
 
 const currentUserId = computed(() => AuthService.getLoggedInUser()?.id);
 
-// functions
+// Functions
 async function loadUsers(): Promise<void> {
   users.value = await UserService.getUsers();
 }
@@ -52,7 +50,7 @@ async function handleDelete(user: UserInterface): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(loadUsers);
 </script>
 

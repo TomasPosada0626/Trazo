@@ -1,37 +1,35 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
+import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
 import { SprintService } from '@/services/SprintService';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtil } from '@/utils/ErrorUtil';
 
-// variables
+// Non-reactive variables
 const router = useRouter();
 
-// reactive variables
+// Reactive variables
 const error = ref('');
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const tasks = ref<TaskInterface[]>([]);
 
-// selectors
 const selectorProjects = computed(() =>
   projects.value.map((project) => ({ value: project.id, label: project.name })),
 );
 
-// computed variables
 const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
   Object.fromEntries(
     projects.value.map((project) => [
@@ -41,7 +39,7 @@ const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
   ),
 );
 
-// functions
+// Functions
 async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   error.value = '';
 
@@ -53,7 +51,7 @@ async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(async () => {
   [projects.value, tasks.value] = await Promise.all([
     ProjectService.getProjects(),

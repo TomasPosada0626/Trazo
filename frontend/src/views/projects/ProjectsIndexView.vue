@@ -1,32 +1,30 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// internal imports
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import ProjectTableComponent from '@/components/projects/ProjectTableComponent.vue';
-import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { ProjectStatus } from '@/types/ProjectTypes';
-import { ProjectService } from '@/services/ProjectService';
+// Internal imports
 import { ColorUtil } from '@/utils/ColorUtil';
 import { ErrorUtil } from '@/utils/ErrorUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import ProjectTableComponent from '@/components/projects/ProjectTableComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 
-// reactive variables
+// Reactive variables
 const allProjects = ref<ProjectInterface[]>([]);
 
-// selectors
 const selectedStatus = ref<ProjectStatus | 'all'>('all');
 
 const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.PROJECT_STATUS);
 
-// computed variables
 const projects = computed(() =>
   selectedStatus.value === 'all'
     ? allProjects.value
@@ -53,7 +51,7 @@ const statusChart = computed(() => {
   };
 });
 
-// functions
+// Functions
 async function loadProjects(): Promise<void> {
   allProjects.value = await ProjectService.getProjects();
 }
@@ -72,7 +70,7 @@ async function handleDelete(project: ProjectInterface): Promise<void> {
   }
 }
 
-// lifecycle hooks
+// Hooks
 onMounted(loadProjects);
 </script>
 

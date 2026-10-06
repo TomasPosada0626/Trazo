@@ -1,22 +1,22 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
-import IdChipComponent from '@/components/shared/IdChipComponent.vue';
-import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
-import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import { DateUtil } from '@/utils/DateUtil';
+import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import { IdUtil } from '@/utils/IdUtil';
 import { LabelUtil } from '@/utils/LabelUtil';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 
-// props
+// Props
 const { projects } = defineProps<{ projects: ProjectInterface[] }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ delete: [project: ProjectInterface] }>();
 </script>
 

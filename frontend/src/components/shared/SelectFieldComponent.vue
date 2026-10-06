@@ -1,13 +1,13 @@
 <script setup lang="ts" generic="TValue extends string | number">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// variables
+// Interfaces
 export interface SelectOption<TValue extends string | number = string> {
   value: TValue;
   label: string;
 }
 
-// props
+// Props
 const { compact = false, disabled = false } = defineProps<{
   label: string;
   id: string;
@@ -16,9 +16,9 @@ const { compact = false, disabled = false } = defineProps<{
   disabled?: boolean;
 }>();
 
-// variables
 const model = defineModel<TValue>({ required: true });
 
+// Non-reactive variables
 const CHEVRON =
   "url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22%235a7591%22%3E%3Cpath%20d%3D%22M4.5%206.5L8%2010l3.5-3.5z%22/%3E%3C/svg%3E')";
 </script>

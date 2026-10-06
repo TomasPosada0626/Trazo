@@ -4,8 +4,8 @@
 import axios from 'axios';
 
 // Internal imports
-import type { UserInterface } from '@/interfaces/UserInterface';
 import { useAuthStore } from '@/stores/authstore';
+import type { UserInterface } from '@/interfaces/UserInterface';
 
 export class AuthService {
   private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
