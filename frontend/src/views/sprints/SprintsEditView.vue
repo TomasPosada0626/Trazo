@@ -9,15 +9,15 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
-import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
+import type { UpdateSprintDTO } from '@/dtos/sprintDTO/UpdateSprintDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const route = useRoute();
@@ -56,24 +56,33 @@ const tasksByProject = computed<Record<number, TaskInterface[]>>(() =>
 );
 
 // functions
-async function handleSubmit(values: UpdateSprintDTO): Promise<void> {
+async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   error.value = '';
 
+  const changes: UpdateSprintDTO = {
+    name: values.name,
+    goal: values.goal,
+    startDate: values.startDate,
+    endDate: values.endDate,
+    status: values.status,
+    taskIds: values.taskIds,
+  };
+
   try {
-    await SprintService.update(sprintId, values);
+    await SprintService.updateSprint(changes, sprintId);
     await router.push({ name: 'sprints' });
   } catch (err) {
-    error.value = ErrorUtils.getMessage(err, 'The sprint could not be updated.');
+    error.value = ErrorUtil.getMessage(err, 'The sprint could not be updated.');
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
   try {
-    const found = await SprintService.getById(sprintId);
+    const found = await SprintService.getSprintById(sprintId);
     [project.value, projectTasks.value] = await Promise.all([
-      ProjectService.getById(found.projectId),
-      TaskService.getAll(found.projectId),
+      ProjectService.getProjectById(found.projectId),
+      TaskService.getTasks(found.projectId),
     ]);
     sprint.value = found;
   } catch {

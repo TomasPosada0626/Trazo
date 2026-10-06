@@ -1,11 +1,11 @@
 // Author: Mateo Garcia Carreno
 
 // internal imports
-import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import type { SprintStatus } from '@/interfaces/SprintInterface';
-import type { TaskStatus, TaskType } from '@/interfaces/TaskInterface';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import type { SprintStatus } from '@/types/SprintTypes';
+import type { TaskStatus, TaskType } from '@/types/TaskTypes';
 
-export class ColorUtils {
+export class ColorUtil {
   static readonly PROJECT_STATUS: Record<ProjectStatus, string> = {
     planning: '#94a3b8',
     active: '#059669',

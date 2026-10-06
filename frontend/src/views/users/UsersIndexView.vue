@@ -13,8 +13,8 @@ import UserTableComponent from '@/components/users/UserTableComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { UserService } from '@/services/UserService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // reactive variables
 const users = ref<UserInterface[]>([]);
@@ -22,7 +22,7 @@ const users = ref<UserInterface[]>([]);
 // selectors
 const selectedRole = ref('all');
 
-const selectorRoles = LabelUtils.toFilterOptions(LabelUtils.USER_ROLE);
+const selectorRoles = LabelUtil.toFilterOptions(LabelUtil.USER_ROLE);
 
 // computed variables
 const filteredUsers = computed(() =>
@@ -31,11 +31,11 @@ const filteredUsers = computed(() =>
     : users.value.filter((user) => user.role === selectedRole.value),
 );
 
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+const currentUserId = computed(() => AuthService.getLoggedInUser()?.id);
 
 // functions
 async function loadUsers(): Promise<void> {
-  users.value = await UserService.getAll();
+  users.value = await UserService.getUsers();
 }
 
 async function handleDelete(user: UserInterface): Promise<void> {
@@ -45,10 +45,10 @@ async function handleDelete(user: UserInterface): Promise<void> {
   if (!confirmed) return;
 
   try {
-    await UserService.remove(user.id);
+    await UserService.deleteUser(user.id);
     await loadUsers();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The user could not be deleted.'));
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be deleted.'));
   }
 }
 

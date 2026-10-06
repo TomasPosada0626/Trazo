@@ -140,7 +140,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const isAuthenticated = AuthService.getCurrentUser() !== undefined;
+  const isAuthenticated = AuthService.getLoggedInUser() !== undefined;
   const isAdmin = AuthService.isAdmin();
 
   if (to.meta.requiresAdmin && !isAdmin) {

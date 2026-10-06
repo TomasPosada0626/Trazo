@@ -9,9 +9,9 @@ import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import { DateUtils } from '@/utils/DateUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { DateUtil } from '@/utils/DateUtil';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { projects } = defineProps<{ projects: ProjectInterface[] }>();
@@ -36,12 +36,12 @@ const emit = defineEmits<{ delete: [project: ProjectInterface] }>();
 
     <template #row="{ row }">
       <td class="px-4 py-3">
-        <IdChipComponent>{{ IdUtils.shortId('PRJ', row.id) }}</IdChipComponent>
+        <IdChipComponent>{{ IdUtil.shortId('PRJ', row.id) }}</IdChipComponent>
       </td>
       <td class="px-4 py-3 font-medium">{{ row.name }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.PROJECT_STATUS[row.status].tone">
-          {{ LabelUtils.PROJECT_STATUS[row.status].text }}
+        <StatusBadgeComponent :tone="LabelUtil.PROJECT_STATUS[row.status].tone">
+          {{ LabelUtil.PROJECT_STATUS[row.status].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3">
@@ -52,7 +52,7 @@ const emit = defineEmits<{ delete: [project: ProjectInterface] }>();
           <span class="font-mono text-xs text-ink-soft">{{ row.progress ?? 0 }}%</span>
         </div>
       </td>
-      <td class="px-4 py-3 text-ink-soft">{{ DateUtils.formatDate(row.createdAt) }}</td>
+      <td class="px-4 py-3 text-ink-soft">{{ DateUtil.formatDate(row.createdAt) }}</td>
       <td class="px-4 py-3 text-right whitespace-nowrap">
         <RouterLink
           :to="`/app/projects/${row.id}/edit`"

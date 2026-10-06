@@ -9,13 +9,13 @@ import { RouterLink, useRouter } from 'vue-router';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SprintFormComponent from '@/components/sprints/SprintFormComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const router = useRouter();
@@ -46,18 +46,18 @@ async function handleSubmit(values: CreateSprintDTO): Promise<void> {
   error.value = '';
 
   try {
-    await SprintService.create(values);
+    await SprintService.createSprint(values);
     await router.push({ name: 'sprints' });
   } catch (err) {
-    error.value = ErrorUtils.getMessage(err, 'The sprint could not be created.');
+    error.value = ErrorUtil.getMessage(err, 'The sprint could not be created.');
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
   [projects.value, tasks.value] = await Promise.all([
-    ProjectService.getAll(),
-    TaskService.getAll(),
+    ProjectService.getProjects(),
+    TaskService.getTasks(),
   ]);
   isLoading.value = false;
 });

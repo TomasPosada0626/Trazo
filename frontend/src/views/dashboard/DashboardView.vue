@@ -16,14 +16,14 @@ import SelectFieldComponent, {
 import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
+import type { TaskStatus } from '@/types/TaskTypes';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
 import { TaskService } from '@/services/TaskService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { ColorUtil } from '@/utils/ColorUtil';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // variables
 const ALL_TIME = 'all';
@@ -32,7 +32,7 @@ const ALL_TIME = 'all';
 const isLoading = ref(true);
 const projects = ref<ProjectInterface[]>([]);
 const sprints = ref<SprintInterface[]>([]);
-const taskStats = ref<Awaited<ReturnType<typeof TaskService.getStats>> | null>(null);
+const taskStats = ref<Awaited<ReturnType<typeof TaskService.getTaskStats>> | null>(null);
 
 // selectors
 const selectedProjectId = ref<number>(0);
@@ -47,13 +47,13 @@ const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
-    label: `${IdUtils.shortId('SPR', sprint.id)} · ${sprint.name}`,
+    label: `${IdUtil.shortId('SPR', sprint.id)} · ${sprint.name}`,
   })),
 ]);
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
 // computed variables
 const hasSprints = computed(() => sprints.value.length > 0);
@@ -72,24 +72,24 @@ const statusChart = computed(() => {
   const series = taskStats.value?.tasksByStatus ?? { labels: [], values: [] };
 
   return {
-    labels: series.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
+    labels: series.labels.map((status) => LabelUtil.TASK_STATUS[status].text),
     values: series.values,
-    colors: series.labels.map((status) => ColorUtils.TASK_STATUS[status]),
+    colors: series.labels.map((status) => ColorUtil.TASK_STATUS[status]),
   };
 });
 
 const completionChart = computed(() => ({
-  labels: sprints.value.map((sprint) => IdUtils.shortId('SPR', sprint.id)),
+  labels: sprints.value.map((sprint) => IdUtil.shortId('SPR', sprint.id)),
   series: [
     {
       label: 'Committed',
       values: sprints.value.map((sprint) => sprint.committedPoints ?? 0),
-      color: ColorUtils.CHART.muted,
+      color: ColorUtil.CHART.muted,
     },
     {
       label: 'Completed',
       values: sprints.value.map((sprint) => sprint.completedPoints ?? 0),
-      color: ColorUtils.CHART.done,
+      color: ColorUtil.CHART.done,
     },
   ],
 }));
@@ -107,7 +107,7 @@ const workloadChart = computed(() => {
       {
         label: 'Open tasks',
         values: rows.map((row) => row.openTasks),
-        color: ColorUtils.CHART.ink,
+        color: ColorUtil.CHART.ink,
       },
     ],
   };
@@ -119,7 +119,7 @@ const projectDistributionChart = computed(() => ({
     {
       label: 'Tasks',
       values: projects.value.map((project) => project.taskCount ?? 0),
-      color: ColorUtils.CHART.ink,
+      color: ColorUtil.CHART.ink,
     },
   ],
 }));
@@ -127,13 +127,13 @@ const projectDistributionChart = computed(() => ({
 // functions
 async function loadSprints(): Promise<void> {
   sprints.value = selectedProjectId.value
-    ? await SprintService.getAll(selectedProjectId.value)
+    ? await SprintService.getSprints(selectedProjectId.value)
     : [];
 }
 
 async function loadTaskStats(): Promise<void> {
   taskStats.value = selectedProjectId.value
-    ? await TaskService.getStats(selectedProjectId.value, sprintId.value, selectedStatus.value)
+    ? await TaskService.getTaskStats(selectedProjectId.value, sprintId.value, selectedStatus.value)
     : null;
 }
 
@@ -149,7 +149,7 @@ watch([selectedProjectId, selectedRange, selectedStatus], loadTaskStats);
 
 // lifecycle hooks
 onMounted(async () => {
-  projects.value = await ProjectService.getAll();
+  projects.value = await ProjectService.getProjects();
   isLoading.value = false;
 
   // Selecting the first project is what triggers the first load.

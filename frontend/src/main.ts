@@ -1,16 +1,19 @@
 import './assets/css/input.css';
 
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 
 import App from './App.vue';
 import AxiosConfig from './AxiosConfig';
+import { AuthService } from './services/AuthService';
 import router from './router';
-import PiniaConfig from './PiniaConfig';
 
 const app = createApp(App);
 
-app.use(PiniaConfig.init());
-app.use(router);
+app.use(createPinia());
 AxiosConfig.init(router);
 
-app.mount('#app');
+void AuthService.loadLoggedInUser().then(() => {
+  app.use(router);
+  app.mount('#app');
+});

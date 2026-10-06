@@ -1,26 +1,25 @@
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import axios from 'axios';
 
-// internal imports
-import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
-import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
-import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
+// Internal imports
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import type { TaskStatus } from '@/types/TaskTypes';
+import type { UpdateTaskDTO } from '@/dtos/taskDTO/UpdateTaskDTO';
 
 export class TaskService {
-  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/tasks`;
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  static async getAll(projectId: number | 'all' = 'all'): Promise<TaskInterface[]> {
-    // 'all' is how the filter spells "every project"; the API spells it by
-    // leaving the parameter out, which axios does for undefined values.
-    const { data } = await axios.get<TaskInterface[]>(TaskService.API_URL, {
+  static async getTasks(projectId: number | 'all' = 'all'): Promise<TaskInterface[]> {
+    const response = await axios.get<TaskInterface[]>(`${this.apiUrl}tasks`, {
       params: { projectId: projectId === 'all' ? undefined : projectId },
     });
-    return data;
+    return response.data;
   }
 
-  static async getStats(
+  static async getTaskStats(
     projectId: number,
     sprintId: number | null,
     status: TaskStatus | 'all',
@@ -33,32 +32,32 @@ export class TaskService {
     workload: { name: string | null; openTasks: number }[] | null;
     userTasks: TaskInterface[];
   }> {
-    const { data } = await axios.get(`${TaskService.API_URL}/stats`, {
+    const response = await axios.get(`${this.apiUrl}tasks/stats`, {
       params: {
         projectId,
         sprintId: sprintId ?? undefined,
         status: status === 'all' ? undefined : status,
       },
     });
-    return data;
+    return response.data;
   }
 
-  static async getById(id: number): Promise<TaskInterface> {
-    const { data } = await axios.get<TaskInterface>(`${TaskService.API_URL}/${id}`);
-    return data;
+  static async getTaskById(id: number): Promise<TaskInterface> {
+    const response = await axios.get<TaskInterface>(`${this.apiUrl}tasks/${id}`);
+    return response.data;
   }
 
-  static async create(createTaskDTO: CreateTaskDTO): Promise<TaskInterface> {
-    const { data } = await axios.post<TaskInterface>(TaskService.API_URL, createTaskDTO);
-    return data;
+  static async createTask(task: CreateTaskDTO): Promise<TaskInterface> {
+    const response = await axios.post<TaskInterface>(`${this.apiUrl}tasks`, task);
+    return response.data;
   }
 
-  static async update(id: number, changes: UpdateTaskDTO): Promise<TaskInterface> {
-    const { data } = await axios.patch<TaskInterface>(`${TaskService.API_URL}/${id}`, changes);
-    return data;
+  static async updateTask(task: UpdateTaskDTO, taskId: number): Promise<TaskInterface> {
+    const response = await axios.patch<TaskInterface>(`${this.apiUrl}tasks/${taskId}`, task);
+    return response.data;
   }
 
-  static async remove(id: number): Promise<void> {
-    await axios.delete(`${TaskService.API_URL}/${id}`);
+  static async deleteTask(id: number): Promise<void> {
+    await axios.delete(`${this.apiUrl}tasks/${id}`);
   }
 }

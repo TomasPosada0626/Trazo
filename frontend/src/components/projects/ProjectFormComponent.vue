@@ -8,9 +8,9 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
-import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { initialValues, submitLabel } = defineProps<{
@@ -28,7 +28,7 @@ const description = ref(initialValues?.description ?? '');
 // selectors
 const selectedStatus = ref<string>(initialValues?.status ?? 'active');
 
-const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.PROJECT_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.PROJECT_STATUS);
 
 // functions
 function handleSubmit(): void {

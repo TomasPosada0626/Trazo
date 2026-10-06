@@ -1,37 +1,37 @@
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import axios from 'axios';
 
-// internal imports
-import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
-import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
+// Internal imports
+import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
+import type { UpdateUserDTO } from '@/dtos/userDTO/UpdateUserDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
 
 export class UserService {
-  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/users`;
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  static async getAll(): Promise<UserInterface[]> {
-    const { data } = await axios.get<UserInterface[]>(UserService.API_URL);
-    return data;
+  static async getUsers(): Promise<UserInterface[]> {
+    const response = await axios.get<UserInterface[]>(`${this.apiUrl}users`);
+    return response.data;
   }
 
-  static async getById(id: number): Promise<UserInterface> {
-    const { data } = await axios.get<UserInterface>(`${UserService.API_URL}/${id}`);
-    return data;
+  static async getUserById(id: number): Promise<UserInterface> {
+    const response = await axios.get<UserInterface>(`${this.apiUrl}users/${id}`);
+    return response.data;
   }
 
-  static async create(createUserDTO: CreateUserDTO): Promise<UserInterface> {
-    const { data } = await axios.post<UserInterface>(UserService.API_URL, createUserDTO);
-    return data;
+  static async createUser(user: CreateUserDTO): Promise<UserInterface> {
+    const response = await axios.post<UserInterface>(`${this.apiUrl}users`, user);
+    return response.data;
   }
 
-  static async update(id: number, changes: UpdateUserDTO): Promise<UserInterface> {
-    const { data } = await axios.patch<UserInterface>(`${UserService.API_URL}/${id}`, changes);
-    return data;
+  static async updateUser(user: UpdateUserDTO, userId: number): Promise<UserInterface> {
+    const response = await axios.patch<UserInterface>(`${this.apiUrl}users/${userId}`, user);
+    return response.data;
   }
 
-  static async remove(id: number): Promise<void> {
-    await axios.delete(`${UserService.API_URL}/${id}`);
+  static async deleteUser(id: number): Promise<void> {
+    await axios.delete(`${this.apiUrl}users/${id}`);
   }
 }

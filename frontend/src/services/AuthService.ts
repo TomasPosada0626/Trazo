@@ -1,32 +1,54 @@
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import axios from 'axios';
 
-// internal imports
-import type { LoginDTO } from '@/dtos/LoginDTO';
+// Internal imports
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { useAuthStore } from '@/stores/authstore';
 
 export class AuthService {
-  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
+  private static readonly tokenKey = 'access_token';
 
-  static async login(credentials: LoginDTO): Promise<UserInterface> {
-    const { data } = await axios.post<UserInterface>(`${AuthService.API_URL}/login`, credentials);
+  static async logInUser(email: string, password: string): Promise<void> {
+    const response = await axios.post<{ access_token: string }>(`${this.apiUrl}auth/login`, {
+      email,
+      password,
+    });
 
-    useAuthStore().currentUser = data;
-    return data;
+    localStorage.setItem(this.tokenKey, response.data.access_token);
+
+    await this.loadLoggedInUser();
   }
 
-  static logout(): void {
+  static async loadLoggedInUser(): Promise<void> {
+    if (!this.getAccessToken()) {
+      return;
+    }
+
+    try {
+      const response = await axios.get<UserInterface>(`${this.apiUrl}auth/profile`);
+      useAuthStore().currentUser = response.data;
+    } catch {
+      this.logOutUser();
+    }
+  }
+
+  static logOutUser(): void {
+    localStorage.removeItem(this.tokenKey);
     useAuthStore().currentUser = null;
   }
 
-  static getCurrentUser(): UserInterface | undefined {
+  static getAccessToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  static getLoggedInUser(): UserInterface | undefined {
     return useAuthStore().currentUser ?? undefined;
   }
 
   static isAdmin(): boolean {
-    return AuthService.getCurrentUser()?.role === 'admin';
+    return this.getLoggedInUser()?.role === 'admin';
   }
 }

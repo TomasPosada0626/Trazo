@@ -10,12 +10,12 @@ import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const router = useRouter();
@@ -44,21 +44,21 @@ const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[
 async function handleSubmit(values: CreateTaskDTO): Promise<void> {
   error.value = '';
   try {
-    await TaskService.create(values);
+    await TaskService.createTask(values);
     await router.push({ name: 'tasks', query: { saved: 'created' } });
   } catch (err) {
-    error.value = ErrorUtils.getMessage(err, 'The task could not be created.');
+    error.value = ErrorUtil.getMessage(err, 'The task could not be created.');
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
-  projects.value = await ProjectService.getAll();
+  projects.value = await ProjectService.getProjects();
 
   // One roster per project: the assignee picker offers only the users of the
   // project the task is filed under.
   const rosters = await Promise.all(
-    projects.value.map((project) => ProjectService.getUsers(project.id)),
+    projects.value.map((project) => ProjectService.getProjectUsers(project.id)),
   );
   usersByProject.value = Object.fromEntries(
     projects.value.map((project, index) => [project.id, rosters[index] ?? []]),

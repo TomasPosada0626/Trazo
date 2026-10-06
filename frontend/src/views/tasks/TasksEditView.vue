@@ -10,13 +10,13 @@ import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import TaskFormComponent from '@/components/tasks/TaskFormComponent.vue';
-import type { UpdateTaskDTO } from '@/dtos/UpdateTaskDTO';
+import type { UpdateTaskDTO } from '@/dtos/taskDTO/UpdateTaskDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const route = useRoute();
@@ -49,23 +49,23 @@ const selectorAssigneesByProject = computed<Record<number, SelectOption<number>[
 async function handleSubmit(values: UpdateTaskDTO): Promise<void> {
   error.value = '';
   try {
-    await TaskService.update(taskId, values);
+    await TaskService.updateTask(values, taskId);
     await router.push({ name: 'tasks', query: { saved: 'updated' } });
   } catch (err) {
-    error.value = ErrorUtils.getMessage(err, 'The task could not be updated.');
+    error.value = ErrorUtil.getMessage(err, 'The task could not be updated.');
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
   try {
-    const found = await TaskService.getById(taskId);
-    projects.value = await ProjectService.getAll();
+    const found = await TaskService.getTaskById(taskId);
+    projects.value = await ProjectService.getProjects();
 
     // The task can move to another project, so every project's roster is
     // loaded for the assignee picker, not just its current one.
     const rosters = await Promise.all(
-      projects.value.map((project) => ProjectService.getUsers(project.id)),
+      projects.value.map((project) => ProjectService.getProjectUsers(project.id)),
     );
     usersByProject.value = Object.fromEntries(
       projects.value.map((project, index) => [project.id, rosters[index] ?? []]),

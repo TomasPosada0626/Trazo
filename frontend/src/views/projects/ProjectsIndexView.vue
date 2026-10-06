@@ -11,11 +11,12 @@ import ProjectTableComponent from '@/components/projects/ProjectTableComponent.v
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { ProjectStatus } from '@/types/ProjectTypes';
 import { ProjectService } from '@/services/ProjectService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { ErrorUtils } from '@/utils/ErrorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { ColorUtil } from '@/utils/ColorUtil';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // reactive variables
 const allProjects = ref<ProjectInterface[]>([]);
@@ -23,7 +24,7 @@ const allProjects = ref<ProjectInterface[]>([]);
 // selectors
 const selectedStatus = ref<ProjectStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.PROJECT_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.PROJECT_STATUS);
 
 // computed variables
 const projects = computed(() =>
@@ -46,15 +47,15 @@ const statusChart = computed(() => {
 
   const statuses = Object.keys(counts) as ProjectStatus[];
   return {
-    labels: statuses.map((status) => LabelUtils.PROJECT_STATUS[status].text),
+    labels: statuses.map((status) => LabelUtil.PROJECT_STATUS[status].text),
     values: statuses.map((status) => counts[status] ?? 0),
-    colors: statuses.map((status) => ColorUtils.PROJECT_STATUS[status]),
+    colors: statuses.map((status) => ColorUtil.PROJECT_STATUS[status]),
   };
 });
 
 // functions
 async function loadProjects(): Promise<void> {
-  allProjects.value = await ProjectService.getAll();
+  allProjects.value = await ProjectService.getProjects();
 }
 
 async function handleDelete(project: ProjectInterface): Promise<void> {
@@ -64,10 +65,10 @@ async function handleDelete(project: ProjectInterface): Promise<void> {
   if (!confirmed) return;
 
   try {
-    await ProjectService.remove(project.id);
+    await ProjectService.deleteProject(project.id);
     await loadProjects();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The project could not be deleted.'));
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be deleted.'));
   }
 }
 

@@ -8,7 +8,7 @@ import { computed, ref, watch } from 'vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { users, availableUsers, currentUserId } = defineProps<{
@@ -70,8 +70,8 @@ watch(
           <span class="block truncate text-xs text-ink-soft">{{ user.email }}</span>
         </span>
 
-        <StatusBadgeComponent :tone="LabelUtils.USER_ROLE[user.role].tone" class="ml-auto shrink-0">
-          {{ LabelUtils.USER_ROLE[user.role].text }}
+        <StatusBadgeComponent :tone="LabelUtil.USER_ROLE[user.role].tone" class="ml-auto shrink-0">
+          {{ LabelUtil.USER_ROLE[user.role].text }}
         </StatusBadgeComponent>
 
         <button

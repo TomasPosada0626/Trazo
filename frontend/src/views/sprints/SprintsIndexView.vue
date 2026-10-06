@@ -11,11 +11,12 @@ import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import SprintTableComponent from '@/components/sprints/SprintTableComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { SprintInterface, SprintStatus } from '@/interfaces/SprintInterface';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
+import type { SprintStatus } from '@/types/SprintTypes';
 import { ProjectService } from '@/services/ProjectService';
 import { SprintService } from '@/services/SprintService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // reactive variables
 const isLoading = ref(true);
@@ -31,7 +32,7 @@ const selectorProjects = computed(() =>
 
 const selectedStatus = ref<SprintStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.SPRINT_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.SPRINT_STATUS);
 
 // computed variables
 const sprints = computed(() =>
@@ -47,7 +48,7 @@ const selectedProjectName = computed(
 // functions
 async function loadSprints(): Promise<void> {
   projectSprints.value = selectedProjectId.value
-    ? await SprintService.getAll(selectedProjectId.value)
+    ? await SprintService.getSprints(selectedProjectId.value)
     : [];
 }
 
@@ -58,10 +59,10 @@ async function handleDelete(sprint: SprintInterface): Promise<void> {
   if (!confirmed) return;
 
   try {
-    await SprintService.remove(sprint.id);
+    await SprintService.deleteSprint(sprint.id);
     await loadSprints();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The sprint could not be deleted.'));
+    window.alert(ErrorUtil.getMessage(err, 'The sprint could not be deleted.'));
   }
 }
 
@@ -70,7 +71,7 @@ watch(selectedProjectId, loadSprints);
 
 // lifecycle hooks
 onMounted(async () => {
-  projects.value = await ProjectService.getAll();
+  projects.value = await ProjectService.getProjects();
   isLoading.value = false;
 
   // Selecting the first project is what triggers the first sprint load.

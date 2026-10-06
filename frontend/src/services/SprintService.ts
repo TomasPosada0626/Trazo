@@ -1,39 +1,42 @@
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import axios from 'axios';
 
-// internal imports
-import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
-import type { UpdateSprintDTO } from '@/dtos/UpdateSprintDTO';
+// Internal imports
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
+import type { UpdateSprintDTO } from '@/dtos/sprintDTO/UpdateSprintDTO';
 
 export class SprintService {
-  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/sprints`;
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  static async getAll(projectId?: number): Promise<SprintInterface[]> {
-    const { data } = await axios.get<SprintInterface[]>(SprintService.API_URL, {
+  static async getSprints(projectId?: number): Promise<SprintInterface[]> {
+    const response = await axios.get<SprintInterface[]>(`${this.apiUrl}sprints`, {
       params: { projectId },
     });
-    return data;
+    return response.data;
   }
 
-  static async getById(id: number): Promise<SprintInterface> {
-    const { data } = await axios.get<SprintInterface>(`${SprintService.API_URL}/${id}`);
-    return data;
+  static async getSprintById(id: number): Promise<SprintInterface> {
+    const response = await axios.get<SprintInterface>(`${this.apiUrl}sprints/${id}`);
+    return response.data;
   }
 
-  static async create(createSprintDTO: CreateSprintDTO): Promise<SprintInterface> {
-    const { data } = await axios.post<SprintInterface>(SprintService.API_URL, createSprintDTO);
-    return data;
+  static async createSprint(sprint: CreateSprintDTO): Promise<SprintInterface> {
+    const response = await axios.post<SprintInterface>(`${this.apiUrl}sprints`, sprint);
+    return response.data;
   }
 
-  static async update(id: number, changes: UpdateSprintDTO): Promise<SprintInterface> {
-    const { data } = await axios.patch<SprintInterface>(`${SprintService.API_URL}/${id}`, changes);
-    return data;
+  static async updateSprint(sprint: UpdateSprintDTO, sprintId: number): Promise<SprintInterface> {
+    const response = await axios.patch<SprintInterface>(
+      `${this.apiUrl}sprints/${sprintId}`,
+      sprint,
+    );
+    return response.data;
   }
 
-  static async remove(id: number): Promise<void> {
-    await axios.delete(`${SprintService.API_URL}/${id}`);
+  static async deleteSprint(id: number): Promise<void> {
+    await axios.delete(`${this.apiUrl}sprints/${id}`);
   }
 }

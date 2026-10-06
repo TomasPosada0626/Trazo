@@ -10,9 +10,9 @@ import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
-import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
+import type { TaskPriority, TaskStatus, TaskType } from '@/types/TaskTypes';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
@@ -45,15 +45,15 @@ const selectorAssignees = computed<SelectOption<number>[]>(() => [
 
 const selectedType = ref<string>(initialValues?.type ?? 'feature');
 
-const selectorTypes = LabelUtils.toSelectOptions(LabelUtils.TASK_TYPE);
+const selectorTypes = LabelUtil.toSelectOptions(LabelUtil.TASK_TYPE);
 
 const selectedPriority = ref<string>(initialValues?.priority ?? 'medium');
 
-const selectorPriorities = LabelUtils.toSelectOptions(LabelUtils.TASK_PRIORITY);
+const selectorPriorities = LabelUtil.toSelectOptions(LabelUtil.TASK_PRIORITY);
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 
-const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.TASK_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.TASK_STATUS);
 
 // functions
 function handleSubmit(): void {

@@ -9,10 +9,10 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
-import type { UpdateUserDTO } from '@/dtos/UpdateUserDTO';
+import type { UpdateUserDTO } from '@/dtos/userDTO/UpdateUserDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { UserService } from '@/services/UserService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const route = useRoute();
@@ -31,17 +31,17 @@ async function handleSubmit(values: UpdateUserDTO): Promise<void> {
   const changes: UpdateUserDTO = password ? values : accountChanges;
 
   try {
-    await UserService.update(userId, changes);
+    await UserService.updateUser(changes, userId);
     await router.push({ name: 'users' });
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The user could not be updated.'));
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be updated.'));
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
   try {
-    user.value = await UserService.getById(userId);
+    user.value = await UserService.getUserById(userId);
   } catch {
     user.value = null;
   } finally {

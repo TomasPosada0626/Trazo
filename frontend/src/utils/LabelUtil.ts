@@ -3,17 +3,17 @@
 // internal imports
 import type { SelectOption } from '@/components/shared/SelectFieldComponent.vue';
 import type { BadgeTone } from '@/components/shared/StatusBadgeComponent.vue';
-import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import type { SprintStatus } from '@/interfaces/SprintInterface';
-import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
-import type { UserRole } from '@/interfaces/UserInterface';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import type { SprintStatus } from '@/types/SprintTypes';
+import type { TaskPriority, TaskStatus, TaskType } from '@/types/TaskTypes';
+import type { UserRole } from '@/types/UserTypes';
 
 interface LabelDescriptor {
   text: string;
   tone: BadgeTone;
 }
 
-export class LabelUtils {
+export class LabelUtil {
   static readonly PROJECT_STATUS: Record<ProjectStatus, LabelDescriptor> = {
     planning: { text: 'Planned', tone: 'neutral' },
     active: { text: 'Active', tone: 'positive' },
@@ -64,6 +64,6 @@ export class LabelUtils {
     labels: Record<string, LabelDescriptor>,
     allLabel = 'All',
   ): SelectOption[] {
-    return [{ value: 'all', label: allLabel }, ...LabelUtils.toSelectOptions(labels)];
+    return [{ value: 'all', label: allLabel }, ...LabelUtil.toSelectOptions(labels)];
   }
 }

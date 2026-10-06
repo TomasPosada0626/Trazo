@@ -1,6 +1,6 @@
 // Author: Mateo Garcia Carreno
 
-export class DateUtils {
+export class DateUtil {
   private static readonly MONTHS = [
     'Jan',
     'Feb',
@@ -25,18 +25,18 @@ export class DateUtils {
     // timezone offset.
     const day = String(date.getUTCDate()).padStart(2, '0');
 
-    return `${day} ${DateUtils.MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+    return `${day} ${DateUtil.MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
   }
 
   static formatDayMonth(iso: string): string {
     const date = new Date(iso);
     const day = String(date.getUTCDate()).padStart(2, '0');
 
-    return `${day} ${DateUtils.MONTHS[date.getUTCMonth()]}`;
+    return `${day} ${DateUtil.MONTHS[date.getUTCMonth()]}`;
   }
 
   static formatDateRange(startIso: string, endIso: string): string {
-    return `${DateUtils.formatDayMonth(startIso)} – ${DateUtils.formatDayMonth(endIso)}`;
+    return `${DateUtil.formatDayMonth(startIso)} – ${DateUtil.formatDayMonth(endIso)}`;
   }
 
   static startOfToday(): string {
@@ -49,10 +49,10 @@ export class DateUtils {
     const from = Date.parse(fromIso.slice(0, 10));
     const to = Date.parse(toIso.slice(0, 10));
 
-    return Math.round((to - from) / DateUtils.MS_PER_DAY);
+    return Math.round((to - from) / DateUtil.MS_PER_DAY);
   }
 
   static isPastDate(iso: string): boolean {
-    return DateUtils.daysBetween(DateUtils.startOfToday(), iso) < 0;
+    return DateUtil.daysBetween(DateUtil.startOfToday(), iso) < 0;
   }
 }

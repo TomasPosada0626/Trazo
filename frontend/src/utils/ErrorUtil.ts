@@ -3,7 +3,7 @@
 // external imports
 import axios from 'axios';
 
-export class ErrorUtils {
+export class ErrorUtil {
   static getMessage(error: unknown, fallback: string): string {
     if (axios.isAxiosError<{ message?: string | string[] }>(error)) {
       if (!error.response) return 'The server could not be reached.';

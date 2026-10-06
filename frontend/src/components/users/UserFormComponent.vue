@@ -8,9 +8,9 @@ import { RouterLink } from 'vue-router';
 // internal imports
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
-import type { UserRole } from '@/interfaces/UserInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
+import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
+import type { UserRole } from '@/types/UserTypes';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const {
@@ -34,7 +34,7 @@ const password = ref('');
 // selectors
 const selectedRole = ref<string>(initialValues?.role ?? 'member');
 
-const selectorRoles = LabelUtils.toSelectOptions(LabelUtils.USER_ROLE);
+const selectorRoles = LabelUtil.toSelectOptions(LabelUtil.USER_ROLE);
 
 // functions
 function handleSubmit(): void {

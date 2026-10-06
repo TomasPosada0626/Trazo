@@ -1,67 +1,71 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import axios from 'axios';
 
-// internal imports
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
-import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
+// Internal imports
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
 
 export class ProjectService {
-  private static readonly API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/projects`;
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  static async getAll(): Promise<ProjectInterface[]> {
-    const { data } = await axios.get<ProjectInterface[]>(ProjectService.API_URL);
-    return data;
+  static async getProjects(): Promise<ProjectInterface[]> {
+    const response = await axios.get<ProjectInterface[]>(`${this.apiUrl}projects`);
+    return response.data;
   }
 
-  static async getById(id: number): Promise<ProjectInterface> {
-    const { data } = await axios.get<ProjectInterface>(`${ProjectService.API_URL}/${id}`);
-    return data;
+  static async getProjectById(id: number): Promise<ProjectInterface> {
+    const response = await axios.get<ProjectInterface>(`${this.apiUrl}projects/${id}`);
+    return response.data;
   }
 
-  static async create(createProjectDTO: CreateProjectDTO): Promise<ProjectInterface> {
-    const { data } = await axios.post<ProjectInterface>(ProjectService.API_URL, createProjectDTO);
-    return data;
+  static async createProject(project: CreateProjectDTO): Promise<ProjectInterface> {
+    const response = await axios.post<ProjectInterface>(`${this.apiUrl}projects`, project);
+    return response.data;
   }
 
-  static async update(id: number, changes: UpdateProjectDTO): Promise<ProjectInterface> {
-    const { data } = await axios.patch<ProjectInterface>(
-      `${ProjectService.API_URL}/${id}`,
-      changes,
+  static async updateProject(
+    project: UpdateProjectDTO,
+    projectId: number,
+  ): Promise<ProjectInterface> {
+    const response = await axios.patch<ProjectInterface>(
+      `${this.apiUrl}projects/${projectId}`,
+      project,
     );
-    return data;
+    return response.data;
   }
 
-  static async remove(id: number): Promise<void> {
-    await axios.delete(`${ProjectService.API_URL}/${id}`);
+  static async deleteProject(id: number): Promise<void> {
+    await axios.delete(`${this.apiUrl}projects/${id}`);
   }
 
-  static async getUsers(id: number): Promise<UserInterface[]> {
-    const { data } = await axios.get<UserInterface[]>(`${ProjectService.API_URL}/${id}/users`);
-    return data;
+  static async getProjectUsers(id: number): Promise<UserInterface[]> {
+    const response = await axios.get<UserInterface[]>(`${this.apiUrl}projects/${id}/users`);
+    return response.data;
   }
 
   static async getAvailableUsers(id: number): Promise<UserInterface[]> {
-    const { data } = await axios.get<UserInterface[]>(
-      `${ProjectService.API_URL}/${id}/available-users`,
+    const response = await axios.get<UserInterface[]>(
+      `${this.apiUrl}projects/${id}/available-users`,
     );
-    return data;
+    return response.data;
   }
 
-  static async addUser(id: number, userId: number): Promise<UserInterface[]> {
-    const { data } = await axios.post<UserInterface[]>(`${ProjectService.API_URL}/${id}/users`, {
-      userId,
-    });
-    return data;
+  static async addProjectUser(projectId: number, userId: number): Promise<UserInterface[]> {
+    const response = await axios.post<UserInterface[]>(
+      `${this.apiUrl}projects/${projectId}/users`,
+      { userId },
+    );
+    return response.data;
   }
 
-  static async removeUser(id: number, userId: number): Promise<UserInterface[]> {
-    const { data } = await axios.delete<UserInterface[]>(
-      `${ProjectService.API_URL}/${id}/users/${userId}`,
+  static async removeProjectUser(projectId: number, userId: number): Promise<UserInterface[]> {
+    const response = await axios.delete<UserInterface[]>(
+      `${this.apiUrl}projects/${projectId}/users/${userId}`,
     );
-    return data;
+    return response.data;
   }
 }

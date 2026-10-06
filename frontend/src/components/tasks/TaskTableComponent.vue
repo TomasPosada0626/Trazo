@@ -9,9 +9,9 @@ import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { DateUtils } from '@/utils/DateUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { DateUtil } from '@/utils/DateUtil';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { tasks } = defineProps<{ tasks: TaskInterface[] }>();
@@ -38,23 +38,23 @@ const emit = defineEmits<{ delete: [task: TaskInterface] }>();
 
     <template #row="{ row }">
       <td class="px-4 py-3">
-        <IdChipComponent>{{ IdUtils.shortId('TSK', row.id) }}</IdChipComponent>
+        <IdChipComponent>{{ IdUtil.shortId('TSK', row.id) }}</IdChipComponent>
       </td>
       <td class="px-4 py-3 font-medium">{{ row.title }}</td>
       <td class="px-4 py-3 text-ink-soft">{{ row.projectName }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[row.status].tone">
-          {{ LabelUtils.TASK_STATUS[row.status].text }}
+        <StatusBadgeComponent :tone="LabelUtil.TASK_STATUS[row.status].tone">
+          {{ LabelUtil.TASK_STATUS[row.status].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.TASK_PRIORITY[row.priority].tone">
-          {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
+        <StatusBadgeComponent :tone="LabelUtil.TASK_PRIORITY[row.priority].tone">
+          {{ LabelUtil.TASK_PRIORITY[row.priority].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3 text-ink-soft">{{ row.assigneeName ?? '—' }}</td>
       <td class="px-4 py-3 text-ink-soft">
-        {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
+        {{ row.dueDate ? DateUtil.formatDate(row.dueDate) : '—' }}
       </td>
       <td class="px-4 py-3 text-right whitespace-nowrap">
         <RouterLink

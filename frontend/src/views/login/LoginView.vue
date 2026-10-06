@@ -8,7 +8,7 @@ import { useRouter } from 'vue-router';
 // internal imports
 import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
 import { AuthService } from '@/services/AuthService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // reactive variables
 const email = ref('');
@@ -21,10 +21,10 @@ const router = useRouter();
 async function handleSubmit(): Promise<void> {
   error.value = '';
   try {
-    await AuthService.login({ email: email.value, password: password.value });
+    await AuthService.logInUser(email.value, password.value);
     await router.push({ name: 'dashboard' });
   } catch (err) {
-    error.value = ErrorUtils.getMessage(err, 'Could not sign in.');
+    error.value = ErrorUtil.getMessage(err, 'Could not sign in.');
   }
 }
 </script>

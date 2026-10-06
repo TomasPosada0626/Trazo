@@ -8,9 +8,9 @@ import { useRouter } from 'vue-router';
 import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const router = useRouter();
@@ -19,10 +19,10 @@ const router = useRouter();
 async function handleSubmit(values: CreateProjectDTO): Promise<void> {
   try {
     // The API adds the creator as the first user.
-    await ProjectService.create(values);
+    await ProjectService.createProject(values);
     await router.push({ name: 'projects' });
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The project could not be created.'));
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be created.'));
   }
 }
 </script>

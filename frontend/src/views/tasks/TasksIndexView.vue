@@ -14,12 +14,13 @@ import SelectFieldComponent, {
 } from '@/components/shared/SelectFieldComponent.vue';
 import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import type { TaskStatus } from '@/types/TaskTypes';
 import { ProjectService } from '@/services/ProjectService';
 import { TaskService } from '@/services/TaskService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { ErrorUtils } from '@/utils/ErrorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { ColorUtil } from '@/utils/ColorUtil';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // variables
 const SAVED_NOTICES: Record<string, string> = {
@@ -45,7 +46,7 @@ const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
 // computed variables
 const tasks = computed(() =>
@@ -60,17 +61,17 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof ColorUtils.TASK_TYPE)[];
+  const types = Object.keys(counts) as (keyof typeof ColorUtil.TASK_TYPE)[];
   return {
-    labels: types.map((type) => LabelUtils.TASK_TYPE[type].text),
+    labels: types.map((type) => LabelUtil.TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => ColorUtils.TASK_TYPE[type]),
+    colors: types.map((type) => ColorUtil.TASK_TYPE[type]),
   };
 });
 
 // functions
 async function loadTasks(): Promise<void> {
-  projectTasks.value = await TaskService.getAll(selectedProjectId.value);
+  projectTasks.value = await TaskService.getTasks(selectedProjectId.value);
 }
 
 async function handleDelete(task: TaskInterface): Promise<void> {
@@ -80,11 +81,11 @@ async function handleDelete(task: TaskInterface): Promise<void> {
   if (!confirmed) return;
 
   try {
-    await TaskService.remove(task.id);
+    await TaskService.deleteTask(task.id);
     notice.value = `The task "${task.title}" was deleted.`;
     await loadTasks();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The task could not be deleted.'));
+    window.alert(ErrorUtil.getMessage(err, 'The task could not be deleted.'));
   }
 }
 
@@ -95,7 +96,7 @@ watch(selectedProjectId, loadTasks);
 
 // lifecycle hooks
 onMounted(async () => {
-  [projects.value] = await Promise.all([ProjectService.getAll(), loadTasks()]);
+  [projects.value] = await Promise.all([ProjectService.getProjects(), loadTasks()]);
   isLoading.value = false;
 });
 </script>

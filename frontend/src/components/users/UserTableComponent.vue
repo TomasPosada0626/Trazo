@@ -9,7 +9,7 @@ import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { users, currentUserId } = defineProps<{
@@ -39,8 +39,8 @@ const emit = defineEmits<{ delete: [user: UserInterface] }>();
       <td class="px-4 py-3 font-medium">{{ row.name }}</td>
       <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.USER_ROLE[row.role].tone">
-          {{ LabelUtils.USER_ROLE[row.role].text }}
+        <StatusBadgeComponent :tone="LabelUtil.USER_ROLE[row.role].tone">
+          {{ LabelUtil.USER_ROLE[row.role].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>

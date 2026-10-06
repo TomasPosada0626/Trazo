@@ -9,11 +9,11 @@ import { RouterLink } from 'vue-router';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
-import type { SprintStatus } from '@/interfaces/SprintInterface';
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
+import type { SprintStatus } from '@/types/SprintTypes';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 
 // props
 const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSprintId } =
@@ -41,7 +41,7 @@ const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjec
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'planned');
 
-const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.SPRINT_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.SPRINT_STATUS);
 
 // computed variables
 const isEditing = computed(() => initialValues !== undefined);
@@ -57,7 +57,7 @@ const selectedPoints = computed(() =>
 // functions
 function sprintLabelFor(task: TaskInterface): string | null {
   return task.sprintId && task.sprintId !== currentSprintId
-    ? IdUtils.shortId('SPR', task.sprintId)
+    ? IdUtil.shortId('SPR', task.sprintId)
     : null;
 }
 
@@ -162,8 +162,8 @@ watch(selectedProjectId, () => {
               </template>
             </span>
           </span>
-          <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[task.status].tone" class="shrink-0">
-            {{ LabelUtils.TASK_STATUS[task.status].text }}
+          <StatusBadgeComponent :tone="LabelUtil.TASK_STATUS[task.status].tone" class="shrink-0">
+            {{ LabelUtil.TASK_STATUS[task.status].text }}
           </StatusBadgeComponent>
         </label>
       </div>

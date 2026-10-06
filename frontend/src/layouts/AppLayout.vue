@@ -14,13 +14,13 @@ const route = useRoute();
 const router = useRouter();
 
 // computed variables
-const currentUser = computed(() => AuthService.getCurrentUser() ?? null);
+const currentUser = computed(() => AuthService.getLoggedInUser() ?? null);
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
 // functions
 function handleLogout(): void {
-  AuthService.logout();
+  AuthService.logOutUser();
   router.push({ name: 'login' });
 }
 </script>

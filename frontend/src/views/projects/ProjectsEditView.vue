@@ -10,12 +10,12 @@ import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue
 import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
+import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import type { UserInterface } from '@/interfaces/UserInterface';
 import { AuthService } from '@/services/AuthService';
 import { ProjectService } from '@/services/ProjectService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const route = useRoute();
@@ -30,47 +30,47 @@ const users = ref<UserInterface[]>([]);
 const availableUsers = ref<UserInterface[]>([]);
 
 // computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
+const currentUserId = computed(() => AuthService.getLoggedInUser()?.id ?? null);
 
 // functions
 async function loadUsers(): Promise<void> {
   [users.value, availableUsers.value] = await Promise.all([
-    ProjectService.getUsers(projectId),
+    ProjectService.getProjectUsers(projectId),
     ProjectService.getAvailableUsers(projectId),
   ]);
 }
 
 async function handleAddUser(userId: number): Promise<void> {
   try {
-    await ProjectService.addUser(projectId, userId);
+    await ProjectService.addProjectUser(projectId, userId);
     await loadUsers();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The user could not be added.'));
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be added.'));
   }
 }
 
 async function handleRemoveUser(userId: number): Promise<void> {
   try {
-    await ProjectService.removeUser(projectId, userId);
+    await ProjectService.removeProjectUser(projectId, userId);
     await loadUsers();
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The user could not be removed.'));
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be removed.'));
   }
 }
 
 async function handleSubmit(values: UpdateProjectDTO): Promise<void> {
   try {
-    await ProjectService.update(projectId, values);
+    await ProjectService.updateProject(values, projectId);
     await router.push({ name: 'projects' });
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The project could not be updated.'));
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be updated.'));
   }
 }
 
 // lifecycle hooks
 onMounted(async () => {
   try {
-    project.value = await ProjectService.getById(projectId);
+    project.value = await ProjectService.getProjectById(projectId);
     await loadUsers();
   } catch {
     // The API answers 404 both for a missing project and for one the user is

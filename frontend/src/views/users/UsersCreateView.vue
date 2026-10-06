@@ -8,9 +8,9 @@ import { useRouter } from 'vue-router';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import UserFormComponent from '@/components/users/UserFormComponent.vue';
-import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
+import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
 import { UserService } from '@/services/UserService';
-import { ErrorUtils } from '@/utils/ErrorUtils';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
 // variables
 const router = useRouter();
@@ -18,10 +18,10 @@ const router = useRouter();
 // functions
 async function handleSubmit(values: CreateUserDTO): Promise<void> {
   try {
-    await UserService.create(values);
+    await UserService.createUser(values);
     await router.push({ name: 'users' });
   } catch (err) {
-    window.alert(ErrorUtils.getMessage(err, 'The user could not be created.'));
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be created.'));
   }
 }
 </script>
