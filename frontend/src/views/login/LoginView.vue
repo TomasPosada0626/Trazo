@@ -1,29 +1,30 @@
 <script setup lang="ts">
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-// internal imports
-import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
+// Internal imports
 import { AuthService } from '@/services/AuthService';
+import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
+import { ErrorUtil } from '@/utils/ErrorUtil';
 
-// reactive variables
+// Reactive variables
 const email = ref('');
 const password = ref('');
 const error = ref('');
 
 const router = useRouter();
 
-// functions
-function handleSubmit(): void {
+// Functions
+async function handleSubmit(): Promise<void> {
   error.value = '';
   try {
-    AuthService.login({ email: email.value, password: password.value });
-    router.push({ name: 'dashboard' });
+    await AuthService.logInUser(email.value, password.value);
+    await router.push({ name: 'dashboard' });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Could not sign in.';
+    error.value = ErrorUtil.getMessage(err, 'Could not sign in.');
   }
 }
 </script>

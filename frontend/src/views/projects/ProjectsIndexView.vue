@@ -1,44 +1,37 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref } from 'vue';
+// External imports
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// internal imports
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import ProjectTableComponent, {
-  type ProjectRow,
-} from '@/components/projects/ProjectTableComponent.vue';
+// Internal imports
+import { ColorUtil } from '@/utils/ColorUtil';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
-import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
-import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import { AuthService } from '@/services/AuthService';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import { ProjectService } from '@/services/ProjectService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import ProjectTableComponent from '@/components/projects/ProjectTableComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
 
-// selectors
+// Reactive variables
+const allProjects = ref<ProjectInterface[]>([]);
+
 const selectedStatus = ref<ProjectStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.PROJECT_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.PROJECT_STATUS);
 
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed<ProjectRow[]>(() =>
-  currentUserId.value
-    ? ProjectService.getUserProjectsByStatus(currentUserId.value, selectedStatus.value).map(
-        (project) => ({ ...project, progress: ProjectService.getProgress(project.id, null) }),
-      )
-    : [],
+const projects = computed(() =>
+  selectedStatus.value === 'all'
+    ? allProjects.value
+    : allProjects.value.filter((project) => project.status === selectedStatus.value),
 );
 
 const statusChart = computed(() => {
-  const allProjects = currentUserId.value
-    ? ProjectService.getAllUserProjects(currentUserId.value)
-    : [];
   const counts: Record<string, number> = {
     planning: 0,
     active: 0,
@@ -46,27 +39,39 @@ const statusChart = computed(() => {
     paused: 0,
     completed: 0,
   };
-  for (const project of allProjects) {
+  for (const project of allProjects.value) {
     counts[project.status] = (counts[project.status] ?? 0) + 1;
   }
 
   const statuses = Object.keys(counts) as ProjectStatus[];
   return {
-    labels: statuses.map((status) => LabelUtils.PROJECT_STATUS[status].text),
+    labels: statuses.map((status) => LabelUtil.PROJECT_STATUS[status].text),
     values: statuses.map((status) => counts[status] ?? 0),
-    colors: statuses.map((status) => ColorUtils.PROJECT_STATUS[status]),
+    colors: statuses.map((status) => ColorUtil.PROJECT_STATUS[status]),
   };
 });
 
-// functions
-function handleDelete(project: ProjectRow): void {
+// Functions
+async function loadProjects(): Promise<void> {
+  allProjects.value = await ProjectService.getProjects();
+}
+
+async function handleDelete(project: ProjectInterface): Promise<void> {
   const confirmed = window.confirm(
     `Delete the project "${project.name}"? This action cannot be undone.`,
   );
-  if (confirmed) {
-    ProjectService.remove(project.id);
+  if (!confirmed) return;
+
+  try {
+    await ProjectService.deleteProject(project.id);
+    await loadProjects();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be deleted.'));
   }
 }
+
+// Hooks
+onMounted(loadProjects);
 </script>
 
 <template>

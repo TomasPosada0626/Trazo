@@ -1,15 +1,20 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-export type SprintStatus = 'planned' | 'active' | 'completed';
+// Internal imports
+import type { SprintStatus } from '@/types/SprintTypes';
 
 export interface SprintInterface {
   id: number;
   name: string;
   goal: string;
-  /** ISO 8601 string. */
   startDate: string;
-  /** ISO 8601 string. */
   endDate: string;
   status: SprintStatus;
+  createdAt: string;
+  updatedAt: string;
   projectId: number;
+  committedPoints?: number;
+  completedPoints?: number;
+  taskCount?: number;
+  remainingDays?: number;
 }

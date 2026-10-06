@@ -1,26 +1,23 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
+import { DateUtil } from '@/utils/DateUtil';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
-import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import type { ProjectInterface } from '@/interfaces/ProjectInterface';
-import { DateUtils } from '@/utils/DateUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 
-// variables
-export type ProjectRow = ProjectInterface & { progress: number };
+// Props
+const { projects } = defineProps<{ projects: ProjectInterface[] }>();
 
-// props
-const { projects } = defineProps<{ projects: ProjectRow[] }>();
-
-// emits
-const emit = defineEmits<{ delete: [project: ProjectRow] }>();
+// Emits
+const emit = defineEmits<{ delete: [project: ProjectInterface] }>();
 </script>
 
 <template>
@@ -39,23 +36,23 @@ const emit = defineEmits<{ delete: [project: ProjectRow] }>();
 
     <template #row="{ row }">
       <td class="px-4 py-3">
-        <IdChipComponent>{{ IdUtils.shortId('PRJ', row.id) }}</IdChipComponent>
+        <IdChipComponent>{{ IdUtil.shortId('PRJ', row.id) }}</IdChipComponent>
       </td>
       <td class="px-4 py-3 font-medium">{{ row.name }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.PROJECT_STATUS[row.status].tone">
-          {{ LabelUtils.PROJECT_STATUS[row.status].text }}
+        <StatusBadgeComponent :tone="LabelUtil.PROJECT_STATUS[row.status].tone">
+          {{ LabelUtil.PROJECT_STATUS[row.status].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3">
         <div class="flex items-center gap-2">
           <div class="h-1.5 w-24 bg-line">
-            <div class="h-full bg-emerald-600" :style="{ width: `${row.progress}%` }"></div>
+            <div class="h-full bg-emerald-600" :style="{ width: `${row.progress ?? 0}%` }"></div>
           </div>
-          <span class="font-mono text-xs text-ink-soft">{{ row.progress }}%</span>
+          <span class="font-mono text-xs text-ink-soft">{{ row.progress ?? 0 }}%</span>
         </div>
       </td>
-      <td class="px-4 py-3 text-ink-soft">{{ DateUtils.formatDate(row.createdAt) }}</td>
+      <td class="px-4 py-3 text-ink-soft">{{ DateUtil.formatDate(row.createdAt) }}</td>
       <td class="px-4 py-3 text-right whitespace-nowrap">
         <RouterLink
           :to="`/app/projects/${row.id}/edit`"

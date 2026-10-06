@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// props
+// Props
 const { adminOnly = false } = defineProps<{
   title: string;
   subtitle: string;

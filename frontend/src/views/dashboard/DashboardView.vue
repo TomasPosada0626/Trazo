@@ -1,31 +1,39 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref, watch } from 'vue';
+// External imports
+import { computed, onMounted, ref, watch } from 'vue';
 
-// internal imports
+// Internal imports
+import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
+import { AuthService } from '@/services/AuthService';
 import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
+import { ColorUtil } from '@/utils/ColorUtil';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
 import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
-import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
+import { TaskService } from '@/services/TaskService';
+import type { TaskStatus } from '@/types/TaskTypes';
 
-// variables
+// Non-reactive variables
 const ALL_TIME = 'all';
 
-// selectors
+// Reactive variables
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const sprints = ref<SprintInterface[]>([]);
+const taskStats = ref<Awaited<ReturnType<typeof TaskService.getTaskStats>> | null>(null);
+
 const selectedProjectId = ref<number>(0);
 
 const selectorProjects = computed(() =>
@@ -38,125 +46,110 @@ const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
-    label: `${IdUtils.shortId('SPR', sprint.id)} · ${sprint.name}`,
+    label: `${IdUtil.shortId('SPR', sprint.id)} · ${sprint.name}`,
   })),
 ]);
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
-
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const sprints = computed(() =>
-  selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
-);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
 const hasSprints = computed(() => sprints.value.length > 0);
 
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
-const progress = computed(() =>
-  ProjectService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
+const progress = computed(() => taskStats.value?.progress ?? 0);
+const activeSprints = computed(
+  () => sprints.value.filter((sprint) => sprint.status === 'active').length,
 );
-const activeSprints = computed(() => ProjectService.getActiveSprintCount(selectedProjectId.value));
-const completedTasks = computed(() =>
-  ProjectService.getCompletedTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const totalTasks = computed(() =>
-  ProjectService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
-const overdueTasks = computed(() =>
-  ProjectService.getOverdueTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
+const completedTasks = computed(() => taskStats.value?.completedTasks ?? 0);
+const totalTasks = computed(() => taskStats.value?.totalTasks ?? 0);
+const overdueTasks = computed(() => taskStats.value?.overdueTasks ?? 0);
 
-const statusSeries = computed(() =>
-  ProjectService.getTasksByStatus(selectedProjectId.value, sprintId.value),
-);
-const statusChart = computed(() => ({
-  labels: statusSeries.value.labels.map((status) => LabelUtils.TASK_STATUS[status].text),
-  values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => ColorUtils.TASK_STATUS[status]),
-}));
+const statusChart = computed(() => {
+  const series = taskStats.value?.tasksByStatus ?? { labels: [], values: [] };
 
-const completion = computed(() => SprintService.getVelocitySeries(selectedProjectId.value));
+  return {
+    labels: series.labels.map((status) => LabelUtil.TASK_STATUS[status].text),
+    values: series.values,
+    colors: series.labels.map((status) => ColorUtil.TASK_STATUS[status]),
+  };
+});
+
 const completionChart = computed(() => ({
-  labels: completion.value.labels,
+  labels: sprints.value.map((sprint) => IdUtil.shortId('SPR', sprint.id)),
   series: [
-    { label: 'Committed', values: completion.value.committed, color: ColorUtils.CHART.muted },
-    { label: 'Completed', values: completion.value.values, color: ColorUtils.CHART.done },
+    {
+      label: 'Committed',
+      values: sprints.value.map((sprint) => sprint.committedPoints ?? 0),
+      color: ColorUtil.CHART.muted,
+    },
+    {
+      label: 'Completed',
+      values: sprints.value.map((sprint) => sprint.completedPoints ?? 0),
+      color: ColorUtil.CHART.done,
+    },
   ],
 }));
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
-const userTasks = computed(() =>
-  currentUserId.value
-    ? ProjectService.getUserTasks(
-        selectedProjectId.value,
-        sprintId.value,
-        currentUserId.value,
-        selectedStatus.value,
-      )
-    : [],
-);
+const userTasks = computed(() => taskStats.value?.userTasks ?? []);
 
-const workload = computed(() =>
-  ProjectService.getWorkloadByAssignee(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const workloadChart = computed(() => ({
-  labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: ColorUtils.CHART.ink }],
-}));
+const workloadChart = computed(() => {
+  const rows = taskStats.value?.workload ?? [];
 
-const projectDistribution = computed(() =>
-  currentUserId.value
-    ? ProjectService.getTasksByProject(currentUserId.value)
-    : { labels: [], values: [] },
-);
+  return {
+    labels: rows.map((row) => row.name ?? 'Unassigned'),
+    series: [
+      {
+        label: 'Open tasks',
+        values: rows.map((row) => row.openTasks),
+        color: ColorUtil.CHART.ink,
+      },
+    ],
+  };
+});
+
 const projectDistributionChart = computed(() => ({
-  labels: projectDistribution.value.labels,
+  labels: projects.value.map((project) => project.name),
   series: [
-    { label: 'Tasks', values: projectDistribution.value.values, color: ColorUtils.CHART.ink },
+    {
+      label: 'Tasks',
+      values: projects.value.map((project) => project.taskCount ?? 0),
+      color: ColorUtil.CHART.ink,
+    },
   ],
 }));
 
-// watchers
-// Pick the first project once, and recover if the selected one is deleted.
-watch(
-  projects,
-  (newProjects) => {
-    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
-      selectedProjectId.value = newProjects[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
+// Functions
+async function loadSprints(): Promise<void> {
+  sprints.value = selectedProjectId.value
+    ? await SprintService.getSprints(selectedProjectId.value)
+    : [];
+}
 
-// Reset to "All time" whenever the chosen sprint stops belonging to the
-// selected project, which happens on every project change.
-watch(
-  sprints,
-  (newSprints) => {
-    if (!newSprints.some((sprint) => sprint.id === selectedRange.value)) {
-      selectedRange.value = ALL_TIME;
-    }
-  },
-  { immediate: true },
-);
+async function loadTaskStats(): Promise<void> {
+  taskStats.value = selectedProjectId.value
+    ? await TaskService.getTaskStats(selectedProjectId.value, sprintId.value, selectedStatus.value)
+    : null;
+}
+
+// Watchers
+watch(selectedProjectId, async () => {
+  selectedRange.value = ALL_TIME;
+  await loadSprints();
+});
+
+watch([selectedProjectId, selectedRange, selectedStatus], loadTaskStats);
+
+// Hooks
+onMounted(async () => {
+  projects.value = await ProjectService.getProjects();
+  isLoading.value = false;
+
+  selectedProjectId.value = projects.value[0]?.id ?? 0;
+});
 </script>
 
 <template>
@@ -195,7 +188,7 @@ watch(
       </template>
     </PageHeaderComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="Nothing to show yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="Nothing to show yet" padded>
       <p class="text-sm text-ink-soft">
         You do not belong to any project yet. Once you are added to one, its progress appears here.
       </p>

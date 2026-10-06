@@ -1,21 +1,21 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
+import type { CreateSprintDTO } from '@/dtos/sprintDTO/CreateSprintDTO';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import type { SprintStatus } from '@/types/SprintTypes';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
-import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
-import type { CreateSprintDTO } from '@/dtos/CreateSprintDTO';
-import type { SprintStatus } from '@/interfaces/SprintInterface';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
 
-// props
+// Props
 const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSprintId } =
   defineProps<{
     initialValues?: CreateSprintDTO;
@@ -25,10 +25,10 @@ const { initialValues, submitLabel, selectorProjects, tasksByProject, currentSpr
     currentSprintId?: number;
   }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ submit: [values: CreateSprintDTO] }>();
 
-// reactive variables
+// Reactive variables
 const name = ref(initialValues?.name ?? '');
 const goal = ref(initialValues?.goal ?? '');
 const startDate = ref(initialValues?.startDate ?? '');
@@ -36,14 +36,12 @@ const endDate = ref(initialValues?.endDate ?? '');
 const selectedTaskIds = ref<number[]>([...(initialValues?.taskIds ?? [])]);
 const error = ref('');
 
-// selectors
 const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'planned');
 
-const selectorStatuses = LabelUtils.toSelectOptions(LabelUtils.SPRINT_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.SPRINT_STATUS);
 
-// computed variables
 const isEditing = computed(() => initialValues !== undefined);
 
 const projectTasks = computed(() => tasksByProject[selectedProjectId.value] ?? []);
@@ -54,10 +52,10 @@ const selectedPoints = computed(() =>
     .reduce((total, task) => total + task.storyPoints, 0),
 );
 
-// functions
+// Functions
 function sprintLabelFor(task: TaskInterface): string | null {
   return task.sprintId && task.sprintId !== currentSprintId
-    ? IdUtils.shortId('SPR', task.sprintId)
+    ? IdUtil.shortId('SPR', task.sprintId)
     : null;
 }
 
@@ -80,10 +78,7 @@ function handleSubmit(): void {
   });
 }
 
-// watchers
-// A task list from the previous project is meaningless, so drop the selection
-// whenever the project changes. Editing keeps the project fixed, so this only
-// ever fires while creating.
+// Watchers
 watch(selectedProjectId, () => {
   selectedTaskIds.value = [];
 });
@@ -162,8 +157,8 @@ watch(selectedProjectId, () => {
               </template>
             </span>
           </span>
-          <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[task.status].tone" class="shrink-0">
-            {{ LabelUtils.TASK_STATUS[task.status].text }}
+          <StatusBadgeComponent :tone="LabelUtil.TASK_STATUS[task.status].tone" class="shrink-0">
+            {{ LabelUtil.TASK_STATUS[task.status].text }}
           </StatusBadgeComponent>
         </label>
       </div>

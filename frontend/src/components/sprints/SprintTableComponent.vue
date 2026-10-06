@@ -1,32 +1,24 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
+import { ColorUtil } from '@/utils/ColorUtil';
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
+import { DateUtil } from '@/utils/DateUtil';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
-import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import type { SprintInterface } from '@/interfaces/SprintInterface';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { DateUtils } from '@/utils/DateUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 
-// variables
-export type SprintRow = SprintInterface & {
-  committedPoints: number;
-  completedPoints: number;
-  remainingDays: number;
-  taskCount: number;
-};
+// Props
+const { sprints } = defineProps<{ sprints: SprintInterface[] }>();
 
-// props
-const { sprints } = defineProps<{ sprints: SprintRow[] }>();
-
-// emits
-const emit = defineEmits<{ delete: [sprint: SprintRow] }>();
+// Emits
+const emit = defineEmits<{ delete: [sprint: SprintInterface] }>();
 </script>
 
 <template>
@@ -48,21 +40,21 @@ const emit = defineEmits<{ delete: [sprint: SprintRow] }>();
 
     <template #row="{ row }">
       <td class="px-4 py-3">
-        <IdChipComponent>{{ IdUtils.shortId('SPR', row.id) }}</IdChipComponent>
+        <IdChipComponent>{{ IdUtil.shortId('SPR', row.id) }}</IdChipComponent>
       </td>
       <td class="px-4 py-3 font-medium">{{ row.name }}</td>
       <td class="px-4 py-3 text-ink-soft">
-        {{ DateUtils.formatDateRange(row.startDate, row.endDate) }}
+        {{ DateUtil.formatDateRange(row.startDate, row.endDate) }}
       </td>
       <td class="px-4 py-3 font-mono">{{ row.committedPoints }}</td>
       <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
       <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
       <td class="px-4 py-3 text-ink-soft">
-        {{ row.status === 'completed' ? '—' : `${row.remainingDays} d` }}
+        {{ row.status === 'completed' ? '—' : `${row.remainingDays ?? 0} d` }}
       </td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :color="ColorUtils.SPRINT_STATUS[row.status]">
-          {{ LabelUtils.SPRINT_STATUS[row.status].text }}
+        <StatusBadgeComponent :color="ColorUtil.SPRINT_STATUS[row.status]">
+          {{ LabelUtil.SPRINT_STATUS[row.status].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3 text-right whitespace-nowrap">

@@ -1,16 +1,14 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-/**
- * Role decides what a user can reach. `admin` unlocks the admin panel;
- * `member` only sees the projects they belong to.
- */
-export type UserRole = 'admin' | 'member';
+// Internal imports
+import type { UserRole } from '@/types/UserTypes';
 
 export interface UserInterface {
   id: number;
   name: string;
   email: string;
-  /** Plain text, LocalStorage-only MVP. Never do this in a real app. */
-  password: string;
   role: UserRole;
+  createdAt: string;
+  updatedAt: string;
+  activeProjects?: number;
 }

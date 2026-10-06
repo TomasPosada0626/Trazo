@@ -1,26 +1,23 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
+import { DateUtil } from '@/utils/DateUtil';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { TaskInterface } from '@/interfaces/TaskInterface';
-import { DateUtils } from '@/utils/DateUtils';
-import { IdUtils } from '@/utils/IdUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type TaskRow = TaskInterface & { projectName: string; assigneeName: string };
+// Props
+const { tasks } = defineProps<{ tasks: TaskInterface[] }>();
 
-// props
-const { tasks } = defineProps<{ tasks: TaskRow[] }>();
-
-// emits
-const emit = defineEmits<{ delete: [task: TaskRow] }>();
+// Emits
+const emit = defineEmits<{ delete: [task: TaskInterface] }>();
 </script>
 
 <template>
@@ -41,23 +38,23 @@ const emit = defineEmits<{ delete: [task: TaskRow] }>();
 
     <template #row="{ row }">
       <td class="px-4 py-3">
-        <IdChipComponent>{{ IdUtils.shortId('TSK', row.id) }}</IdChipComponent>
+        <IdChipComponent>{{ IdUtil.shortId('TSK', row.id) }}</IdChipComponent>
       </td>
       <td class="px-4 py-3 font-medium">{{ row.title }}</td>
       <td class="px-4 py-3 text-ink-soft">{{ row.projectName }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.TASK_STATUS[row.status].tone">
-          {{ LabelUtils.TASK_STATUS[row.status].text }}
+        <StatusBadgeComponent :tone="LabelUtil.TASK_STATUS[row.status].tone">
+          {{ LabelUtil.TASK_STATUS[row.status].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.TASK_PRIORITY[row.priority].tone">
-          {{ LabelUtils.TASK_PRIORITY[row.priority].text }}
+        <StatusBadgeComponent :tone="LabelUtil.TASK_PRIORITY[row.priority].tone">
+          {{ LabelUtil.TASK_PRIORITY[row.priority].text }}
         </StatusBadgeComponent>
       </td>
-      <td class="px-4 py-3 text-ink-soft">{{ row.assigneeName }}</td>
+      <td class="px-4 py-3 text-ink-soft">{{ row.assigneeName ?? '—' }}</td>
       <td class="px-4 py-3 text-ink-soft">
-        {{ row.dueDate ? DateUtils.formatDate(row.dueDate) : '—' }}
+        {{ row.dueDate ? DateUtil.formatDate(row.dueDate) : '—' }}
       </td>
       <td class="px-4 py-3 text-right whitespace-nowrap">
         <RouterLink

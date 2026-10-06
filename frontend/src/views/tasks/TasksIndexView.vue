@@ -1,26 +1,28 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref } from 'vue';
+// External imports
+import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-// internal imports
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+// Internal imports
+import { ColorUtil } from '@/utils/ColorUtil';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
 import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
 import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
 import SelectFieldComponent, {
   type SelectOption,
 } from '@/components/shared/SelectFieldComponent.vue';
-import TaskTableComponent, { type TaskRow } from '@/components/tasks/TaskTableComponent.vue';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
 import { TaskService } from '@/services/TaskService';
-import { ColorUtils } from '@/utils/ColorUtils';
-import { LabelUtils } from '@/utils/LabelUtils';
+import type { TaskStatus } from '@/types/TaskTypes';
+import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
 
-// variables
+// Non-reactive variables
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
@@ -28,10 +30,12 @@ const SAVED_NOTICES: Record<string, string> = {
 
 const route = useRoute();
 
-// reactive variables
+// Reactive variables
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const projectTasks = ref<TaskInterface[]>([]);
 
-// selectors
 const selectedProjectId = ref<number | 'all'>('all');
 
 const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
@@ -41,27 +45,12 @@ const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = LabelUtils.toFilterOptions(LabelUtils.TASK_STATUS);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const tasks = computed<TaskRow[]>(() =>
-  currentUserId.value
-    ? TaskService.getUserTasksFiltered(
-        currentUserId.value,
-        selectedProjectId.value,
-        selectedStatus.value,
-      ).map((task) => ({
-        ...task,
-        projectName: ProjectService.getById(task.projectId)?.name ?? 'Unknown project',
-        assigneeName: TaskService.getAssignee(task)?.name ?? '—',
-      }))
-    : [],
+const tasks = computed(() =>
+  selectedStatus.value === 'all'
+    ? projectTasks.value
+    : projectTasks.value.filter((task) => task.status === selectedStatus.value),
 );
 
 const typeChart = computed(() => {
@@ -70,24 +59,42 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof ColorUtils.TASK_TYPE)[];
+  const types = Object.keys(counts) as (keyof typeof ColorUtil.TASK_TYPE)[];
   return {
-    labels: types.map((type) => LabelUtils.TASK_TYPE[type].text),
+    labels: types.map((type) => LabelUtil.TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => ColorUtils.TASK_TYPE[type]),
+    colors: types.map((type) => ColorUtil.TASK_TYPE[type]),
   };
 });
 
-// functions
-function handleDelete(task: TaskRow): void {
+// Functions
+async function loadTasks(): Promise<void> {
+  projectTasks.value = await TaskService.getTasks(selectedProjectId.value);
+}
+
+async function handleDelete(task: TaskInterface): Promise<void> {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,
   );
   if (!confirmed) return;
 
-  TaskService.remove(task.id);
-  notice.value = `The task "${task.title}" was deleted.`;
+  try {
+    await TaskService.deleteTask(task.id);
+    notice.value = `The task "${task.title}" was deleted.`;
+    await loadTasks();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The task could not be deleted.'));
+  }
 }
+
+// Watchers
+watch(selectedProjectId, loadTasks);
+
+// Hooks
+onMounted(async () => {
+  [projects.value] = await Promise.all([ProjectService.getProjects(), loadTasks()]);
+  isLoading.value = false;
+});
 </script>
 
 <template>
@@ -154,7 +161,7 @@ function handleDelete(task: TaskRow): void {
       <TaskTableComponent :tasks="tasks" @delete="handleDelete" />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.

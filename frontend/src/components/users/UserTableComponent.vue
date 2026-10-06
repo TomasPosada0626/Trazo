@@ -1,27 +1,24 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { RouterLink } from 'vue-router';
 
-// internal imports
+// Internal imports
 import DataTableComponent from '@/components/shared/DataTableComponent.vue';
 import IdChipComponent from '@/components/shared/IdChipComponent.vue';
+import { LabelUtil } from '@/utils/LabelUtil';
 import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { LabelUtils } from '@/utils/LabelUtils';
 
-// variables
-export type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
-
-// props
+// Props
 const { users, currentUserId } = defineProps<{
-  users: UserRow[];
+  users: UserInterface[];
   currentUserId?: number;
 }>();
 
-// emits
-const emit = defineEmits<{ delete: [user: UserRow] }>();
+// Emits
+const emit = defineEmits<{ delete: [user: UserInterface] }>();
 </script>
 
 <template>
@@ -42,8 +39,8 @@ const emit = defineEmits<{ delete: [user: UserRow] }>();
       <td class="px-4 py-3 font-medium">{{ row.name }}</td>
       <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
       <td class="px-4 py-3">
-        <StatusBadgeComponent :tone="LabelUtils.USER_ROLE[row.role].tone">
-          {{ LabelUtils.USER_ROLE[row.role].text }}
+        <StatusBadgeComponent :tone="LabelUtil.USER_ROLE[row.role].tone">
+          {{ LabelUtil.USER_ROLE[row.role].text }}
         </StatusBadgeComponent>
       </td>
       <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
