@@ -1,10 +1,7 @@
-// Author: Mateo Garcia Carreno
+// Developed by Hever-Alfonso
 
-export type TaskType = 'feature' | 'bug' | 'chore' | 'research';
-
-export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-
-export type TaskStatus = 'todo' | 'in_progress' | 'done';
+// Internal imports
+import type { TaskPriority, TaskStatus, TaskType } from '@/types/TaskTypes';
 
 export interface TaskInterface {
   id: number;
@@ -14,13 +11,12 @@ export interface TaskInterface {
   storyPoints: number;
   priority: TaskPriority;
   status: TaskStatus;
-  /** ISO 8601 string. */
-  createdAt: string;
-  /** ISO 8601 string, or null when the task has no deadline. */
   dueDate: string | null;
+  createdAt: string;
+  updatedAt: string;
   projectId: number;
-  /** Null while the task sits in the backlog, unassigned to any sprint. */
   sprintId: number | null;
-  /** Null while nobody has picked the task up. */
   assigneeId: number | null;
+  projectName?: string;
+  assigneeName?: string | null;
 }

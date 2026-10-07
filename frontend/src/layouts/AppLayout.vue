@@ -1,25 +1,26 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed } from 'vue';
 import { RouterView, useRoute, useRouter } from 'vue-router';
-// internal imports
+
+// Internal imports
 import AppSidebarComponent from '@/components/layout/AppSidebarComponent.vue';
 import { AuthService } from '@/services/AuthService';
 
-// variables
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 
-// computed variables
-const currentUser = computed(() => AuthService.getCurrentUser() ?? null);
+// Reactive variables
+const currentUser = computed(() => AuthService.getLoggedInUser() ?? null);
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
-// functions
+// Functions
 function handleLogout(): void {
-  AuthService.logout();
+  AuthService.logOutUser();
   router.push({ name: 'login' });
 }
 </script>

@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      PORT: 3000
+      SQLITE_PATH: /data/database.sqlite
+      JWT_SECRET: ${JWT_SECRET:-trazo-dev-secret}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+    volumes:
+      - backend-data:/data
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api/}
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    restart: unless-stopped
+
+volumes:
+  backend-data:

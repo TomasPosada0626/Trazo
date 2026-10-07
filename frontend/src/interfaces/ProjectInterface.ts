@@ -1,18 +1,16 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-export type ProjectStatus = 'planning' | 'active' | 'at_risk' | 'paused' | 'completed';
+// Internal imports
+import type { ProjectStatus } from '@/types/ProjectTypes';
 
 export interface ProjectInterface {
   id: number;
   name: string;
   description: string;
   status: ProjectStatus;
-  /** ISO 8601 string. See the dates decision in CLAUDE.md. */
   createdAt: string;
-  /**
-   * Members of the project. This is the owning side of the User *—* Project
-   * relation, so it is stored here and nowhere else; a user's projects are
-   * derived with UserService.getProjects(user).
-   */
-  memberIds: number[];
+  updatedAt: string;
+  userIds: number[];
+  progress?: number;
+  taskCount?: number;
 }

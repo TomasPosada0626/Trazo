@@ -1,55 +1,54 @@
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// internal imports
-import type { LoginDTO } from '@/dtos/LoginDTO';
-import type { UserInterface } from '@/interfaces/UserInterface';
-import { UserService } from '@/services/UserService';
+// External imports
+import axios from 'axios';
+
+// Internal imports
 import { useAuthStore } from '@/stores/authstore';
+import type { UserInterface } from '@/interfaces/UserInterface';
 
 export class AuthService {
-  /**
-   * Validates credentials and starts a session.
-   *
-   * @param credentials Email and password submitted from the login form.
-   * @returns The authenticated user.
-   * @throws {Error} When no user matches the given email and password.
-   */
-  static login(credentials: LoginDTO): UserInterface {
-    const user = UserService.getAll().find(
-      (candidate) =>
-        candidate.email === credentials.email && candidate.password === credentials.password,
-    );
-    if (!user) {
-      throw new Error('Incorrect email or password.');
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
+  private static readonly tokenKey = 'access_token';
+
+  static async logInUser(email: string, password: string): Promise<void> {
+    const response = await axios.post<{ access_token: string }>(`${this.apiUrl}auth/login`, {
+      email,
+      password,
+    });
+
+    localStorage.setItem(this.tokenKey, response.data.access_token);
+
+    await this.loadLoggedInUser();
+  }
+
+  static async loadLoggedInUser(): Promise<void> {
+    if (!this.getAccessToken()) {
+      return;
     }
 
-    useAuthStore().currentUserId = user.id;
-    return user;
+    try {
+      const response = await axios.get<UserInterface>(`${this.apiUrl}auth/profile`);
+      useAuthStore().currentUser = response.data;
+    } catch {
+      this.logOutUser();
+    }
   }
 
-  /** Ends the active session. */
-  static logout(): void {
-    useAuthStore().currentUserId = null;
+  static logOutUser(): void {
+    localStorage.removeItem(this.tokenKey);
+    useAuthStore().currentUser = null;
   }
 
-  /**
-   * Returns the currently logged-in user.
-   *
-   * @returns The signed-in user, or `undefined` if there's no active session.
-   */
-  static getCurrentUser(): UserInterface | undefined {
-    const currentUserId = useAuthStore().currentUserId;
-    if (!currentUserId) return undefined;
-
-    return UserService.getById(currentUserId);
+  static getAccessToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
-  /**
-   * Checks whether the active session belongs to an administrator.
-   *
-   * @returns `true` when there is an active session and it belongs to an admin.
-   */
+  static getLoggedInUser(): UserInterface | undefined {
+    return useAuthStore().currentUser ?? undefined;
+  }
+
   static isAdmin(): boolean {
-    return AuthService.getCurrentUser()?.role === 'admin';
+    return this.getLoggedInUser()?.role === 'admin';
   }
 }

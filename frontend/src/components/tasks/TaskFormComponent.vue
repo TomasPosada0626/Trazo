@@ -1,17 +1,20 @@
 <script setup lang="ts">
-// Author: Hever-Alfonso
+// Developed by Hever-Alfonso
 
-// external imports
+// External imports
 import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-// internal imports
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
-import type { CreateTaskDTO } from '@/dtos/CreateTaskDTO';
-import type { TaskPriority, TaskStatus, TaskType } from '@/interfaces/TaskInterface';
-import { TASK_PRIORITY, TASK_STATUS, TASK_TYPE, toSelectOptions } from '@/utils/labels';
 
-// props
+// Internal imports
+import type { CreateTaskDTO } from '@/dtos/taskDTO/CreateTaskDTO';
+import { LabelUtil } from '@/utils/LabelUtil';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import type { TaskPriority, TaskStatus, TaskType } from '@/types/TaskTypes';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
+
+// Props
 const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject } = defineProps<{
   initialValues?: CreateTaskDTO;
   submitLabel: string;
@@ -19,10 +22,10 @@ const { initialValues, submitLabel, selectorProjects, selectorAssigneesByProject
   selectorAssigneesByProject: Record<number, SelectOption<number>[]>;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ submit: [values: CreateTaskDTO] }>();
 
-// reactive variables
+// Reactive variables
 const UNASSIGNED = 0;
 
 const title = ref(initialValues?.title ?? '');
@@ -30,7 +33,6 @@ const description = ref(initialValues?.description ?? '');
 const storyPoints = ref(String(initialValues?.storyPoints ?? 0));
 const dueDate = ref(initialValues?.dueDate ?? '');
 
-// selectors
 const selectedProjectId = ref<number>(initialValues?.projectId ?? selectorProjects[0]?.value ?? 0);
 
 const selectedAssigneeId = ref<number>(initialValues?.assigneeId ?? UNASSIGNED);
@@ -42,17 +44,17 @@ const selectorAssignees = computed<SelectOption<number>[]>(() => [
 
 const selectedType = ref<string>(initialValues?.type ?? 'feature');
 
-const selectorTypes = toSelectOptions(TASK_TYPE);
+const selectorTypes = LabelUtil.toSelectOptions(LabelUtil.TASK_TYPE);
 
 const selectedPriority = ref<string>(initialValues?.priority ?? 'medium');
 
-const selectorPriorities = toSelectOptions(TASK_PRIORITY);
+const selectorPriorities = LabelUtil.toSelectOptions(LabelUtil.TASK_PRIORITY);
 
 const selectedStatus = ref<string>(initialValues?.status ?? 'todo');
 
-const selectorStatuses = toSelectOptions(TASK_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.TASK_STATUS);
 
-// functions
+// Functions
 function handleSubmit(): void {
   emit('submit', {
     title: title.value.trim(),
@@ -61,17 +63,13 @@ function handleSubmit(): void {
     storyPoints: Math.max(0, Number(storyPoints.value) || 0),
     priority: selectedPriority.value as TaskPriority,
     status: selectedStatus.value as TaskStatus,
-    // An empty date input means "no deadline", which the interface stores as null.
     dueDate: dueDate.value || null,
     projectId: selectedProjectId.value,
     assigneeId: selectedAssigneeId.value || null,
   });
 }
 
-// watchers
-// Moving a task to another project can strand its assignee, who may not be a
-// member there. Clearing it keeps the form from submitting a pair the service
-// would reject.
+// Watchers
 watch(selectorAssignees, (newOptions) => {
   if (!newOptions.some((option) => option.value === selectedAssigneeId.value)) {
     selectedAssigneeId.value = UNASSIGNED;

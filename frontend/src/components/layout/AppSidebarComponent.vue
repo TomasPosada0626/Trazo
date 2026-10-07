@@ -1,15 +1,16 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
-// internal imports
-import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
-import type { UserInterface } from '@/interfaces/UserInterface';
-import { USER_ROLE } from '@/utils/labels';
 
-// variables
+// Internal imports
+import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
+import { LabelUtil } from '@/utils/LabelUtil';
+import type { UserInterface } from '@/interfaces/UserInterface';
+
+// Interfaces
 interface NavItem {
   label: string;
   to: string;
@@ -22,6 +23,7 @@ interface NavGroup {
   items: NavItem[];
 }
 
+// Non-reactive variables
 const LOCK_ICON =
   'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z';
 
@@ -66,13 +68,13 @@ const groups: NavGroup[] = [
   },
 ];
 
-// props
+// Props
 const { currentUser, isAdmin } = defineProps<{
   currentUser: UserInterface | null;
   isAdmin: boolean;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ logout: [] }>();
 
 const visibleGroups = computed(() =>
@@ -89,7 +91,7 @@ const userDisplay = computed(() => {
 
   return {
     name: currentUser.name,
-    roleLabel: USER_ROLE[currentUser.role].text,
+    roleLabel: LabelUtil.USER_ROLE[currentUser.role].text,
     initials: currentUser.name
       .split(' ')
       .slice(0, 2)

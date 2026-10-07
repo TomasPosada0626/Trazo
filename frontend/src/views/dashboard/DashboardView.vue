@@ -1,45 +1,39 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref, watch } from 'vue';
-// internal imports
-import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { TaskStatus } from '@/interfaces/TaskInterface';
+// External imports
+import { computed, onMounted, ref, watch } from 'vue';
+
+// Internal imports
+import AssignedTaskTableComponent from '@/components/tasks/AssignedTaskTableComponent.vue';
 import { AuthService } from '@/services/AuthService';
-import { DashboardService } from '@/services/DashboardService';
+import BarChartComponent from '@/components/dashboard/BarChartComponent.vue';
+import { ColorUtil } from '@/utils/ColorUtil';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
 import { ProjectService } from '@/services/ProjectService';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
 import { SprintService } from '@/services/SprintService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  CHART_COLORS,
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_STATUS_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
+import StatCardComponent from '@/components/dashboard/StatCardComponent.vue';
+import { TaskService } from '@/services/TaskService';
+import type { TaskStatus } from '@/types/TaskTypes';
 
-// variables
+// Non-reactive variables
 const ALL_TIME = 'all';
 
-const myTaskColumns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'dueDate', label: 'Due date' },
-];
+// Reactive variables
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const sprints = ref<SprintInterface[]>([]);
+const taskStats = ref<Awaited<ReturnType<typeof TaskService.getTaskStats>> | null>(null);
 
-// selectors
 const selectedProjectId = ref<number>(0);
 
 const selectorProjects = computed(() =>
@@ -52,129 +46,110 @@ const selectorRanges = computed<SelectOption<number | 'all'>[]>(() => [
   { value: ALL_TIME, label: 'All time' },
   ...sprints.value.map((sprint) => ({
     value: sprint.id,
-    label: `${shortId('SPR', sprint.id)} · ${sprint.name}`,
+    label: `${IdUtil.shortId('SPR', sprint.id)} · ${sprint.name}`,
   })),
 ]);
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
-
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
-
-const sprints = computed(() =>
-  selectedProjectId.value ? SprintService.getByProject(selectedProjectId.value) : [],
-);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
 const hasSprints = computed(() => sprints.value.length > 0);
 
 const sprintId = computed(() => (selectedRange.value === ALL_TIME ? null : selectedRange.value));
 
-const progress = computed(() =>
-  DashboardService.getProgress(selectedProjectId.value, sprintId.value, selectedStatus.value),
+const progress = computed(() => taskStats.value?.progress ?? 0);
+const activeSprints = computed(
+  () => sprints.value.filter((sprint) => sprint.status === 'active').length,
 );
-const activeSprints = computed(() =>
-  DashboardService.getActiveSprintCount(selectedProjectId.value),
-);
-const completedTasks = computed(() =>
-  DashboardService.getCompletedTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const totalTasks = computed(() =>
-  DashboardService.getTotalTaskCount(selectedProjectId.value, sprintId.value, selectedStatus.value),
-);
-const overdueTasks = computed(() =>
-  DashboardService.getOverdueTaskCount(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
+const completedTasks = computed(() => taskStats.value?.completedTasks ?? 0);
+const totalTasks = computed(() => taskStats.value?.totalTasks ?? 0);
+const overdueTasks = computed(() => taskStats.value?.overdueTasks ?? 0);
 
-const statusSeries = computed(() =>
-  DashboardService.getTasksByStatus(selectedProjectId.value, sprintId.value),
-);
-const statusChart = computed(() => ({
-  labels: statusSeries.value.labels.map((status) => TASK_STATUS[status].text),
-  values: statusSeries.value.values,
-  colors: statusSeries.value.labels.map((status) => TASK_STATUS_COLORS[status]),
-}));
+const statusChart = computed(() => {
+  const series = taskStats.value?.tasksByStatus ?? { labels: [], values: [] };
 
-const completion = computed(() => DashboardService.getVelocitySeries(selectedProjectId.value));
+  return {
+    labels: series.labels.map((status) => LabelUtil.TASK_STATUS[status].text),
+    values: series.values,
+    colors: series.labels.map((status) => ColorUtil.TASK_STATUS[status]),
+  };
+});
+
 const completionChart = computed(() => ({
-  labels: completion.value.labels,
+  labels: sprints.value.map((sprint) => IdUtil.shortId('SPR', sprint.id)),
   series: [
-    { label: 'Committed', values: completion.value.committed, color: CHART_COLORS.muted },
-    { label: 'Completed', values: completion.value.values, color: CHART_COLORS.done },
+    {
+      label: 'Committed',
+      values: sprints.value.map((sprint) => sprint.committedPoints ?? 0),
+      color: ColorUtil.CHART.muted,
+    },
+    {
+      label: 'Completed',
+      values: sprints.value.map((sprint) => sprint.completedPoints ?? 0),
+      color: ColorUtil.CHART.done,
+    },
   ],
 }));
 
 const isAdmin = computed(() => AuthService.isAdmin());
 
-const userTasks = computed(() =>
-  currentUserId.value
-    ? DashboardService.getUserTasks(
-        selectedProjectId.value,
-        sprintId.value,
-        currentUserId.value,
-        selectedStatus.value,
-      )
-    : [],
-);
+const userTasks = computed(() => taskStats.value?.userTasks ?? []);
 
-const workload = computed(() =>
-  DashboardService.getWorkloadByAssignee(
-    selectedProjectId.value,
-    sprintId.value,
-    selectedStatus.value,
-  ),
-);
-const workloadChart = computed(() => ({
-  labels: workload.value.labels,
-  series: [{ label: 'Open tasks', values: workload.value.values, color: CHART_COLORS.ink }],
-}));
+const workloadChart = computed(() => {
+  const rows = taskStats.value?.workload ?? [];
 
-const projectDistribution = computed(() =>
-  currentUserId.value
-    ? DashboardService.getTasksByProject(currentUserId.value)
-    : { labels: [], values: [] },
-);
+  return {
+    labels: rows.map((row) => row.name ?? 'Unassigned'),
+    series: [
+      {
+        label: 'Open tasks',
+        values: rows.map((row) => row.openTasks),
+        color: ColorUtil.CHART.ink,
+      },
+    ],
+  };
+});
+
 const projectDistributionChart = computed(() => ({
-  labels: projectDistribution.value.labels,
-  series: [{ label: 'Tasks', values: projectDistribution.value.values, color: CHART_COLORS.ink }],
+  labels: projects.value.map((project) => project.name),
+  series: [
+    {
+      label: 'Tasks',
+      values: projects.value.map((project) => project.taskCount ?? 0),
+      color: ColorUtil.CHART.ink,
+    },
+  ],
 }));
 
-// watchers
-// Pick the first project once, and recover if the selected one is deleted.
-watch(
-  projects,
-  (newProjects) => {
-    if (!newProjects.some((project) => project.id === selectedProjectId.value)) {
-      selectedProjectId.value = newProjects[0]?.id ?? 0;
-    }
-  },
-  { immediate: true },
-);
+// Functions
+async function loadSprints(): Promise<void> {
+  sprints.value = selectedProjectId.value
+    ? await SprintService.getSprints(selectedProjectId.value)
+    : [];
+}
 
-// Reset to "All time" whenever the chosen sprint stops belonging to the
-// selected project, which happens on every project change.
-watch(
-  sprints,
-  (newSprints) => {
-    if (!newSprints.some((sprint) => sprint.id === selectedRange.value)) {
-      selectedRange.value = ALL_TIME;
-    }
-  },
-  { immediate: true },
-);
+async function loadTaskStats(): Promise<void> {
+  taskStats.value = selectedProjectId.value
+    ? await TaskService.getTaskStats(selectedProjectId.value, sprintId.value, selectedStatus.value)
+    : null;
+}
+
+// Watchers
+watch(selectedProjectId, async () => {
+  selectedRange.value = ALL_TIME;
+  await loadSprints();
+});
+
+watch([selectedProjectId, selectedRange, selectedStatus], loadTaskStats);
+
+// Hooks
+onMounted(async () => {
+  projects.value = await ProjectService.getProjects();
+  isLoading.value = false;
+
+  selectedProjectId.value = projects.value[0]?.id ?? 0;
+});
 </script>
 
 <template>
@@ -213,7 +188,7 @@ watch(
       </template>
     </PageHeaderComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="Nothing to show yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="Nothing to show yet" padded>
       <p class="text-sm text-ink-soft">
         You do not belong to any project yet. Once you are added to one, its progress appears here.
       </p>
@@ -269,31 +244,7 @@ watch(
       </PanelCardComponent>
 
       <PanelCardComponent v-else title="My assigned tasks">
-        <DataTableComponent
-          :columns="myTaskColumns"
-          :rows="userTasks"
-          empty-message="Nothing is assigned to you in this range."
-        >
-          <template #row="{ row }">
-            <td class="px-4 py-3">
-              <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
-            </td>
-            <td class="px-4 py-3 font-medium">{{ row.title }}</td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-                {{ TASK_STATUS[row.status].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3">
-              <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-                {{ TASK_PRIORITY[row.priority].text }}
-              </StatusBadgeComponent>
-            </td>
-            <td class="px-4 py-3 text-ink-soft">
-              {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
-            </td>
-          </template>
-        </DataTableComponent>
+        <AssignedTaskTableComponent :tasks="userTasks" />
       </PanelCardComponent>
     </template>
   </div>

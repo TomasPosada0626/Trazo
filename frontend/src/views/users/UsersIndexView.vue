@@ -1,48 +1,27 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref } from 'vue';
+// External imports
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-// internal imports
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { UserInterface } from '@/interfaces/UserInterface';
+
+// Internal imports
 import { AuthService } from '@/services/AuthService';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import type { UserInterface } from '@/interfaces/UserInterface';
 import { UserService } from '@/services/UserService';
-import { USER_ROLE, toFilterOptions } from '@/utils/labels';
+import UserTableComponent from '@/components/users/UserTableComponent.vue';
 
-// variables
-type UserRow = Omit<UserInterface, 'password'> & { activeProjects: number };
+// Reactive variables
+const users = ref<UserInterface[]>([]);
 
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: 'Role' },
-  { key: 'projects', label: 'Active projects' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
-
-// selectors
 const selectedRole = ref('all');
 
-const selectorRoles = toFilterOptions(USER_ROLE);
-
-// computed variables
-const users = computed<UserRow[]>(() =>
-  UserService.getAll().map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    activeProjects: UserService.getActiveProjects(user),
-  })),
-);
+const selectorRoles = LabelUtil.toFilterOptions(LabelUtil.USER_ROLE);
 
 const filteredUsers = computed(() =>
   selectedRole.value === 'all'
@@ -50,15 +29,29 @@ const filteredUsers = computed(() =>
     : users.value.filter((user) => user.role === selectedRole.value),
 );
 
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
+const currentUserId = computed(() => AuthService.getLoggedInUser()?.id);
 
-// functions
-function handleDelete(user: UserRow): void {
+// Functions
+async function loadUsers(): Promise<void> {
+  users.value = await UserService.getUsers();
+}
+
+async function handleDelete(user: UserInterface): Promise<void> {
   if (user.id === currentUserId.value) return;
 
   const confirmed = window.confirm(`Delete the user "${user.name}"? This action cannot be undone.`);
-  if (confirmed) UserService.remove(user.id);
+  if (!confirmed) return;
+
+  try {
+    await UserService.deleteUser(user.id);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be deleted.'));
+  }
 }
+
+// Hooks
+onMounted(loadUsers);
 </script>
 
 <template>
@@ -90,42 +83,11 @@ function handleDelete(user: UserRow): void {
         />
       </template>
 
-      <DataTableComponent :columns="columns" :rows="filteredUsers">
-        <template #row="{ row }">
-          <td class="px-4 py-3">
-            <IdChipComponent>{{ row.id }}</IdChipComponent>
-          </td>
-          <td class="px-4 py-3 font-medium">{{ row.name }}</td>
-          <td class="px-4 py-3 text-ink-soft">{{ row.email }}</td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="USER_ROLE[row.role].tone">
-              {{ USER_ROLE[row.role].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3 font-mono">{{ row.activeProjects }}</td>
-          <td class="px-4 py-3 text-right">
-            <RouterLink
-              :to="`/app/users/${row.id}/edit`"
-              class="text-sm font-medium text-accent hover:underline"
-            >
-              Edit
-            </RouterLink>
-            <button
-              type="button"
-              class="ml-4 text-sm font-medium transition-colors"
-              :class="
-                row.id === currentUserId
-                  ? 'cursor-not-allowed text-ink-soft/50'
-                  : 'text-ink-soft hover:text-red-600'
-              "
-              :disabled="row.id === currentUserId"
-              @click="handleDelete(row)"
-            >
-              Delete
-            </button>
-          </td>
-        </template>
-      </DataTableComponent>
+      <UserTableComponent
+        :users="filteredUsers"
+        :current-user-id="currentUserId"
+        @delete="handleDelete"
+      />
     </PanelCardComponent>
   </div>
 </template>

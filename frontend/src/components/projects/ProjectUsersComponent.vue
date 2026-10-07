@@ -1,0 +1,117 @@
+<script setup lang="ts">
+// Developed by Mateo Garcia Carreno
+
+// External imports
+import { computed, ref, watch } from 'vue';
+
+// Internal imports
+import { LabelUtil } from '@/utils/LabelUtil';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+import type { UserInterface } from '@/interfaces/UserInterface';
+
+// Props
+const { users, availableUsers, currentUserId } = defineProps<{
+  users: UserInterface[];
+  availableUsers: UserInterface[];
+  currentUserId: number | null;
+}>();
+
+// Emits
+const emit = defineEmits<{ add: [userId: number]; remove: [userId: number] }>();
+
+// Non-reactive variables
+const NONE = 0;
+
+// Reactive variables
+const selectedUserId = ref<number>(NONE);
+
+const selectorUsers = computed(() =>
+  availableUsers.map((user) => ({ value: user.id, label: `${user.name} · ${user.email}` })),
+);
+
+// Functions
+function canRemove(userId: number): boolean {
+  return userId !== currentUserId;
+}
+
+function handleAdd(): void {
+  if (!selectedUserId.value) return;
+  emit('add', selectedUserId.value);
+}
+
+// Watchers
+watch(
+  () => availableUsers,
+  (newOptions) => {
+    if (!newOptions.some((user) => user.id === selectedUserId.value)) {
+      selectedUserId.value = newOptions[0]?.id ?? NONE;
+    }
+  },
+  { immediate: true },
+);
+</script>
+
+<template>
+  <div class="space-y-5">
+    <ul class="divide-y divide-line border-y border-line">
+      <li v-for="user in users" :key="user.id" class="flex items-center gap-3 py-3">
+        <span
+          class="grid size-8 shrink-0 place-items-center rounded-full bg-ink/5 text-xs font-semibold"
+        >
+          {{ user.name.charAt(0) }}
+        </span>
+        <span class="min-w-0 leading-tight">
+          <span class="block truncate text-sm font-medium">
+            {{ user.name }}
+            <span v-if="user.id === currentUserId" class="text-ink-soft">(you)</span>
+          </span>
+          <span class="block truncate text-xs text-ink-soft">{{ user.email }}</span>
+        </span>
+
+        <StatusBadgeComponent :tone="LabelUtil.USER_ROLE[user.role].tone" class="ml-auto shrink-0">
+          {{ LabelUtil.USER_ROLE[user.role].text }}
+        </StatusBadgeComponent>
+
+        <button
+          type="button"
+          class="shrink-0 text-sm font-medium transition-colors"
+          :class="
+            canRemove(user.id)
+              ? 'text-ink-soft hover:text-red-600'
+              : 'cursor-not-allowed text-ink-soft/40'
+          "
+          :disabled="!canRemove(user.id)"
+          :title="
+            canRemove(user.id)
+              ? 'Remove from project'
+              : 'You cannot remove yourself: delete the project to leave it'
+          "
+          @click="emit('remove', user.id)"
+        >
+          Remove
+        </button>
+      </li>
+    </ul>
+
+    <div v-if="selectorUsers.length" class="flex items-end gap-3">
+      <SelectFieldComponent
+        id="project-add-user"
+        v-model="selectedUserId"
+        label="Add user"
+        :options="selectorUsers"
+        class="flex-1"
+      />
+      <button
+        type="button"
+        class="bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+        @click="handleAdd"
+      >
+        Add
+      </button>
+    </div>
+    <p v-else class="text-sm text-ink-soft">
+      Every registered user already belongs to this project.
+    </p>
+  </div>
+</template>

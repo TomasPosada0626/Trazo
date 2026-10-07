@@ -1,17 +1,18 @@
 <script setup lang="ts">
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-// internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
-import type { CreateUserDTO } from '@/dtos/CreateUserDTO';
-import type { UserRole } from '@/interfaces/UserInterface';
-import { toSelectOptions, USER_ROLE } from '@/utils/labels';
 
-// props
+// Internal imports
+import type { CreateUserDTO } from '@/dtos/userDTO/CreateUserDTO';
+import { LabelUtil } from '@/utils/LabelUtil';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
+import type { UserRole } from '@/types/UserTypes';
+
+// Props
 const {
   initialValues,
   submitLabel,
@@ -22,20 +23,19 @@ const {
   passwordRequired?: boolean;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ submit: [values: CreateUserDTO] }>();
 
-// reactive variables
+// Reactive variables
 const name = ref(initialValues?.name ?? '');
 const email = ref(initialValues?.email ?? '');
 const password = ref('');
 
-// selectors
 const selectedRole = ref<string>(initialValues?.role ?? 'member');
 
-const selectorRoles = toSelectOptions(USER_ROLE);
+const selectorRoles = LabelUtil.toSelectOptions(LabelUtil.USER_ROLE);
 
-// functions
+// Functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),

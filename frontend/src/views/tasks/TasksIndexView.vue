@@ -1,54 +1,41 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed, ref } from 'vue';
+// External imports
+import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-// internal imports
-import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
-import DataTableComponent, { type DataTableColumn } from '@/components/ui/DataTableComponent.vue';
-import IdChipComponent from '@/components/ui/IdChipComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import SelectFieldComponent, { type SelectOption } from '@/components/ui/SelectFieldComponent.vue';
-import StatusBadgeComponent from '@/components/ui/StatusBadgeComponent.vue';
-import type { TaskInterface, TaskStatus } from '@/interfaces/TaskInterface';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
-import { TaskService } from '@/services/TaskService';
-import { formatDate } from '@/utils/date';
-import { shortId } from '@/utils/id';
-import {
-  TASK_PRIORITY,
-  TASK_STATUS,
-  TASK_TYPE,
-  TASK_TYPE_COLORS,
-  toFilterOptions,
-} from '@/utils/labels';
 
-// variables
+// Internal imports
+import { ColorUtil } from '@/utils/ColorUtil';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import PieChartComponent from '@/components/dashboard/PieChartComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
+import SelectFieldComponent, {
+  type SelectOption,
+} from '@/components/shared/SelectFieldComponent.vue';
+import type { TaskInterface } from '@/interfaces/TaskInterface';
+import { TaskService } from '@/services/TaskService';
+import type { TaskStatus } from '@/types/TaskTypes';
+import TaskTableComponent from '@/components/tasks/TaskTableComponent.vue';
+
+// Non-reactive variables
 const SAVED_NOTICES: Record<string, string> = {
   created: 'The task was created.',
   updated: 'The task was updated.',
 };
 
-const columns: DataTableColumn[] = [
-  { key: 'id', label: 'ID' },
-  { key: 'title', label: 'Title' },
-  { key: 'project', label: 'Project' },
-  { key: 'status', label: 'Status' },
-  { key: 'priority', label: 'Priority' },
-  { key: 'assignee', label: 'Assignee' },
-  { key: 'dueDate', label: 'Due date' },
-  { key: 'actions', label: '', class: 'text-right' },
-];
-
 const route = useRoute();
 
-// reactive variables
+// Reactive variables
 const notice = ref(SAVED_NOTICES[String(route.query.saved)] ?? '');
+const isLoading = ref(true);
+const projects = ref<ProjectInterface[]>([]);
+const projectTasks = ref<TaskInterface[]>([]);
 
-// selectors
 const selectedProjectId = ref<number | 'all'>('all');
 
 const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
@@ -58,23 +45,12 @@ const selectorProjects = computed<SelectOption<number | 'all'>[]>(() => [
 
 const selectedStatus = ref<TaskStatus | 'all'>('all');
 
-const selectorStatuses = toFilterOptions(TASK_STATUS);
-
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id);
-
-const projects = computed(() =>
-  currentUserId.value ? ProjectService.getAllUserProjects(currentUserId.value) : [],
-);
+const selectorStatuses = LabelUtil.toFilterOptions(LabelUtil.TASK_STATUS);
 
 const tasks = computed(() =>
-  currentUserId.value
-    ? TaskService.getUserTasksFiltered(
-        currentUserId.value,
-        selectedProjectId.value,
-        selectedStatus.value,
-      )
-    : [],
+  selectedStatus.value === 'all'
+    ? projectTasks.value
+    : projectTasks.value.filter((task) => task.status === selectedStatus.value),
 );
 
 const typeChart = computed(() => {
@@ -83,32 +59,42 @@ const typeChart = computed(() => {
     counts[task.type] = (counts[task.type] ?? 0) + 1;
   }
 
-  const types = Object.keys(counts) as (keyof typeof TASK_TYPE_COLORS)[];
+  const types = Object.keys(counts) as (keyof typeof ColorUtil.TASK_TYPE)[];
   return {
-    labels: types.map((type) => TASK_TYPE[type].text),
+    labels: types.map((type) => LabelUtil.TASK_TYPE[type].text),
     values: types.map((type) => counts[type] ?? 0),
-    colors: types.map((type) => TASK_TYPE_COLORS[type]),
+    colors: types.map((type) => ColorUtil.TASK_TYPE[type]),
   };
 });
 
-// functions
-function projectName(task: TaskInterface): string {
-  return ProjectService.getById(task.projectId)?.name ?? 'Unknown project';
+// Functions
+async function loadTasks(): Promise<void> {
+  projectTasks.value = await TaskService.getTasks(selectedProjectId.value);
 }
 
-function assigneeName(task: TaskInterface): string {
-  return TaskService.getAssignee(task)?.name ?? '—';
-}
-
-function handleDelete(task: TaskInterface): void {
+async function handleDelete(task: TaskInterface): Promise<void> {
   const confirmed = window.confirm(
     `Delete the task "${task.title}"? This action cannot be undone.`,
   );
   if (!confirmed) return;
 
-  TaskService.remove(task.id);
-  notice.value = `The task "${task.title}" was deleted.`;
+  try {
+    await TaskService.deleteTask(task.id);
+    notice.value = `The task "${task.title}" was deleted.`;
+    await loadTasks();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The task could not be deleted.'));
+  }
 }
+
+// Watchers
+watch(selectedProjectId, loadTasks);
+
+// Hooks
+onMounted(async () => {
+  [projects.value] = await Promise.all([ProjectService.getProjects(), loadTasks()]);
+  isLoading.value = false;
+});
 </script>
 
 <template>
@@ -172,51 +158,10 @@ function handleDelete(task: TaskInterface): void {
         </div>
       </template>
 
-      <DataTableComponent
-        :columns="columns"
-        :rows="tasks"
-        empty-message="No tasks match this filter. Create one to get started."
-      >
-        <template #row="{ row }">
-          <td class="px-4 py-3">
-            <IdChipComponent>{{ shortId('TSK', row.id) }}</IdChipComponent>
-          </td>
-          <td class="px-4 py-3 font-medium">{{ row.title }}</td>
-          <td class="px-4 py-3 text-ink-soft">{{ projectName(row) }}</td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_STATUS[row.status].tone">
-              {{ TASK_STATUS[row.status].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3">
-            <StatusBadgeComponent :tone="TASK_PRIORITY[row.priority].tone">
-              {{ TASK_PRIORITY[row.priority].text }}
-            </StatusBadgeComponent>
-          </td>
-          <td class="px-4 py-3 text-ink-soft">{{ assigneeName(row) }}</td>
-          <td class="px-4 py-3 text-ink-soft">
-            {{ row.dueDate ? formatDate(row.dueDate) : '—' }}
-          </td>
-          <td class="px-4 py-3 text-right whitespace-nowrap">
-            <RouterLink
-              :to="`/app/tasks/${row.id}/edit`"
-              class="text-sm font-medium text-accent hover:underline"
-            >
-              Edit
-            </RouterLink>
-            <button
-              type="button"
-              class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
-              @click="handleDelete(row)"
-            >
-              Delete
-            </button>
-          </td>
-        </template>
-      </DataTableComponent>
+      <TaskTableComponent :tasks="tasks" @delete="handleDelete" />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!projects.length" title="No projects yet" padded>
+    <PanelCardComponent v-if="!isLoading && !projects.length" title="No projects yet" padded>
       <p class="text-sm text-ink-soft">
         A task always belongs to a project, and you do not belong to any yet. Ask an administrator
         to add you to one before creating tasks.

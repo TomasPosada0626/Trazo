@@ -1,221 +1,71 @@
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// internal imports
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
-import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
-import type { ProjectInterface, ProjectStatus } from '@/interfaces/ProjectInterface';
+// External imports
+import axios from 'axios';
+
+// Internal imports
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
 import type { UserInterface } from '@/interfaces/UserInterface';
-import { AuthService } from '@/services/AuthService';
-import { SprintService } from '@/services/SprintService';
-import { TaskService } from '@/services/TaskService';
-import { UserService } from '@/services/UserService';
-import { useProjectStore } from '@/stores/projectstore';
-import { nextId } from '@/utils/id';
 
 export class ProjectService {
-  /**
-   * Projects the given user belongs to. Membership is the visibility rule:
-   * a project the user is not a member of never reaches their screen.
-   *
-   * @param userId Id of the user whose projects are being listed.
-   * @returns The user's projects, empty when they belong to none.
-   */
-  static getAllUserProjects(userId: number): ProjectInterface[] {
-    return useProjectStore().projects.filter((project) => project.memberIds.includes(userId));
+  private static readonly apiUrl = import.meta.env.VITE_API_BASE_URL;
+
+  static async getProjects(): Promise<ProjectInterface[]> {
+    const response = await axios.get<ProjectInterface[]>(`${this.apiUrl}projects`);
+    return response.data;
   }
 
-  /**
-   * The user's projects, narrowed by status.
-   *
-   * @param userId Id of the user whose projects are being listed.
-   * @param status Status to restrict to, or `'all'` to skip filtering.
-   * @returns The matching projects.
-   */
-  static getUserProjectsByStatus(
-    userId: number,
-    status: ProjectStatus | 'all',
-  ): ProjectInterface[] {
-    const projects = ProjectService.getAllUserProjects(userId);
-    if (status === 'all') return projects;
-
-    return projects.filter((project) => project.status === status);
+  static async getProjectById(id: number): Promise<ProjectInterface> {
+    const response = await axios.get<ProjectInterface>(`${this.apiUrl}projects/${id}`);
+    return response.data;
   }
 
-  /**
-   * Finds a project by id.
-   *
-   * @param id Id of the project.
-   * @returns The project, or `undefined` when no project carries that id.
-   */
-  static getById(id: number): ProjectInterface | undefined {
-    return useProjectStore().projects.find((project) => project.id === id);
+  static async createProject(project: CreateProjectDTO): Promise<ProjectInterface> {
+    const response = await axios.post<ProjectInterface>(`${this.apiUrl}projects`, project);
+    return response.data;
   }
 
-  /**
-   * Creates a project owned by the current session's user, who becomes its
-   * first member. Without that the creator could not see what they just made,
-   * since getAllUserProjects filters on membership.
-   *
-   * @param data Project fields supplied by the form.
-   * @returns The stored project.
-   */
-  static create(data: CreateProjectDTO): ProjectInterface {
-    const creator = AuthService.getCurrentUser();
-    const project: ProjectInterface = {
-      id: nextId(useProjectStore().projects),
-      createdAt: new Date().toISOString(),
-      memberIds: creator ? [creator.id] : [],
-      ...data,
-    };
-
-    // Mutating in place keeps PiniaConfig's deep watcher cheap.
-    useProjectStore().projects.push(project);
-    return project;
+  static async updateProject(
+    project: UpdateProjectDTO,
+    projectId: number,
+  ): Promise<ProjectInterface> {
+    const response = await axios.patch<ProjectInterface>(
+      `${this.apiUrl}projects/${projectId}`,
+      project,
+    );
+    return response.data;
   }
 
-  /**
-   * Applies a partial update. No-op when the id does not exist.
-   *
-   * @param id Id of the project to update.
-   * @param changes Fields to overwrite; omitted fields keep their value.
-   */
-  static update(id: number, changes: UpdateProjectDTO): void {
-    const project = ProjectService.getById(id);
-    if (!project) return;
-
-    Object.assign(project, changes);
+  static async deleteProject(id: number): Promise<void> {
+    await axios.delete(`${this.apiUrl}projects/${id}`);
   }
 
-  /**
-   * Deletes a project, every task that belongs to it and every one of its
-   * sprints.
-   *
-   * The cascade is not optional: a project is the only way its tasks and
-   * sprints reach a screen, so anything left behind would be invisible forever
-   * while still taking up room in LocalStorage. Each entity is deleted by the
-   * service that owns its store.
-   *
-   * Tasks go first, so unscheduling them from their sprints is a no-op by the
-   * time the sprints are removed.
-   *
-   * @param id Id of the project to delete.
-   */
-  static remove(id: number): void {
-    TaskService.removeByProject(id);
-    SprintService.removeByProject(id);
-
-    const projects = useProjectStore().projects;
-    const index = projects.findIndex((project) => project.id === id);
-    if (index !== -1) {
-      projects.splice(index, 1);
-    }
+  static async getProjectUsers(id: number): Promise<UserInterface[]> {
+    const response = await axios.get<UserInterface[]>(`${this.apiUrl}projects/${id}/users`);
+    return response.data;
   }
 
-  /**
-   * Resolves the project's members from the stored memberIds.
-   *
-   * @param project The project whose members are being resolved.
-   * @returns The project's members.
-   */
-  static getMembers(project: ProjectInterface): UserInterface[] {
-    return project.memberIds
-      .map((memberId) => UserService.getById(memberId))
-      .filter((user): user is UserInterface => user !== undefined);
+  static async getAvailableUsers(id: number): Promise<UserInterface[]> {
+    const response = await axios.get<UserInterface[]>(
+      `${this.apiUrl}projects/${id}/available-users`,
+    );
+    return response.data;
   }
 
-  /**
-   * Users who are not members yet — the options for the "add member" picker.
-   *
-   * @param project The project to compare against.
-   * @returns Every registered user who isn't already a member.
-   */
-  static getNonMembers(project: ProjectInterface): UserInterface[] {
-    return UserService.getAll().filter((user) => !project.memberIds.includes(user.id));
+  static async addProjectUser(projectId: number, userId: number): Promise<UserInterface[]> {
+    const response = await axios.post<UserInterface[]>(
+      `${this.apiUrl}projects/${projectId}/users`,
+      { userId },
+    );
+    return response.data;
   }
 
-  /**
-   * Adds a user to the project. Ignores unknown users and repeat additions.
-   *
-   * @param projectId Id of the project to add the user to.
-   * @param userId Id of the user to add.
-   */
-  static addMember(projectId: number, userId: number): void {
-    const project = ProjectService.getById(projectId);
-    if (!project || project.memberIds.includes(userId)) return;
-
-    if (!UserService.getById(userId)) return;
-
-    project.memberIds.push(userId);
-  }
-
-  /**
-   * Removes a user from every project they belong to.
-   *
-   * Called when a user is deleted, for the same reason as
-   * TaskService.unassignUser: a leftover id would make the next user created
-   * a member of projects they were never added to.
-   *
-   * @param userId Id of the user being removed.
-   */
-  static removeMemberEverywhere(userId: number): void {
-    useProjectStore().projects.forEach((project) => {
-      const index = project.memberIds.indexOf(userId);
-      if (index !== -1) {
-        project.memberIds.splice(index, 1);
-      }
-    });
-  }
-
-  /**
-   * Checks membership.
-   *
-   * @param project The project to check.
-   * @param userId Id of the user to check for.
-   * @returns `true` when the user belongs to the project.
-   */
-  static isMember(project: ProjectInterface, userId: number): boolean {
-    return project.memberIds.includes(userId);
-  }
-
-  /**
-   * Removes a user from the project.
-   *
-   * You cannot remove yourself: leaving a project you administer is done by
-   * deleting it. That is also what keeps a project reachable — only admins can
-   * open this screen, and only over projects they belong to, so refusing
-   * self-removal guarantees at least one admin member always remains.
-   *
-   * @param projectId Id of the project to remove the member from.
-   * @param userId Id of the user to remove.
-   */
-  static removeMember(projectId: number, userId: number): void {
-    const project = ProjectService.getById(projectId);
-    if (!project) return;
-
-    if (userId === AuthService.getCurrentUser()?.id) return;
-
-    const index = project.memberIds.indexOf(userId);
-    if (index !== -1) {
-      project.memberIds.splice(index, 1);
-    }
-  }
-
-  /**
-   * Percentage of the project's tasks that are done.
-   *
-   * A project with no tasks reports 0 rather than 100: nothing has been
-   * delivered yet, and dividing by zero would say otherwise. Rounded to a
-   * whole number, since that is the only precision the progress bar shows.
-   *
-   * @param project The project to measure.
-   * @returns Completion from 0 to 100.
-   */
-  static getOverallProgress(project: ProjectInterface): number {
-    const tasks = TaskService.getByProject(project.id);
-    if (!tasks.length) return 0;
-
-    const done = tasks.filter((task) => task.status === 'done').length;
-
-    return Math.round((done / tasks.length) * 100);
+  static async removeProjectUser(projectId: number, userId: number): Promise<UserInterface[]> {
+    const response = await axios.delete<UserInterface[]>(
+      `${this.apiUrl}projects/${projectId}/users/${userId}`,
+    );
+    return response.data;
   }
 }

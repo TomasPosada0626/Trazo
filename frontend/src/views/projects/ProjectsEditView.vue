@@ -1,55 +1,82 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
-import { computed } from 'vue';
+// External imports
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-// internal imports
-import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
-import ProjectMembersComponent from '@/components/projects/ProjectMembersComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import type { UpdateProjectDTO } from '@/dtos/UpdateProjectDTO';
-import { AuthService } from '@/services/AuthService';
-import { ProjectService } from '@/services/ProjectService';
 
-// variables
+// Internal imports
+import { AuthService } from '@/services/AuthService';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
+import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
+import type { ProjectInterface } from '@/interfaces/ProjectInterface';
+import { ProjectService } from '@/services/ProjectService';
+import ProjectUsersComponent from '@/components/projects/ProjectUsersComponent.vue';
+import type { UpdateProjectDTO } from '@/dtos/projectDTO/UpdateProjectDTO';
+import type { UserInterface } from '@/interfaces/UserInterface';
+
+// Non-reactive variables
 const route = useRoute();
 const router = useRouter();
 
 const projectId = Number(route.params.id);
 
-// computed variables
-const currentUserId = computed(() => AuthService.getCurrentUser()?.id ?? null);
+// Reactive variables
+const isLoading = ref(true);
+const project = ref<ProjectInterface | null>(null);
+const users = ref<UserInterface[]>([]);
+const availableUsers = ref<UserInterface[]>([]);
 
-const project = computed(() => {
-  const found = ProjectService.getById(projectId);
-  if (!found || !currentUserId.value || !ProjectService.isMember(found, currentUserId.value)) {
-    return undefined;
+const currentUserId = computed(() => AuthService.getLoggedInUser()?.id ?? null);
+
+// Functions
+async function loadUsers(): Promise<void> {
+  [users.value, availableUsers.value] = await Promise.all([
+    ProjectService.getProjectUsers(projectId),
+    ProjectService.getAvailableUsers(projectId),
+  ]);
+}
+
+async function handleAddUser(userId: number): Promise<void> {
+  try {
+    await ProjectService.addProjectUser(projectId, userId);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be added.'));
   }
+}
 
-  return found;
+async function handleRemoveUser(userId: number): Promise<void> {
+  try {
+    await ProjectService.removeProjectUser(projectId, userId);
+    await loadUsers();
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The user could not be removed.'));
+  }
+}
+
+async function handleSubmit(values: UpdateProjectDTO): Promise<void> {
+  try {
+    await ProjectService.updateProject(values, projectId);
+    await router.push({ name: 'projects' });
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be updated.'));
+  }
+}
+
+// Hooks
+onMounted(async () => {
+  try {
+    project.value = await ProjectService.getProjectById(projectId);
+    await loadUsers();
+  } catch {
+    project.value = null;
+  } finally {
+    isLoading.value = false;
+  }
 });
-
-const members = computed(() => (project.value ? ProjectService.getMembers(project.value) : []));
-
-const nonMembers = computed(() =>
-  project.value ? ProjectService.getNonMembers(project.value) : [],
-);
-
-// functions
-function handleAddMember(userId: number): void {
-  ProjectService.addMember(projectId, userId);
-}
-
-function handleRemoveMember(userId: number): void {
-  ProjectService.removeMember(projectId, userId);
-}
-
-function handleSubmit(values: UpdateProjectDTO): void {
-  ProjectService.update(projectId, values);
-  router.push({ name: 'projects' });
-}
 </script>
 
 <template>
@@ -72,17 +99,17 @@ function handleSubmit(values: UpdateProjectDTO): void {
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="project" title="Project members" padded>
-      <ProjectMembersComponent
-        :members="members"
-        :non-members="nonMembers"
+    <PanelCardComponent v-if="project" title="Project users" padded>
+      <ProjectUsersComponent
+        :users="users"
+        :available-users="availableUsers"
         :current-user-id="currentUserId"
-        @add="handleAddMember"
-        @remove="handleRemoveMember"
+        @add="handleAddUser"
+        @remove="handleRemoveUser"
       />
     </PanelCardComponent>
 
-    <PanelCardComponent v-if="!project" title="Project not found" padded>
+    <PanelCardComponent v-if="!isLoading && !project" title="Project not found" padded>
       <p class="text-sm text-ink-soft">
         The project you are trying to edit does not exist, or you do not belong to it.
       </p>

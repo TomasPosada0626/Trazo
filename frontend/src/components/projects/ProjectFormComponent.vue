@@ -1,35 +1,35 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
-// internal imports
-import SelectFieldComponent from '@/components/ui/SelectFieldComponent.vue';
-import TextFieldComponent from '@/components/ui/TextFieldComponent.vue';
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
-import type { ProjectStatus } from '@/interfaces/ProjectInterface';
-import { PROJECT_STATUS, toSelectOptions } from '@/utils/labels';
 
-// props
+// Internal imports
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import { LabelUtil } from '@/utils/LabelUtil';
+import type { ProjectStatus } from '@/types/ProjectTypes';
+import SelectFieldComponent from '@/components/shared/SelectFieldComponent.vue';
+import TextFieldComponent from '@/components/shared/TextFieldComponent.vue';
+
+// Props
 const { initialValues, submitLabel } = defineProps<{
   initialValues?: CreateProjectDTO;
   submitLabel: string;
 }>();
 
-// emits
+// Emits
 const emit = defineEmits<{ submit: [values: CreateProjectDTO] }>();
 
-// reactive variables
+// Reactive variables
 const name = ref(initialValues?.name ?? '');
 const description = ref(initialValues?.description ?? '');
 
-// selectors
 const selectedStatus = ref<string>(initialValues?.status ?? 'active');
 
-const selectorStatuses = toSelectOptions(PROJECT_STATUS);
+const selectorStatuses = LabelUtil.toSelectOptions(LabelUtil.PROJECT_STATUS);
 
-// functions
+// Functions
 function handleSubmit(): void {
   emit('submit', {
     name: name.value.trim(),

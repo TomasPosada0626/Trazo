@@ -1,28 +1,30 @@
 <script setup lang="ts">
-// Author: Tomás Posada
+// Developed by Tomás Posada
 
-// external imports
+// External imports
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-// internal imports
-import BrandMarkComponent from '@/components/ui/BrandMarkComponent.vue';
-import { AuthService } from '@/services/AuthService';
 
-// reactive variables
+// Internal imports
+import { AuthService } from '@/services/AuthService';
+import BrandMarkComponent from '@/components/shared/BrandMarkComponent.vue';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+
+// Reactive variables
 const email = ref('');
 const password = ref('');
 const error = ref('');
 
 const router = useRouter();
 
-// functions
-function handleSubmit(): void {
+// Functions
+async function handleSubmit(): Promise<void> {
   error.value = '';
   try {
-    AuthService.login({ email: email.value, password: password.value });
-    router.push({ name: 'dashboard' });
+    await AuthService.logInUser(email.value, password.value);
+    await router.push({ name: 'dashboard' });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Could not sign in.';
+    error.value = ErrorUtil.getMessage(err, 'Could not sign in.');
   }
 }
 </script>
@@ -79,23 +81,24 @@ function handleSubmit(): void {
       </form>
 
       <div class="mt-6 border border-dashed border-line p-4 text-xs leading-relaxed text-ink-soft">
-        <p>
-          <code class="font-mono font-semibold text-ink">piniaState.user</code>
-          — preloaded demo accounts:
-        </p>
+        <p>Demo accounts:</p>
         <ul class="mt-2 space-y-0.5">
           <li>
             <code class="font-mono font-semibold text-ink">admin@trazo.com</code>
+            ·
+            <code class="font-mono font-semibold text-ink">admin123</code>
             · role: Administrator
           </li>
           <li>
             <code class="font-mono font-semibold text-ink">maria@trazo.com</code>
+            ·
+            <code class="font-mono font-semibold text-ink">member123</code>
             · role: Team member
           </li>
         </ul>
         <p class="mt-3">
-          Credentials are validated against a mock user array saved to LocalStorage when the app
-          first loads.
+          Credentials are verified by the API against the bcrypt hash stored in the database, which
+          returns a signed token for the session.
         </p>
       </div>
     </div>

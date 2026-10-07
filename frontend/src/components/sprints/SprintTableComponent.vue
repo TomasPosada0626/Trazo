@@ -1,0 +1,77 @@
+<script setup lang="ts">
+// Developed by Mateo Garcia Carreno
+
+// External imports
+import { RouterLink } from 'vue-router';
+
+// Internal imports
+import { ColorUtil } from '@/utils/ColorUtil';
+import DataTableComponent from '@/components/shared/DataTableComponent.vue';
+import { DateUtil } from '@/utils/DateUtil';
+import IdChipComponent from '@/components/shared/IdChipComponent.vue';
+import { IdUtil } from '@/utils/IdUtil';
+import { LabelUtil } from '@/utils/LabelUtil';
+import type { SprintInterface } from '@/interfaces/SprintInterface';
+import StatusBadgeComponent from '@/components/shared/StatusBadgeComponent.vue';
+
+// Props
+const { sprints } = defineProps<{ sprints: SprintInterface[] }>();
+
+// Emits
+const emit = defineEmits<{ delete: [sprint: SprintInterface] }>();
+</script>
+
+<template>
+  <DataTableComponent
+    :rows="sprints"
+    empty-message="This project has no sprints matching the filter."
+  >
+    <template #head>
+      <th scope="col" class="table-head-cell">ID</th>
+      <th scope="col" class="table-head-cell">Sprint</th>
+      <th scope="col" class="table-head-cell">Dates</th>
+      <th scope="col" class="table-head-cell">Committed pts.</th>
+      <th scope="col" class="table-head-cell">Completed pts.</th>
+      <th scope="col" class="table-head-cell">Tasks</th>
+      <th scope="col" class="table-head-cell">Days left</th>
+      <th scope="col" class="table-head-cell">Status</th>
+      <th scope="col" class="table-head-cell text-right"></th>
+    </template>
+
+    <template #row="{ row }">
+      <td class="px-4 py-3">
+        <IdChipComponent>{{ IdUtil.shortId('SPR', row.id) }}</IdChipComponent>
+      </td>
+      <td class="px-4 py-3 font-medium">{{ row.name }}</td>
+      <td class="px-4 py-3 text-ink-soft">
+        {{ DateUtil.formatDateRange(row.startDate, row.endDate) }}
+      </td>
+      <td class="px-4 py-3 font-mono">{{ row.committedPoints }}</td>
+      <td class="px-4 py-3 font-mono">{{ row.completedPoints }}</td>
+      <td class="px-4 py-3 font-mono">{{ row.taskCount }}</td>
+      <td class="px-4 py-3 text-ink-soft">
+        {{ row.status === 'completed' ? '—' : `${row.remainingDays ?? 0} d` }}
+      </td>
+      <td class="px-4 py-3">
+        <StatusBadgeComponent :color="ColorUtil.SPRINT_STATUS[row.status]">
+          {{ LabelUtil.SPRINT_STATUS[row.status].text }}
+        </StatusBadgeComponent>
+      </td>
+      <td class="px-4 py-3 text-right whitespace-nowrap">
+        <RouterLink
+          :to="`/app/sprints/${row.id}/edit`"
+          class="text-sm font-medium text-accent hover:underline"
+        >
+          Edit
+        </RouterLink>
+        <button
+          type="button"
+          class="ml-4 text-sm font-medium text-ink-soft transition-colors hover:text-red-600"
+          @click="emit('delete', row)"
+        >
+          Delete
+        </button>
+      </td>
+    </template>
+  </DataTableComponent>
+</template>

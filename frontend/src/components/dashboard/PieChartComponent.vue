@@ -1,27 +1,26 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { ArcElement, Chart, Legend, PieController, Tooltip } from 'chart.js';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-// Only the pie pieces, so the bar/line/radar controllers stay tree-shaken.
 Chart.register(PieController, ArcElement, Tooltip, Legend);
 
-// props
+// Props
 const { labels, values, colors } = defineProps<{
   labels: string[];
   values: number[];
   colors: string[];
 }>();
 
-// reactive variables
+// Reactive variables
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart | null = null;
 
 const isEmpty = ref(false);
 
-// functions
+// Functions
 function syncEmpty(): void {
   isEmpty.value = values.every((value) => value === 0);
 }
@@ -64,7 +63,7 @@ function render(): void {
 
 onMounted(render);
 
-// watchers
+// Watchers
 watch(
   () => [labels, values, colors],
   () => {

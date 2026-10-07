@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-/* Trazo design tokens. Declaring them in @theme makes Tailwind generate the
-   matching utilities (text-ink, bg-accent, border-line, ...). */
 @theme {
   --color-ink: #0d3355;
   --color-ink-soft: #5a7591;
@@ -10,17 +8,9 @@
   --color-paper: #ffffff;
 }
 
-/* Router link states.
-   nav-current -> exact match only, for top-level links like Home.
-   nav-section -> prefix match, so /app/projects/new keeps "Proyectos" lit. */
 @custom-variant nav-current (&.router-link-exact-active);
 @custom-variant nav-section (&.router-link-active);
 
-/* Status chip painted from one exact colour rather than a tone, so a badge
-   and the chart slice for the same status come out identical. The hex arrives
-   inline as --badge-color; everything derived from it stays here in the
-   stylesheet instead of being computed in a template. The dot inherits the
-   same custom property from the pill. */
 @utility badge-tinted {
   background-color: color-mix(in srgb, var(--badge-color) 12%, var(--color-paper));
   color: var(--color-ink);
@@ -30,7 +20,10 @@
   background-color: var(--badge-color);
 }
 
-/* Blueprint-style grid background. */
+@utility table-head-cell {
+  @apply px-4 py-3 text-left font-mono text-[10px] font-semibold tracking-[0.12em] text-ink-soft uppercase;
+}
+
 @utility grid-paper {
   background-image:
     linear-gradient(to right, var(--color-line) 1px, transparent 1px),

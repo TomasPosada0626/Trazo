@@ -1,23 +1,28 @@
 <script setup lang="ts">
-// Author: Mateo Garcia Carreno
+// Developed by Mateo Garcia Carreno
 
-// external imports
+// External imports
 import { useRouter } from 'vue-router';
-// internal imports
+
+// Internal imports
+import type { CreateProjectDTO } from '@/dtos/projectDTO/CreateProjectDTO';
+import { ErrorUtil } from '@/utils/ErrorUtil';
+import PageHeaderComponent from '@/components/shared/PageHeaderComponent.vue';
+import PanelCardComponent from '@/components/shared/PanelCardComponent.vue';
 import ProjectFormComponent from '@/components/projects/ProjectFormComponent.vue';
-import PageHeaderComponent from '@/components/ui/PageHeaderComponent.vue';
-import PanelCardComponent from '@/components/ui/PanelCardComponent.vue';
-import type { CreateProjectDTO } from '@/dtos/CreateProjectDTO';
 import { ProjectService } from '@/services/ProjectService';
 
-// variables
+// Non-reactive variables
 const router = useRouter();
 
-// functions
-function handleSubmit(values: CreateProjectDTO): void {
-  // The service adds the creator as the first member.
-  ProjectService.create(values);
-  router.push({ name: 'projects' });
+// Functions
+async function handleSubmit(values: CreateProjectDTO): Promise<void> {
+  try {
+    await ProjectService.createProject(values);
+    await router.push({ name: 'projects' });
+  } catch (err) {
+    window.alert(ErrorUtil.getMessage(err, 'The project could not be created.'));
+  }
 }
 </script>
 
