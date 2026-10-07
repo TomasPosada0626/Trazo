@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Internal imports
 import { AuthModule } from './auth/auth.module.js';
-import { HomeModule } from './home/home.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { SprintsModule } from './sprints/sprints.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
@@ -22,7 +21,6 @@ import { UsersModule } from './users/users.module.js';
       synchronize: true,
     }),
     EventEmitterModule.forRoot(),
-    HomeModule,
     UsersModule,
     AuthModule,
     ProjectsModule,
