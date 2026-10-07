@@ -8,7 +8,7 @@ Project and task management platform: a Vue 3 single-page app backed by a NestJS
 
 ## Live Demo
 
-Deployed on Google Cloud Platform: **[http://35.194.49.181/](http://35.194.49.181/)**
+Deployed on Google Cloud Platform: **[http://34.68.83.146/](http://34.68.83.146/)**
 
 See [Demo Accounts](#demo-accounts) below for login credentials.
 
@@ -247,12 +247,12 @@ docker compose up -d
 
 `VITE_API_BASE_URL` is read by Vite at build time, not at runtime, so it is passed as a build argument. Changing it requires `docker compose build frontend`, not just a restart.
 
-For the GCP deployment at `34.29.156.222`, where the frontend is published on port 80 so the demo URL carries no port:
+For the GCP deployment at `34.68.83.146`, where the frontend is published on port 80 so the demo URL carries no port:
 
 ```sh
 FRONTEND_PORT=80
-VITE_API_BASE_URL=http://34.29.156.222:3000/api/
-CORS_ORIGIN=http://34.29.156.222
+VITE_API_BASE_URL=http://34.68.83.146:3000/api/
+CORS_ORIGIN=http://34.68.83.146
 JWT_SECRET=<a long random string>
 ```
 
