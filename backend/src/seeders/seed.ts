@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 
 // Internal imports
 import { AppModule } from '../app.module.js';
+import { PasswordUtils } from '../common/password.utils.js';
 import { Project } from '../projects/entities/project.entity.js';
 import { projectSeeder } from './project.seeder.js';
 import { Sprint } from '../sprints/entities/sprint.entity.js';
@@ -28,6 +29,10 @@ if (process.argv.includes('--fresh')) {
   );
   await app.close();
   process.exit(1);
+}
+
+for (const user of userSeeder) {
+  user.password = await PasswordUtils.hash(user.password);
 }
 
 await dataSource.transaction(async (manager) => {

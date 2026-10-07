@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 
 // Internal imports
 import type { JWTPayloadInterface } from '../interfaces/auth/JWTPayloadInterface.js';
+import { PasswordUtils } from '../common/password.utils.js';
 import { UsersService } from '../users/users.service.js';
 
 @Injectable()
@@ -25,7 +26,7 @@ export class AuthService {
 
     const user = await this.usersService.findByEmailWithPassword(email.trim());
 
-    if (user?.password !== password) {
+    if (!user || !(await PasswordUtils.matches(password, user.password))) {
       throw new UnauthorizedException('Incorrect email or password.');
     }
 

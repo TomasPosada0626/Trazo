@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 // Internal imports
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { PasswordUtils } from '../common/password.utils.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { User } from './entities/user.entity.js';
 
@@ -79,6 +80,7 @@ export class UsersService {
     await this.assertEmailAvailable(createUserDto.email);
 
     const user = this.usersRepository.create(createUserDto);
+    user.password = await PasswordUtils.hash(createUserDto.password);
     const saved = await this.usersRepository.save(user);
 
     return await this.findOne(saved.id);
@@ -90,9 +92,12 @@ export class UsersService {
       await this.assertEmailAvailable(updateUserDto.email, id);
     }
 
-    await this.usersRepository.save(
-      this.usersRepository.merge(user, updateUserDto),
-    );
+    const merged = this.usersRepository.merge(user, updateUserDto);
+    if (updateUserDto.password !== undefined) {
+      merged.password = await PasswordUtils.hash(updateUserDto.password);
+    }
+
+    await this.usersRepository.save(merged);
 
     return await this.findOne(id);
   }
