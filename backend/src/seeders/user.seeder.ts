@@ -6,7 +6,7 @@ import type { DeepPartial } from 'typeorm';
 // Internal imports
 import type { User } from '../users/entities/user.entity.js';
 
-export const userSeeder: DeepPartial<User>[] = [
+export const userSeeder: (DeepPartial<User> & { password: string })[] = [
   {
     id: 1,
     name: 'Ana Duarte',
