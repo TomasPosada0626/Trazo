@@ -43,12 +43,5 @@ CLAUDE.md
 # Environment variables
 .env
 
-# Course material - never commit
-tutoriales/
-Entregable 1 Parte 2 - Base.pdf
-Observaciones Entrega 1 - Parte 1.pdf
-image.png
-Presentación-*.pdf
-
 # Diagram sources and renders - the deliverable copies live in the Wiki
 diagramas/
