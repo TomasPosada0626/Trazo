@@ -15,6 +15,7 @@ import {
 // Internal imports
 import { AuthGuard } from './auth.guard.js';
 import { AuthService } from './auth.service.js';
+import { SignInDto } from './dto/sign-in.dto.js';
 import { User } from '../users/entities/user.entity.js';
 import type { UserRequestInterface } from '../interfaces/auth/UserRequestInterface.js';
 import { UsersService } from '../users/users.service.js';
@@ -29,10 +30,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async signIn(
-    @Body('email') email: string,
-    @Body('password') password: string,
+    @Body() signInDto: SignInDto,
   ): Promise<{ access_token: string }> {
-    return await this.authService.signIn(email, password);
+    return await this.authService.signIn(signInDto.email, signInDto.password);
   }
 
   @UseGuards(AuthGuard)
