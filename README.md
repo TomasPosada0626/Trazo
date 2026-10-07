@@ -98,7 +98,7 @@ Trazo is a two-tier application: a browser-side SPA and a REST API, each layered
 - **The session** is a JWT in `localStorage`: `AuthService.logInUser` stores it, the Axios request interceptor in `frontend/src/AxiosConfig.ts` attaches it as a `Bearer` header, and the response interceptor signs the user out on any `401`.
 - **Computed fields are never persisted** — `Project.progress`, `Sprint.committedPoints`, `Task.assigneeName` and friends are derived by the services on each request.
 
-The full class diagram and architecture diagrams are documented in the [Wiki](https://github.com/TomasPosada0626/Trazo/wiki/Deliverable-1.2).
+The full class diagram and architecture diagrams are documented in the [Wiki](https://github.com/TomasPosada0626/Trazo/wiki/Deliverable-2).
 
 ---
 
