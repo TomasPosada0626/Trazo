@@ -7,7 +7,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# package-lock.json is written by npm 11, which omits optional peer dependencies
+# that npm 10 (the version bundled with this image) still expects to find, so
+# `npm ci` fails on it. Match the npm that produced the lock file.
+RUN npm i -g npm@11 && npm ci
 
 COPY . .
 RUN npm run build && npm prune --omit=dev
