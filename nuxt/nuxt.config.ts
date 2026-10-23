@@ -1,5 +1,8 @@
 // Developed by Mateo Garcia Carreno
 
+// Internal imports
+import { articles } from './app/data/articles';
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -7,6 +10,11 @@ export default defineNuxtConfig({
     '/blog/**': { prerender: true },
     '/projects/**': { ssr: true },
     '/other/**': { ssr: false },
+  },
+  nitro: {
+    prerender: {
+      routes: articles.map((article) => `/blog/${article.id}`),
+    },
   },
   app: {
     head: {
