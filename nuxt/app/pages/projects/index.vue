@@ -45,8 +45,9 @@ useHead({ title: 'Projects' });
               <div class="progress-bar" :style="{ width: `${project.progress}%` }"></div>
             </div>
             <p class="small text-body-secondary mb-3">
-              {{ project.taskCount }} tasks · {{ project.sprints.length }} sprints ·
-              {{ project.users.length }} users
+              {{ LabelUtil.pluralize(project.taskCount, 'task') }} ·
+              {{ LabelUtil.pluralize(project.sprints.length, 'sprint') }} ·
+              {{ LabelUtil.pluralize(project.users.length, 'user') }}
             </p>
             <NuxtLink :to="`/projects/${project.id}`" class="btn btn-primary btn-sm">
               View project
