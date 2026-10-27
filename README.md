@@ -4,11 +4,18 @@
 
 Project and task management platform: a Vue 3 single-page app backed by a NestJS REST API. Organize projects, plan sprints, assign tasks and track progress from a role-aware dashboard, with every entity persisted server-side in SQLite and every request authenticated with a JWT.
 
+Alongside it, `nuxt/` holds a small hybrid Nuxt 4 application that renders one section per strategy — prerendered, server-rendered and client-rendered — over the same domain.
+
 ---
 
 ## Live Demo
 
-Deployed on Google Cloud Platform: **[http://34.68.83.146/](http://34.68.83.146/)**
+Deployed on Google Cloud Platform:
+
+| App | URL |
+| --- | --- |
+| Vue 3 SPA + NestJS API | **[http://34.68.83.146/](http://34.68.83.146/)** |
+| Nuxt hybrid app | **[http://34.68.83.146:3001/](http://34.68.83.146:3001/)** |
 
 See [Demo Accounts](#demo-accounts) below for login credentials.
 
@@ -151,7 +158,13 @@ frontend/
 ├── package.json
 └── vite.config.ts
 
-docker-compose.yml       # Brings up both services together
+nuxt/                    # Hybrid Nuxt 4 app — see nuxt/ for its own layout
+├── app/pages/           # blog/ (prerendered) · projects/ (SSR) · other/ (CSR)
+├── server/api/          # Nitro route handlers backing the SSR section
+├── shared/              # Interfaces and types shared by app/ and server/
+└── Dockerfile
+
+docker-compose.yml       # Brings up the three services together
 ```
 
 ---
@@ -232,6 +245,7 @@ docker compose up -d
 
 - Frontend (nginx) on port **8080** by default, overridable with `FRONTEND_PORT`
 - Backend (NestJS) on port **3000**
+- Nuxt hybrid app on port **3001** by default, overridable with `NUXT_PORT`
 - SQLite lives in the named volume `backend-data`, so the database survives `docker compose down && docker compose up -d`
 
 ### Configuration
@@ -244,6 +258,7 @@ docker compose up -d
 | `CORS_ORIGIN`       | `http://localhost:8080`      | Origins the backend accepts, comma-separated         |
 | `JWT_SECRET`        | `trazo-dev-secret`           | Signing secret for session tokens                    |
 | `FRONTEND_PORT`     | `8080`                       | Host port the frontend is published on               |
+| `NUXT_PORT`         | `3001`                       | Host port the Nuxt app is published on               |
 
 `VITE_API_BASE_URL` is read by Vite at build time, not at runtime, so it is passed as a build argument. Changing it requires `docker compose build frontend`, not just a restart.
 
@@ -268,7 +283,7 @@ Without this step the app loads but no one can sign in.
 
 ### Firewall
 
-The GCP VM needs ingress rules allowing TCP on **80** (or whichever `FRONTEND_PORT` is set) and **3000**, otherwise the frontend loads but every API call fails.
+The GCP VM needs ingress rules allowing TCP on **80** (or whichever `FRONTEND_PORT` is set), **3000** and **3001**. Without the rule for 3000 the frontend loads but every API call fails; without the one for 3001 the Nuxt app is unreachable.
 
 ---
 
