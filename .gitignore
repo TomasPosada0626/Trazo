@@ -45,3 +45,9 @@ CLAUDE.md
 
 # Diagram sources and renders - the deliverable copies live in the Wiki
 diagramas/
+
+# Course material - never commit
+Entregable*.pdf
+Observaciones*.pdf
+Presentación-*.pdf
+tutoriales/

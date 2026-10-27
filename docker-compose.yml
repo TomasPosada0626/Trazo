@@ -23,5 +23,13 @@ services:
       - "${FRONTEND_PORT:-8080}:80"
     restart: unless-stopped
 
+  # Self-contained: its data is hard-coded under nuxt/server/data and it serves
+  # its own API, so it needs no environment of its own.
+  nuxt:
+    build: ./nuxt
+    ports:
+      - "${NUXT_PORT:-3001}:3000"
+    restart: unless-stopped
+
 volumes:
   backend-data:
