@@ -9,6 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "format": "prettier --write app server shared nuxt.config.ts",
+    "lint": "oxlint . --fix",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
+    "oxlint": "~1.73.0",
     "prettier": "3.9.5",
     "typescript": "~6.0.0",
     "vue-tsc": "^3.3.13"
